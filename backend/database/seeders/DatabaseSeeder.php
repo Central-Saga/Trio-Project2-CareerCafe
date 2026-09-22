@@ -1,23 +1,25 @@
 <?php
+
 namespace Database\Seeders;
+
 use App\Models\User;
-use App\Models\Job; // Tambahkan pemanggilan model Job
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
+    /**
+     * Seed the application's database.
+     */
     public function run(): void
     {
         // Membuat 10 pengguna (bawaan Laravel, boleh dibiarkan)
         User::factory(10)->create();
 
         User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'name' => 'Trio Riawan',
+            'email' => 'trioriawan@example.com', // Sesuai dengan email yang ingin Anda pakai
+            'password' => bcrypt('password123'),
         ]);
-
-        // Tambahkan baris ini untuk membuat 10 data lowongan pekerjaan
-        Job::factory(10)->create(); 
     }
 }

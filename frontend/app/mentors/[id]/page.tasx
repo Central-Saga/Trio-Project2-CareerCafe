@@ -1,0 +1,164 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+
+export default function MentorDetailPage() {
+    const router = useRouter();
+    const params = useParams();
+    const mentorId = params.id;
+    const [userName, setUserName] = useState("Pengguna");
+
+    useEffect(() => {
+        const storedName = localStorage.getItem("user_name");
+        if (storedName) {
+            setUserName(storedName);
+        }
+    }, []);
+
+    // Data tiruan mentor berdasarkan ID
+    const mentorData: Record<string, any> = {
+        "1": {
+            name: "Rian Pratama, S.Kom.",
+            role: "Senior Fullstack Engineer",
+            company: "TechBali Denpasar",
+            rating: "4.9",
+            reviews: 120,
+            image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80",
+            bio: "Berpengalaman lebih dari 6 tahun dalam pengembangan aplikasi web skala besar menggunakan ekosistem Laravel dan Next.js. Siap membantu Anda memahami arsitektur perangkat lunak dan praktik terbaik industri.",
+            expertise: ["Laravel", "Next.js", "PostgreSQL", "Docker"],
+        },
+        "2": {
+            name: "Putu Ayu Lestari",
+            role: "Lead UI/UX Designer",
+            company: "KriyaBali Digital",
+            rating: "5.0",
+            reviews: 95,
+            image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80",
+            bio: "Fokus pada pembuatan antarmuka pengguna yang intuitif dan berpusat pada pengguna (Human-Computer Interaction). Berpengalaman mendesain produk digital untuk berbagai startup lokal maupun internasional.",
+            expertise: ["Figma", "User Research", "Design Systems", "Prototyping"],
+        },
+        "3": {
+            name: "Gede Hendra Kusuma",
+            role: "Product Manager & Mentor",
+            company: "Career Cafe Corp",
+            rating: "4.8",
+            reviews: 110,
+            image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80",
+            bio: "Membantu mengarahkan visi produk dari tahap konseptual hingga peluncuran pasar. Ahli dalam penyusunan Business Model Canvas, validasi pasar, dan manajemen proyek tangkas (Agile).",
+            expertise: ["Product Strategy", "Agile", "Business Canvas", "Scrum"],
+        },
+        "4": {
+            name: "Komang Sinta Dewi",
+            role: "Digital Marketing Specialist",
+            company: "Bali Creative Hub",
+            rating: "4.9",
+            reviews: 88,
+            image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=600&q=80",
+            bio: "Praktisi pemasaran digital yang berfokus pada strategi pertumbuhan merek, manajemen media sosial, dan optimalisasi SEO untuk meningkatkan visibilitas bisnis secara organik.",
+            expertise: ["Social Media", "SEO", "Content Marketing", "Branding"],
+        },
+    };
+
+    const mentor = mentorData[Array.isArray(mentorId) ? mentorId[0] : mentorId] || mentorData["1"];
+
+    const handleBooking = () => {
+        alert(`Permintaan booking sesi dengan ${mentor.name} berhasil diajukan! Mentor akan segera mengonfirmasi.`);
+        router.push("/mentors");
+    };
+
+    return (
+        <div className="min-h-screen bg-[#FCFBF8] font-sans text-[#2C1E16]">
+            {/* NAVBAR */}
+            <nav className="bg-white border-b border-gray-100 px-8 py-3.5 flex items-center justify-between sticky top-0 z-50">
+                <div className="flex items-center">
+                    <span className="font-extrabold text-xl text-[#1E3F20] tracking-tight">
+                        Career Cafe
+                    </span>
+                </div>
+
+                <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-gray-600 absolute left-1/2 -translate-x-1/2">
+                    <a href="/jobs" className="hover:text-[#1E3F20] transition-colors">Home</a>
+                    <a href="/mentors" className="text-[#1E3F20]">Mentor</a>
+                    <a href="#" className="hover:text-[#1E3F20] transition-colors">Community</a>
+                    <a href="#" className="hover:text-[#1E3F20] transition-colors">Schedule</a>
+                </div>
+
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2.5 bg-gray-50 border border-gray-200 p-1 rounded-full shadow-sm">
+                        <div className="w-7 h-7 bg-[#1E3F20] text-white rounded-full flex items-center justify-center font-bold text-xs" title={userName}>
+                            {userName.charAt(0).toUpperCase()}
+                        </div>
+                        <button
+                            onClick={() => router.push("/login")}
+                            className="text-xs font-bold text-red-600 hover:text-red-700 px-2 py-0.5 transition-colors"
+                        >
+                            Keluar
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            {/* KONTEN UTAMA DETAIL MENTOR */}
+            <main className="max-w-4xl mx-auto px-6 py-12">
+                <button
+                    onClick={() => router.back()}
+                    className="text-xs font-bold text-gray-500 hover:text-[#1E3F20] mb-6 flex items-center gap-1 transition-colors"
+                >
+                    &larr; Kembali ke Daftar Mentor
+                </button>
+
+                <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+                    <div className="md:col-span-4">
+                        <div className="h-64 rounded-2xl bg-cover bg-center shadow-md mb-4" style={{ backgroundImage: `url('${mentor.image}')` }}></div>
+                        <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-center">
+                            <span className="text-xs text-gray-500 block mb-1">Penilaian Mentor</span>
+                            <div className="flex items-center justify-center gap-1 text-base font-extrabold text-[#2C1E16]">
+                                <span className="text-yellow-500">★</span> {mentor.rating} <span className="text-xs font-normal text-gray-400">({mentor.reviews} ulasan)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="md:col-span-8 space-y-4">
+                        <div>
+                            <span className="text-xs font-bold bg-[#1E3F20]/10 text-[#1E3F20] px-3 py-1 rounded-full inline-block mb-2">
+                                Mentor Profesional
+                            </span>
+                            <h1 className="text-3xl font-extrabold text-[#2C1E16]">{mentor.name}</h1>
+                            <p className="text-sm font-semibold text-gray-600">{mentor.role} di <span className="text-[#1E3F20]">{mentor.company}</span></p>
+                        </div>
+
+                        <div>
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Tentang Mentor</h3>
+                            <p className="text-sm text-gray-600 leading-relaxed">{mentor.bio}</p>
+                        </div>
+
+                        <div>
+                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Keahlian & Topik</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {mentor.expertise.map((skill: string, index: number) => (
+                                    <span key={index} className="text-xs font-bold bg-[#1E3F20]/5 text-[#1E3F20] px-3 py-1 rounded-xl">
+                                        {skill}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="pt-6 border-t border-gray-100 flex items-center justify-between">
+                            <div>
+                                <span className="text-xs text-gray-400 block">Biaya Konsultasi</span>
+                                <span className="text-lg font-extrabold text-[#1E3F20]">Gratis (Coffee Chat)</span>
+                            </div>
+                            <button
+                                onClick={handleBooking}
+                                className="bg-[#1E3F20] text-white px-8 py-3 rounded-xl text-xs font-bold hover:bg-[#152e17] transition-all shadow-md hover:scale-[1.02]"
+                            >
+                                Jadwalkan Sesi Konsultasi &rarr;
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
+}
