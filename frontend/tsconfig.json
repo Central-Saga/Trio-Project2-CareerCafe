@@ -35,7 +35,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts",
-    "app/mentors/[id]/page.tasx"
   ],
   "exclude": [
     "node_modules"
