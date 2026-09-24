@@ -2,7 +2,9 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 type Mentor = {
   id: number;
@@ -44,14 +46,12 @@ type BookingSuccess = {
 function SchedulePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
   const mentorId = searchParams.get("mentor_id");
 
   const [mentor, setMentor] = useState<Mentor | null>(null);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
-
   const [topic, setTopic] = useState("");
   const [message, setMessage] = useState("");
   const [meetingType, setMeetingType] = useState<"online" | "offline">(
@@ -77,6 +77,7 @@ function SchedulePageContent() {
   const dates = useMemo(() => {
     return Array.from({ length: 7 }, (_, index) => {
       const date = new Date(today);
+
       date.setDate(today.getDate() + index);
 
       const iso = [
@@ -209,6 +210,7 @@ function SchedulePageContent() {
     }
 
     fetchSlots();
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mentorId, dates]);
 
@@ -341,22 +343,25 @@ function SchedulePageContent() {
       <div className="min-h-screen bg-[#FCFBF8]">
         <Navbar />
 
-        <main className="max-w-7xl mx-auto px-6 py-12">
+        <main className="mx-auto max-w-7xl px-6 py-12">
           <div className="animate-pulse">
-            <div className="h-8 w-64 rounded-lg bg-gray-200 mb-3" />
-            <div className="h-4 w-96 max-w-full rounded-lg bg-gray-200 mb-10" />
+            <div className="mb-3 h-8 w-64 rounded-lg bg-gray-200" />
 
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
+            <div className="mb-10 h-4 w-96 max-w-full rounded-lg bg-gray-200" />
+
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
               <div className="space-y-6">
-                <div className="h-32 rounded-3xl bg-white border border-gray-100" />
-                <div className="h-48 rounded-3xl bg-white border border-gray-100" />
-                <div className="h-96 rounded-3xl bg-white border border-gray-100" />
+                <div className="h-32 rounded-3xl border border-gray-100 bg-white" />
+                <div className="h-48 rounded-3xl border border-gray-100 bg-white" />
+                <div className="h-96 rounded-3xl border border-gray-100 bg-white" />
               </div>
 
-              <div className="h-96 rounded-3xl bg-white border border-gray-100" />
+              <div className="h-96 rounded-3xl border border-gray-100 bg-white" />
             </div>
           </div>
         </main>
+
+        <Footer />
       </div>
     );
   }
@@ -366,12 +371,12 @@ function SchedulePageContent() {
       <div className="min-h-screen bg-[#FCFBF8]">
         <Navbar />
 
-        <main className="max-w-3xl mx-auto px-6 py-20">
-          <div className="bg-white border border-red-100 rounded-3xl p-8 text-center shadow-sm">
+        <main className="mx-auto max-w-3xl px-6 py-20">
+          <div className="rounded-3xl border border-red-100 bg-white p-8 text-center shadow-sm">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-600">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="w-7 h-7"
+                className="h-7 w-7"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -385,11 +390,11 @@ function SchedulePageContent() {
               </svg>
             </div>
 
-            <h1 className="text-2xl font-extrabold text-[#2C1E16] mb-2">
+            <h1 className="mb-2 text-2xl font-extrabold text-[#2C1E16]">
               Jadwal tidak dapat dimuat
             </h1>
 
-            <p className="text-sm text-gray-500 mb-6">{error}</p>
+            <p className="mb-6 text-sm text-gray-500">{error}</p>
 
             <button
               onClick={() => router.back()}
@@ -399,6 +404,8 @@ function SchedulePageContent() {
             </button>
           </div>
         </main>
+
+        <Footer />
       </div>
     );
   }
@@ -413,29 +420,29 @@ function SchedulePageContent() {
     <div className="min-h-screen bg-[#FCFBF8] text-[#2C1E16]">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <main className="mx-auto max-w-7xl px-5 py-8 sm:px-6 sm:py-12 lg:px-8">
         {/* HEADER */}
         <div className="mb-8">
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-[#1E3F20] transition mb-5"
+            className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-gray-500 transition hover:text-[#1E3F20]"
           >
             <span>←</span>
             Kembali ke profil mentor
           </button>
 
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-[#EAF2EA] px-3 py-1.5 text-xs font-bold text-[#1E3F20] mb-3">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#EAF2EA] px-3 py-1.5 text-xs font-bold text-[#1E3F20]">
                 <span className="h-2 w-2 rounded-full bg-[#1E3F20]" />
                 Jadwalkan Coffee Chat
               </div>
 
-              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+              <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
                 Pilih waktu konsultasi
               </h1>
 
-              <p className="mt-2 max-w-2xl text-sm sm:text-base text-gray-500">
+              <p className="mt-2 max-w-2xl text-sm text-gray-500 sm:text-base">
                 Pilih jadwal yang sesuai, lalu ceritakan apa yang ingin kamu
                 konsultasikan dengan mentor.
               </p>
@@ -449,13 +456,13 @@ function SchedulePageContent() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
           {/* LEFT */}
           <section className="space-y-6">
             {/* MENTOR CARD */}
-            <div className="rounded-3xl border border-gray-100 bg-white p-5 sm:p-6 shadow-sm">
+            <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
               <div className="flex items-center gap-4">
-                <div className="h-16 w-16 overflow-hidden rounded-2xl bg-[#EAF2EA] flex-shrink-0">
+                <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-2xl bg-[#EAF2EA]">
                   {mentor?.profile?.profile_photo ? (
                     <img
                       src={mentor.profile.profile_photo}
@@ -463,14 +470,14 @@ function SchedulePageContent() {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="h-full w-full flex items-center justify-center text-xl font-extrabold text-[#1E3F20]">
+                    <div className="flex h-full w-full items-center justify-center text-xl font-extrabold text-[#1E3F20]">
                       {mentor?.name?.charAt(0).toUpperCase() || "M"}
                     </div>
                   )}
                 </div>
 
                 <div className="min-w-0">
-                  <h2 className="text-lg sm:text-xl font-extrabold truncate">
+                  <h2 className="truncate text-lg font-extrabold sm:text-xl">
                     {mentor?.name}
                   </h2>
 
@@ -478,48 +485,53 @@ function SchedulePageContent() {
                     {mentor?.profile?.job_title || "Professional Mentor"}
                   </p>
 
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="mt-0.5 text-xs text-gray-500">
                     {mentor?.profile?.company || "Career Cafe Mentor"}
                   </p>
                 </div>
 
-                <div className="ml-auto hidden sm:flex items-center gap-1.5 rounded-full bg-[#FFF8E6] px-3 py-1.5">
-                  <span className="text-yellow-500 text-sm">★</span>
+                <div className="ml-auto hidden items-center gap-1.5 rounded-full bg-[#FFF8E6] px-3 py-1.5 sm:flex">
+                  <span className="text-sm text-yellow-500">★</span>
+
                   <span className="text-sm font-extrabold">{rating}</span>
                 </div>
               </div>
 
-              <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <div className="rounded-2xl bg-[#FAF7F2] p-3">
-                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
                     Rating
                   </p>
+
                   <p className="mt-1 text-sm font-extrabold">{rating}/5</p>
                 </div>
 
                 <div className="rounded-2xl bg-[#FAF7F2] p-3">
-                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
                     Review
                   </p>
+
                   <p className="mt-1 text-sm font-extrabold">
                     {mentor?.profile?.total_reviews ?? 0}
                   </p>
                 </div>
 
                 <div className="rounded-2xl bg-[#FAF7F2] p-3">
-                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
                     Pengalaman
                   </p>
+
                   <p className="mt-1 text-sm font-extrabold">
                     {mentor?.profile?.experience_years ?? 0} tahun
                   </p>
                 </div>
 
                 <div className="rounded-2xl bg-[#FAF7F2] p-3">
-                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
                     Lokasi
                   </p>
-                  <p className="mt-1 text-sm font-extrabold truncate">
+
+                  <p className="mt-1 truncate text-sm font-extrabold">
                     {mentor?.profile?.location || "Indonesia"}
                   </p>
                 </div>
@@ -527,15 +539,16 @@ function SchedulePageContent() {
             </div>
 
             {/* DATE PICKER */}
-            <div className="rounded-3xl border border-gray-100 bg-white p-5 sm:p-6 shadow-sm">
+            <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
               <div className="mb-5">
                 <h2 className="text-lg font-extrabold">1. Pilih tanggal</h2>
-                <p className="text-sm text-gray-500 mt-1">
+
+                <p className="mt-1 text-sm text-gray-500">
                   Pilih salah satu hari yang tersedia.
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
                 {dates.map((date) => {
                   const active = selectedDate === date.iso;
 
@@ -598,11 +611,11 @@ function SchedulePageContent() {
             </div>
 
             {/* TIME SLOTS */}
-            <div className="rounded-3xl border border-gray-100 bg-white p-5 sm:p-6 shadow-sm">
+            <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
               <div className="mb-5">
                 <h2 className="text-lg font-extrabold">2. Pilih waktu</h2>
 
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="mt-1 text-sm text-gray-500">
                   {selectedDate
                     ? formatDateLong(selectedDate)
                     : "Pilih tanggal terlebih dahulu"}
@@ -610,11 +623,11 @@ function SchedulePageContent() {
               </div>
 
               {loadingSlots ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {Array.from({ length: 9 }).map((_, index) => (
                     <div
                       key={index}
-                      className="h-14 rounded-2xl bg-gray-100 animate-pulse"
+                      className="h-14 animate-pulse rounded-2xl bg-gray-100"
                     />
                   ))}
                 </div>
@@ -623,7 +636,7 @@ function SchedulePageContent() {
                   <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 text-gray-400">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="w-6 h-6"
+                      className="h-6 w-6"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -641,12 +654,12 @@ function SchedulePageContent() {
                     Belum ada slot tersedia
                   </p>
 
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="mt-1 text-xs text-gray-400">
                     Silakan pilih tanggal lainnya.
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                   {selectedDateSlots.map((slot) => {
                     const active = selectedSlotId === slot.id;
 
@@ -695,11 +708,11 @@ function SchedulePageContent() {
             </div>
 
             {/* FORM */}
-            <div className="rounded-3xl border border-gray-100 bg-white p-5 sm:p-6 shadow-sm">
+            <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
               <div className="mb-5">
                 <h2 className="text-lg font-extrabold">3. Detail konsultasi</h2>
 
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="mt-1 text-sm text-gray-500">
                   Ceritakan kebutuhanmu supaya mentor bisa mempersiapkan sesi
                   dengan lebih baik.
                 </p>
@@ -709,7 +722,7 @@ function SchedulePageContent() {
                 <div>
                   <label
                     htmlFor="topic"
-                    className="block text-sm font-bold mb-2"
+                    className="mb-2 block text-sm font-bold"
                   >
                     Topik konsultasi
                   </label>
@@ -726,7 +739,7 @@ function SchedulePageContent() {
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between gap-4 mb-2">
+                  <div className="mb-2 flex items-center justify-between gap-4">
                     <label
                       htmlFor="message"
                       className="block text-sm font-bold"
@@ -752,9 +765,9 @@ function SchedulePageContent() {
                 </div>
 
                 <div>
-                  <p className="text-sm font-bold mb-2">Format pertemuan</p>
+                  <p className="mb-2 text-sm font-bold">Format pertemuan</p>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <button
                       type="button"
                       onClick={() => {
@@ -772,12 +785,12 @@ function SchedulePageContent() {
                           className={`flex h-10 w-10 items-center justify-center rounded-xl ${
                             meetingType === "online"
                               ? "bg-[#1E3F20] text-white"
-                              : "bg-white text-gray-500 border border-gray-100"
+                              : "border border-gray-100 bg-white text-gray-500"
                           }`}
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            className="w-5 h-5"
+                            className="h-5 w-5"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -793,7 +806,8 @@ function SchedulePageContent() {
 
                         <div>
                           <p className="text-sm font-extrabold">Online</p>
-                          <p className="text-xs text-gray-500 mt-1">
+
+                          <p className="mt-1 text-xs text-gray-500">
                             Google Meet / video call
                           </p>
                         </div>
@@ -814,12 +828,12 @@ function SchedulePageContent() {
                           className={`flex h-10 w-10 items-center justify-center rounded-xl ${
                             meetingType === "offline"
                               ? "bg-[#1E3F20] text-white"
-                              : "bg-white text-gray-500 border border-gray-100"
+                              : "border border-gray-100 bg-white text-gray-500"
                           }`}
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            className="w-5 h-5"
+                            className="h-5 w-5"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -830,13 +844,15 @@ function SchedulePageContent() {
                               strokeLinejoin="round"
                               d="M12 21s7-4.35 7-10a7 7 0 10-14 0c0 5.65 7 10 7 10z"
                             />
+
                             <circle cx="12" cy="11" r="2.5" />
                           </svg>
                         </div>
 
                         <div>
                           <p className="text-sm font-extrabold">Offline</p>
-                          <p className="text-xs text-gray-500 mt-1">
+
+                          <p className="mt-1 text-xs text-gray-500">
                             Bertemu langsung
                           </p>
                         </div>
@@ -849,7 +865,7 @@ function SchedulePageContent() {
                   <div>
                     <label
                       htmlFor="location"
-                      className="block text-sm font-bold mb-2"
+                      className="mb-2 block text-sm font-bold"
                     >
                       Lokasi pertemuan
                     </label>
@@ -894,8 +910,8 @@ function SchedulePageContent() {
           </section>
 
           {/* RIGHT / SUMMARY */}
-          <aside className="lg:sticky lg:top-24 h-fit">
-            <div className="rounded-3xl border border-gray-100 bg-white p-5 sm:p-6 shadow-sm">
+          <aside className="h-fit lg:sticky lg:top-24">
+            <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
               <p className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400">
                 Ringkasan Booking
               </p>
@@ -915,6 +931,7 @@ function SchedulePageContent() {
                   <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">
                     Tanggal
                   </p>
+
                   <p className="mt-1 text-sm font-extrabold">
                     {selectedDate
                       ? formatDateLong(selectedDate)
@@ -926,9 +943,12 @@ function SchedulePageContent() {
                   <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">
                     Waktu
                   </p>
+
                   <p className="mt-1 text-sm font-extrabold">
                     {selectedSlot
-                      ? `${formatTime(selectedSlot.start_time)} – ${formatTime(selectedSlot.end_time)}`
+                      ? `${formatTime(selectedSlot.start_time)} – ${formatTime(
+                          selectedSlot.end_time,
+                        )}`
                       : "Belum dipilih"}
                   </p>
                 </div>
@@ -937,6 +957,7 @@ function SchedulePageContent() {
                   <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">
                     Durasi
                   </p>
+
                   <p className="mt-1 text-sm font-extrabold">45 menit</p>
                 </div>
 
@@ -944,6 +965,7 @@ function SchedulePageContent() {
                   <p className="text-[11px] font-bold uppercase tracking-wide text-gray-400">
                     Pertemuan
                   </p>
+
                   <p className="mt-1 text-sm font-extrabold capitalize">
                     {meetingType}
                   </p>
@@ -955,7 +977,7 @@ function SchedulePageContent() {
                   <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-xl bg-[#EAF2EA] text-[#1E3F20]">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="w-4 h-4"
+                      className="h-4 w-4"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -974,7 +996,7 @@ function SchedulePageContent() {
                       Booking akan masuk ke mentor
                     </p>
 
-                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                    <p className="mt-1 text-xs leading-relaxed text-gray-500">
                       Setelah diajukan, status sesi menjadi{" "}
                       <span className="font-bold">pending</span> sampai mentor
                       melakukan konfirmasi.
@@ -987,6 +1009,9 @@ function SchedulePageContent() {
         </div>
       </main>
 
+      {/* SHARED FOOTER */}
+      <Footer />
+
       {/* SUCCESS MODAL */}
       {successModal && (
         <div
@@ -997,14 +1022,14 @@ function SchedulePageContent() {
             className="w-full max-w-md overflow-hidden rounded-[28px] bg-white shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="relative px-6 pt-8 pb-6 text-center sm:px-8">
+            <div className="relative px-6 pb-6 pt-8 text-center sm:px-8">
               <div className="absolute inset-x-0 top-0 h-1.5 bg-[#1E3F20]" />
 
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#EAF2EA]">
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1E3F20] text-white shadow-lg">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="w-7 h-7"
+                    className="h-7 w-7"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -1039,7 +1064,7 @@ function SchedulePageContent() {
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EAF2EA] text-[#1E3F20]">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      className="w-5 h-5"
+                      className="h-5 w-5"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -1065,7 +1090,7 @@ function SchedulePageContent() {
                 </div>
 
                 <div className="mt-4 grid grid-cols-2 gap-3">
-                  <div className="rounded-xl bg-white p-3 border border-gray-100">
+                  <div className="rounded-xl border border-gray-100 bg-white p-3">
                     <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">
                       Tanggal
                     </p>
@@ -1075,7 +1100,7 @@ function SchedulePageContent() {
                     </p>
                   </div>
 
-                  <div className="rounded-xl bg-white p-3 border border-gray-100">
+                  <div className="rounded-xl border border-gray-100 bg-white p-3">
                     <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">
                       Waktu
                     </p>
@@ -1088,7 +1113,7 @@ function SchedulePageContent() {
                 </div>
               </div>
 
-              <div className="mt-6 flex flex-col sm:flex-row gap-3">
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 <button
                   type="button"
                   onClick={closeSuccessModal}
