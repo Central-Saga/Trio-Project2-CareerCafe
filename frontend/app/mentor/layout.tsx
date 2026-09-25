@@ -143,7 +143,6 @@ export default function MentorLayout({
             Authorization: `Bearer ${token}`,
           },
         }),
-
         fetch(`${API_URL}/profile`, {
           headers: {
             Accept: "application/json",
@@ -161,7 +160,6 @@ export default function MentorLayout({
 
         if (user?.name) {
           setMentorName(user.name);
-
           localStorage.setItem("user_name", user.name);
         }
       }
@@ -187,7 +185,7 @@ export default function MentorLayout({
   }, [router]);
 
   useEffect(() => {
-    loadProfile();
+    void loadProfile();
   }, [loadProfile]);
 
   useEffect(() => {
@@ -272,6 +270,7 @@ export default function MentorLayout({
       {/* =====================================================
           MOBILE OVERLAY
       ====================================================== */}
+
       {mobileOpen && (
         <button
           type="button"
@@ -284,29 +283,27 @@ export default function MentorLayout({
       {/* =====================================================
           SIDEBAR
       ====================================================== */}
+
       <aside
         className={[
           "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-[#E9E1D8] bg-[#F3EAE0]",
           "transition-[width,transform] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
-
           collapsed ? "w-[78px]" : "w-[238px]",
-
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         ].join(" ")}
       >
         {/* ===================================================
             SIDEBAR TOP
         ==================================================== */}
+
         <div
           className={[
             "relative shrink-0 border-b border-[#E4D9CE]",
             collapsed ? "px-3 pb-5 pt-5" : "px-4 pb-5 pt-5",
           ].join(" ")}
         >
-          {/* =================================================
-              COLLAPSE BUTTON
-              SEKARANG DI ATAS PROFILE
-          ================================================== */}
+          {/* COLLAPSE BUTTON */}
+
           <div
             className={[
               "flex",
@@ -318,8 +315,8 @@ export default function MentorLayout({
               onClick={toggleCollapsed}
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
               className={[
-                "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[#DFD3C7] bg-white text-[#746A62] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#FEFCFA] hover:text-[#1E3F20] hover:shadow-md",
-
+                "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[#DFD3C7] bg-white text-[#746A62] shadow-sm transition-all duration-300",
+                "hover:-translate-y-0.5 hover:bg-[#FEFCFA] hover:text-[#1E3F20] hover:shadow-md",
                 collapsed ? "mr-0" : "mr-0.5",
               ].join(" ")}
             >
@@ -327,13 +324,9 @@ export default function MentorLayout({
             </button>
           </div>
 
-          {/* =================================================
-              GAP ANTARA BUTTON DAN PROFILE
-          ================================================== */}
+          {/* PROFILE */}
+
           <div className={collapsed ? "mt-5" : "mt-6"}>
-            {/* =================================================
-                PROFILE
-            ================================================== */}
             <Link
               href="/profile"
               title={collapsed ? mentorName : undefined}
@@ -341,8 +334,8 @@ export default function MentorLayout({
             >
               <div
                 className={[
-                  "overflow-hidden rounded-full border-[3px] border-white bg-[#1E3F20] text-white shadow-[0_10px_24px_rgba(30,63,32,.17)] transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_14px_30px_rgba(30,63,32,.22)]",
-
+                  "overflow-hidden rounded-full border-[3px] border-white bg-[#1E3F20] text-white shadow-[0_10px_24px_rgba(30,63,32,.17)] transition-all duration-300",
+                  "group-hover:scale-105 group-hover:shadow-[0_14px_30px_rgba(30,63,32,.22)]",
                   collapsed ? "h-12 w-12" : "h-[68px] w-[68px]",
                 ].join(" ")}
               >
@@ -381,15 +374,15 @@ export default function MentorLayout({
         </div>
 
         {/* ===================================================
-            NAVIGATION
+            WORKSPACE NAVIGATION
         ==================================================== */}
+
         <div
           className={[
             "flex-1 overflow-hidden",
             collapsed ? "px-2 py-5" : "px-3 py-5",
           ].join(" ")}
         >
-          {/* WORKSPACE */}
           {!collapsed && (
             <div className="mb-2 px-2 text-[8px] font-black uppercase tracking-[0.2em] text-[#A3988E]">
               Workspace
@@ -409,31 +402,12 @@ export default function MentorLayout({
               />
             ))}
           </nav>
-
-          {/* NAVIGATION */}
-          {!collapsed && (
-            <div className="mb-2 mt-7 px-2 text-[8px] font-black uppercase tracking-[0.2em] text-[#A3988E]">
-              Navigation
-            </div>
-          )}
-
-          <nav className="space-y-1.5">
-            {/* MY PROFILE DIHAPUS */}
-
-            <SidebarLink
-              href="/"
-              label="Back to Career Cafe"
-              icon={<HomeIcon />}
-              active={false}
-              accent="cream"
-              collapsed={collapsed}
-            />
-          </nav>
         </div>
 
         {/* ===================================================
             LOGOUT
         ==================================================== */}
+
         <div
           className={[
             "shrink-0 border-t border-[#E4D9CE]",
@@ -446,7 +420,6 @@ export default function MentorLayout({
             title={collapsed ? "Sign out" : undefined}
             className={[
               "group flex w-full items-center rounded-xl text-[#8E8379] transition-all duration-300 hover:bg-white/80 hover:text-[#B95349]",
-
               collapsed ? "justify-center p-2" : "gap-3 px-2.5 py-2.5",
             ].join(" ")}
           >
@@ -462,6 +435,7 @@ export default function MentorLayout({
       {/* =====================================================
           MAIN CONTENT
       ====================================================== */}
+
       <main
         className={[
           "min-h-screen transition-[padding] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
@@ -470,11 +444,12 @@ export default function MentorLayout({
       >
         {/* ===================================================
             TOPBAR
-            PROFILE KANAN TETAP DIHILANGKAN
         ==================================================== */}
+
         <header className="sticky top-0 z-30 flex h-[72px] items-center border-b border-[#EEE8E2] bg-white/90 px-5 backdrop-blur-xl sm:px-7 lg:px-9">
           <div className="flex items-center gap-3">
             {/* MOBILE MENU */}
+
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
@@ -497,12 +472,14 @@ export default function MentorLayout({
         </header>
 
         {/* PAGE */}
+
         <div className="min-h-[calc(100vh-72px)]">{children}</div>
       </main>
 
       {/* =====================================================
           GLOBAL ANIMATIONS
       ====================================================== */}
+
       <style jsx global>{`
         html {
           scroll-behavior: smooth;
@@ -659,9 +636,7 @@ function SidebarLink({
       title={collapsed ? label : undefined}
       className={[
         "group flex items-center rounded-[14px] border border-transparent transition-all duration-300",
-
         collapsed ? "justify-center px-2 py-2" : "gap-2.5 px-2.5 py-2",
-
         active ? accents[accent].active : accents[accent].inactive,
       ].join(" ")}
     >
@@ -677,7 +652,6 @@ function SidebarLink({
       <span
         className={[
           "whitespace-nowrap text-[11px] font-black transition-all duration-300",
-
           collapsed
             ? "pointer-events-none w-0 translate-x-[-6px] overflow-hidden opacity-0"
             : "opacity-100",
@@ -709,7 +683,6 @@ function DashboardIcon() {
         stroke="currentColor"
         strokeWidth="1.8"
       />
-
       <rect
         x="14"
         y="3"
@@ -719,7 +692,6 @@ function DashboardIcon() {
         stroke="currentColor"
         strokeWidth="1.8"
       />
-
       <rect
         x="3"
         y="14"
@@ -729,7 +701,6 @@ function DashboardIcon() {
         stroke="currentColor"
         strokeWidth="1.8"
       />
-
       <rect
         x="14"
         y="14"
@@ -835,22 +806,6 @@ function StarIcon() {
         strokeWidth="1.8"
         strokeLinejoin="round"
       />
-    </svg>
-  );
-}
-
-function HomeIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M3 11.5L12 4L21 11.5"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-
-      <path d="M5.5 10V20H18.5V10" stroke="currentColor" strokeWidth="1.8" />
     </svg>
   );
 }

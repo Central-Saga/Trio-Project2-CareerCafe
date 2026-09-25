@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 
 const API_URL = (
@@ -9,7 +10,16 @@ const API_URL = (
 
 const BACKEND_URL = API_URL.replace(/\/api$/, "");
 
-const DEFAULT_MENTOR_PHOTO = "/mentor-photo-career-cafe.png";
+/*
+ * Foto khusus untuk dashboard mentor.
+ *
+ * File berada di:
+ * public/past-forward-1990.jpg
+ *
+ * Karena berada di folder public, URL yang digunakan:
+ * /past-forward-1990.jpg
+ */
+const DEFAULT_MENTOR_PHOTO = "/past-forward-1990s.jpg";
 
 type Profile = {
   profile_photo?: string | null;
@@ -228,6 +238,14 @@ export default function MentorDashboardPage() {
 
   const [profile, setProfile] = useState<Profile | null>(null);
 
+  /*
+   * Penting:
+   *
+   * Foto dashboard sekarang SELALU menggunakan
+   * foto dari folder public.
+   *
+   * Tidak lagi mengambil profile_image dari localStorage.
+   */
   const [profileImage, setProfileImage] = useState(DEFAULT_MENTOR_PHOTO);
 
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -246,17 +264,22 @@ export default function MentorDashboardPage() {
 
       const storedName = localStorage.getItem("user_name") || "";
 
-      const storedImage = localStorage.getItem("profile_image") || "";
+      /*
+       * Sengaja TIDAK membaca:
+       *
+       * localStorage.getItem("profile_image")
+       *
+       * karena dashboard harus selalu menggunakan
+       * foto /past-forward-1990.jpg
+       */
 
       if (storedName) {
         setMentorName(storedName);
       }
 
-      if (storedImage) {
-        setProfileImage(storedImage);
-      } else {
-        setProfileImage(DEFAULT_MENTOR_PHOTO);
-      }
+      setProfileImage(DEFAULT_MENTOR_PHOTO);
+
+      setImageFailed(false);
 
       if (!token) {
         setLoading(false);
@@ -296,6 +319,10 @@ export default function MentorDashboardPage() {
           sessionsResponse.json().catch(() => null),
         ]);
 
+        /* =================================================
+           USER
+        ================================================== */
+
         if (meResponse.ok) {
           const user = meData?.data ?? meData;
 
@@ -306,23 +333,31 @@ export default function MentorDashboardPage() {
           }
         }
 
+        /* =================================================
+           PROFILE
+        ================================================== */
+
         if (profileResponse.ok) {
           const resolvedProfile = profileData?.data ?? profileData;
 
           setProfile(resolvedProfile ?? null);
 
-          if (resolvedProfile?.profile_photo) {
-            const image = resolveImageUrl(resolvedProfile.profile_photo);
+          /*
+           * Jangan gunakan profile_photo
+           * untuk hero dashboard.
+           *
+           * Dashboard tetap menggunakan:
+           *
+           * /past-forward-1990.jpg
+           */
+          setProfileImage(DEFAULT_MENTOR_PHOTO);
 
-            setProfileImage(image);
-            setImageFailed(false);
-
-            localStorage.setItem("profile_image", image);
-          } else {
-            setProfileImage(DEFAULT_MENTOR_PHOTO);
-            setImageFailed(false);
-          }
+          setImageFailed(false);
         }
+
+        /* =================================================
+           SESSIONS
+        ================================================== */
 
         if (sessionsResponse.ok) {
           const raw = sessionsData?.data ?? sessionsData;
@@ -338,14 +373,19 @@ export default function MentorDashboardPage() {
           setSessions(list);
         }
       } catch {
+        /*
+         * Jika API error, foto dashboard
+         * tetap menggunakan foto public.
+         */
         setProfileImage(DEFAULT_MENTOR_PHOTO);
+
         setImageFailed(false);
       } finally {
         setLoading(false);
       }
     }
 
-    loadDashboard();
+    void loadDashboard();
   }, []);
 
   /* =======================================================
@@ -477,6 +517,10 @@ export default function MentorDashboardPage() {
 
   const ratingText = statistics.rating > 0 ? statistics.rating.toFixed(1) : "—";
 
+  /*
+   * Dashboard photo hanya berasal dari
+   * public/past-forward-1990.jpg.
+   */
   const hasMentorPhoto = Boolean(profileImage) && !imageFailed;
 
   const monthName = new Date().toLocaleDateString("en-US", {
@@ -521,6 +565,7 @@ export default function MentorDashboardPage() {
         {/* ==================================================
             HEADER
         =================================================== */}
+
         <section className="mentor-reveal flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#AAA097]">
@@ -553,45 +598,36 @@ export default function MentorDashboardPage() {
         {/* ==================================================
             HERO ROW
         =================================================== */}
+
         <section className="mt-6 grid gap-4 xl:grid-cols-[1.62fr_.78fr]">
           {/* ==================================================
               FEATURED MENTOR
           =================================================== */}
+
           <div className="mentor-reveal mentor-delay-1 relative min-h-[318px] overflow-hidden rounded-[28px] bg-[#668269] shadow-[0_22px_48px_rgba(71,98,76,.14)]">
-            {/* Base gradient */}
+            {/* BASE GRADIENT */}
+
             <div className="absolute inset-0 bg-[linear-gradient(135deg,#58755D_0%,#6B886F_48%,#91A493_100%)]" />
 
-            {/* Very subtle background shapes */}
+            {/* BACKGROUND SHAPES */}
+
             <div className="pointer-events-none absolute -left-28 -top-28 h-[320px] w-[320px] rounded-full border-[45px] border-white/[0.03]" />
 
             <div className="pointer-events-none absolute -bottom-36 left-[25%] h-[320px] w-[320px] rounded-full bg-white/[0.03] blur-3xl" />
 
             {/* ==================================================
-                FULL-BLEED MENTOR PHOTO
+                MENTOR PHOTO
             =================================================== */}
-            <div className="absolute inset-y-0 right-0 z-0 w-[49%] overflow-hidden">
-              {/* Photo */}
-              {hasMentorPhoto ? (
-                <img
-                  src={profileImage}
-                  alt={mentorName}
-                  className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-[900ms] ease-out hover:scale-[1.018]"
-                  onError={() => {
-                    if (profileImage !== DEFAULT_MENTOR_PHOTO) {
-                      setProfileImage(DEFAULT_MENTOR_PHOTO);
 
-                      setImageFailed(false);
-                    } else {
-                      setImageFailed(true);
-                    }
-                  }}
-                />
-              ) : !imageFailed ? (
+            <div className="absolute inset-y-0 right-0 z-0 w-[49%] overflow-hidden">
+              {hasMentorPhoto ? (
                 <img
                   src={DEFAULT_MENTOR_PHOTO}
                   alt="Career Cafe mentor"
                   className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-[900ms] ease-out hover:scale-[1.018]"
-                  onError={() => setImageFailed(true)}
+                  onError={() => {
+                    setImageFailed(true);
+                  }}
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center bg-[#6C886F]">
@@ -601,33 +637,31 @@ export default function MentorDashboardPage() {
                 </div>
               )}
 
-              {/* =================================================
-                  SOFT TOP FADE
-                  TIDAK ADA GARIS PUTIH
-              ================================================== */}
+              {/* SOFT TOP FADE */}
+
               <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-20 bg-gradient-to-b from-[#58755D]/50 via-[#58755D]/12 to-transparent" />
 
-              {/* =================================================
-                  SOFT LEFT TRANSITION
-                  MENYATUKAN FOTO KE BACKGROUND
-              ================================================== */}
+              {/* SOFT LEFT TRANSITION */}
+
               <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-[62%] bg-gradient-to-r from-[#58755D] via-[#58755D]/80 via-[45%] to-transparent" />
 
-              {/* Additional blend */}
+              {/* ADDITIONAL BLEND */}
+
               <div className="pointer-events-none absolute inset-y-0 left-[20%] z-20 w-[42%] bg-gradient-to-r from-[#58755D]/55 to-transparent blur-[12px]" />
 
-              {/* Bottom fade */}
+              {/* BOTTOM FADE */}
+
               <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-28 bg-gradient-to-t from-[#405A45]/65 via-[#405A45]/12 to-transparent" />
             </div>
 
-            {/* ==================================================
-                WHOLE CARD SOFT BLEND
-            =================================================== */}
+            {/* WHOLE CARD SOFT BLEND */}
+
             <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-r from-transparent via-white/[0.015] to-white/[0.025]" />
 
             {/* ==================================================
                 CONTENT
             =================================================== */}
+
             <div className="relative z-30 flex min-h-[318px] w-full flex-col justify-between p-7 sm:p-8 lg:p-9">
               <div className="max-w-[57%]">
                 <div className="flex items-center gap-2">
@@ -675,9 +709,8 @@ export default function MentorDashboardPage() {
               </div>
             </div>
 
-            {/* ==================================================
-                ACTIVE BADGE
-            =================================================== */}
+            {/* ACTIVE BADGE */}
+
             <div className="absolute bottom-5 right-5 z-40 flex items-center gap-2 rounded-full border border-white/20 bg-[#46634C]/80 px-3.5 py-2 shadow-[0_10px_24px_rgba(0,0,0,.12)] backdrop-blur-md">
               <span className="h-1.5 w-1.5 rounded-full bg-[#D8C77F]" />
 
@@ -690,6 +723,7 @@ export default function MentorDashboardPage() {
           {/* ==================================================
               ACTIVITY GROWTH
           =================================================== */}
+
           <div className="mentor-reveal mentor-delay-2 rounded-[28px] border border-[#ECE7E1] bg-white p-6 shadow-[0_16px_38px_rgba(53,39,29,.045)]">
             <div className="flex items-start justify-between">
               <div>
@@ -792,6 +826,7 @@ export default function MentorDashboardPage() {
         {/* ==================================================
             STATISTICS
         =================================================== */}
+
         <section className="mentor-reveal mentor-delay-2 mt-4 grid grid-cols-2 overflow-hidden rounded-[24px] border border-[#ECE7E1] bg-white shadow-[0_14px_34px_rgba(53,39,29,.04)] sm:grid-cols-4">
           <DashboardStat
             label="Total mentees"
@@ -821,10 +856,13 @@ export default function MentorDashboardPage() {
         {/* ==================================================
             LOWER CONTENT
         =================================================== */}
+
         <section className="mt-4 grid gap-4 xl:grid-cols-[1.62fr_.78fr]">
           {/* LEFT */}
+
           <div className="space-y-4">
             {/* RECENT MENTORING */}
+
             <div className="mentor-reveal mentor-delay-3 rounded-[26px] border border-[#ECE7E1] bg-white p-6 shadow-[0_16px_36px_rgba(53,39,29,.045)]">
               <div className="flex items-start justify-between">
                 <div>
@@ -908,6 +946,7 @@ export default function MentorDashboardPage() {
             </div>
 
             {/* UPCOMING */}
+
             <div className="mentor-reveal mentor-delay-4 rounded-[26px] border border-[#ECE7E1] bg-white p-6 shadow-[0_16px_36px_rgba(53,39,29,.045)]">
               <div className="flex items-center justify-between">
                 <div>
@@ -966,9 +1005,7 @@ export default function MentorDashboardPage() {
 
                           <p className="mt-1 truncate text-[8px] font-semibold text-[#A19890]">
                             {session.mentee?.name || "Mentee"}
-
                             {" · "}
-
                             {formatTime(slot?.starts_at)}
                           </p>
                         </div>
@@ -985,8 +1022,10 @@ export default function MentorDashboardPage() {
           </div>
 
           {/* RIGHT */}
+
           <div className="space-y-4">
             {/* MENTOR IMPACT */}
+
             <div className="mentor-reveal mentor-delay-3 rounded-[26px] border border-[#ECE7E1] bg-white p-6 shadow-[0_16px_36px_rgba(53,39,29,.045)]">
               <div className="flex items-start justify-between">
                 <div>
@@ -1068,6 +1107,7 @@ export default function MentorDashboardPage() {
             </div>
 
             {/* LATEST CONNECTION */}
+
             <div className="mentor-reveal mentor-delay-4 rounded-[26px] border border-[#ECE7E1] bg-white p-6 shadow-[0_16px_36px_rgba(53,39,29,.045)]">
               <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#AAA097]">
                 Latest connection
@@ -1134,6 +1174,7 @@ export default function MentorDashboardPage() {
         {/* ==================================================
             QUICK ACTIONS
         =================================================== */}
+
         <section className="mentor-reveal mentor-delay-4 mt-4 rounded-[26px] border border-[#E8E2DC] bg-[#F6F2ED] p-4">
           <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
             <QuickAction

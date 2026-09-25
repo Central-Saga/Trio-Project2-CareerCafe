@@ -1,9 +1,10 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
+
 import type { ReactNode } from "react";
-import Navbar from "../../components/Navbar";
 
 type Session = {
   id: number;
@@ -12,6 +13,7 @@ type Session = {
   meeting_type?: string | null;
   meeting_link?: string | null;
   status: string;
+
   mentee?: {
     name: string;
     profile?: {
@@ -19,11 +21,13 @@ type Session = {
       job_title?: string | null;
     } | null;
   } | null;
+
   booked_slot?: {
     date?: string;
     start_time?: string;
     end_time?: string;
   } | null;
+
   bookedSlot?: {
     date?: string;
     start_time?: string;
@@ -49,10 +53,11 @@ function parseDate(session: Session) {
   }
 
   const date = new Date(`${slot.date}T${slot.start_time}`);
+
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function formatTime(value?: string) {
+function formatTime(value?: string | null) {
   return value ? value.slice(0, 5) : "--:--";
 }
 
@@ -74,11 +79,15 @@ function resolveImageUrl(value?: string | null) {
 
 export default function MentorSchedulePage() {
   const shouldReduceMotion = useReducedMotion();
+
   const [sessions, setSessions] = useState<Session[]>([]);
+
   const [selectedDate, setSelectedDate] = useState(new Date());
+
   const [month, setMonth] = useState(
     new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   );
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -87,6 +96,7 @@ export default function MentorSchedulePage() {
 
     if (!token) {
       setError("Your session has expired. Please sign in again.");
+
       setLoading(false);
       return;
     }
@@ -100,19 +110,23 @@ export default function MentorSchedulePage() {
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
+        cache: "no-store",
       });
 
       const data = await response.json().catch(() => null);
 
       if (!response.ok) {
         setError(data?.message || "Unable to load your schedule right now.");
+
         setSessions([]);
+
         return;
       }
 
       setSessions(data?.data ?? []);
     } catch {
       setError("Unable to connect to the Laravel backend.");
+
       setSessions([]);
     } finally {
       setLoading(false);
@@ -120,14 +134,17 @@ export default function MentorSchedulePage() {
   }, []);
 
   useEffect(() => {
-    loadSessions();
+    void loadSessions();
   }, [loadSessions]);
 
   const calendarCells = useMemo(() => {
     const year = month.getFullYear();
     const monthIndex = month.getMonth();
+
     const firstDay = new Date(year, monthIndex, 1);
+
     const lastDay = new Date(year, monthIndex + 1, 0);
+
     const cells: {
       key: string;
       day: number;
@@ -139,6 +156,7 @@ export default function MentorSchedulePage() {
 
     for (let index = firstWeekday - 1; index >= 0; index--) {
       const date = new Date(year, monthIndex, -index);
+
       cells.push({
         key: `prev-${date.toISOString()}`,
         day: date.getDate(),
@@ -149,6 +167,7 @@ export default function MentorSchedulePage() {
 
     for (let day = 1; day <= lastDay.getDate(); day++) {
       const date = new Date(year, monthIndex, day);
+
       cells.push({
         key: `current-${date.toISOString()}`,
         day,
@@ -158,14 +177,17 @@ export default function MentorSchedulePage() {
     }
 
     let nextDay = 1;
+
     while (cells.length % 7 !== 0) {
       const date = new Date(year, monthIndex + 1, nextDay);
+
       cells.push({
         key: `next-${date.toISOString()}`,
         day: date.getDate(),
         current: false,
         date,
       });
+
       nextDay += 1;
     }
 
@@ -187,7 +209,9 @@ export default function MentorSchedulePage() {
       }
 
       const current = map.get(date) ?? [];
+
       current.push(session);
+
       map.set(date, current);
     });
 
@@ -244,14 +268,24 @@ export default function MentorSchedulePage() {
 
   const handleToday = () => {
     const today = new Date();
+
     setMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+
     setSelectedDate(today);
   };
+
+  /*
+   * =========================================================
+   * LOADING
+   * =========================================================
+   *
+   * Tidak ada Navbar utama di sini karena halaman ini
+   * sudah berada di Mentor Workspace.
+   */
 
   if (loading) {
     return (
       <div className="min-h-screen overflow-x-hidden bg-[#FCFBF8] text-[#2C1E16]">
-        <Navbar />
         <LoadingPage />
       </div>
     );
@@ -259,74 +293,185 @@ export default function MentorSchedulePage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#FCFBF8] text-[#2C1E16]">
-      <Navbar />
-
       <main className="mx-auto max-w-[1500px] px-5 py-7 sm:px-7 xl:px-10">
+        {/* =================================================
+            HERO
+        ================================================== */}
+
         <motion.section
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 22 }}
-          animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: EASE }}
+          initial={
+            shouldReduceMotion
+              ? false
+              : {
+                  opacity: 0,
+                  y: 22,
+                }
+          }
+          animate={
+            shouldReduceMotion
+              ? undefined
+              : {
+                  opacity: 1,
+                  y: 0,
+                }
+          }
+          transition={{
+            duration: 0.7,
+            ease: EASE,
+          }}
           className="rounded-[30px] border border-[#DDE6F0] bg-gradient-to-br from-[#EFF6FD] via-white to-[#F5F1FB] p-6 shadow-[0_15px_40px_rgba(69,119,184,0.06)] sm:p-8"
         >
           <motion.span
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
-            animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-            transition={{ delay: 0.08, duration: 0.5, ease: EASE }}
+            initial={
+              shouldReduceMotion
+                ? false
+                : {
+                    opacity: 0,
+                    y: 8,
+                  }
+            }
+            animate={
+              shouldReduceMotion
+                ? undefined
+                : {
+                    opacity: 1,
+                    y: 0,
+                  }
+            }
+            transition={{
+              delay: 0.08,
+              duration: 0.5,
+              ease: EASE,
+            }}
             className="inline-flex rounded-full bg-[#E8F1FB] px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.15em] text-[#4476B7]"
           >
             Mentor Schedule
           </motion.span>
 
           <motion.h1
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-            animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-            transition={{ delay: 0.14, duration: 0.62, ease: EASE }}
+            initial={
+              shouldReduceMotion
+                ? false
+                : {
+                    opacity: 0,
+                    y: 12,
+                  }
+            }
+            animate={
+              shouldReduceMotion
+                ? undefined
+                : {
+                    opacity: 1,
+                    y: 0,
+                  }
+            }
+            transition={{
+              delay: 0.14,
+              duration: 0.62,
+              ease: EASE,
+            }}
             className="mt-4 text-3xl font-extrabold tracking-tight text-[#2C1E16]"
           >
             Your mentoring calendar
           </motion.h1>
 
           <motion.p
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
-            animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-            transition={{ delay: 0.19, duration: 0.58, ease: EASE }}
+            initial={
+              shouldReduceMotion
+                ? false
+                : {
+                    opacity: 0,
+                    y: 10,
+                  }
+            }
+            animate={
+              shouldReduceMotion
+                ? undefined
+                : {
+                    opacity: 1,
+                    y: 0,
+                  }
+            }
+            transition={{
+              delay: 0.19,
+              duration: 0.58,
+              ease: EASE,
+            }}
             className="mt-3 max-w-2xl text-sm leading-7 text-gray-500"
           >
             See your upcoming appointments and quickly jump between dates.
           </motion.p>
         </motion.section>
 
+        {/* =================================================
+            ERROR
+        ================================================== */}
+
         <AnimatePresence initial={false} mode="wait">
           {error && (
             <motion.div
               key={error}
               initial={
-                shouldReduceMotion ? false : { opacity: 0, y: -10, scale: 0.99 }
+                shouldReduceMotion
+                  ? false
+                  : {
+                      opacity: 0,
+                      y: -10,
+                      scale: 0.99,
+                    }
               }
               animate={
-                shouldReduceMotion ? undefined : { opacity: 1, y: 0, scale: 1 }
+                shouldReduceMotion
+                  ? undefined
+                  : {
+                      opacity: 1,
+                      y: 0,
+                      scale: 1,
+                    }
               }
               exit={
                 shouldReduceMotion
                   ? undefined
-                  : { opacity: 0, y: -6, scale: 0.99 }
+                  : {
+                      opacity: 0,
+                      y: -6,
+                      scale: 0.99,
+                    }
               }
-              transition={{ duration: 0.42, ease: EASE }}
+              transition={{
+                duration: 0.42,
+                ease: EASE,
+              }}
               className="mt-5 flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-semibold text-red-700 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="flex items-start gap-3">
                 <motion.span
                   initial={
-                    shouldReduceMotion ? false : { scale: 0.8, opacity: 0 }
+                    shouldReduceMotion
+                      ? false
+                      : {
+                          scale: 0.8,
+                          opacity: 0,
+                        }
                   }
                   animate={
-                    shouldReduceMotion ? undefined : { scale: 1, opacity: 1 }
+                    shouldReduceMotion
+                      ? undefined
+                      : {
+                          scale: 1,
+                          opacity: 1,
+                        }
                   }
-                  transition={{ delay: 0.08, duration: 0.35, ease: EASE }}
+                  transition={{
+                    delay: 0.08,
+                    duration: 0.35,
+                    ease: EASE,
+                  }}
                   className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-white text-red-500 shadow-sm"
                 >
                   <AlertIcon />
                 </motion.span>
+
                 <span className="leading-6">{error}</span>
               </div>
 
@@ -334,10 +479,25 @@ export default function MentorSchedulePage() {
                 type="button"
                 onClick={loadSessions}
                 whileHover={
-                  shouldReduceMotion ? undefined : { y: -1, scale: 1.015 }
+                  shouldReduceMotion
+                    ? undefined
+                    : {
+                        y: -1,
+                        scale: 1.015,
+                      }
                 }
-                whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
-                transition={{ type: "spring", stiffness: 420, damping: 28 }}
+                whileTap={
+                  shouldReduceMotion
+                    ? undefined
+                    : {
+                        scale: 0.97,
+                      }
+                }
+                transition={{
+                  type: "spring",
+                  stiffness: 420,
+                  damping: 28,
+                }}
                 className="self-start rounded-xl border border-red-200 bg-white px-3.5 py-2 text-[11px] font-extrabold text-red-600 shadow-sm transition-colors hover:bg-red-100 sm:self-auto"
               >
                 Try again
@@ -346,12 +506,35 @@ export default function MentorSchedulePage() {
           )}
         </AnimatePresence>
 
+        {/* =================================================
+            CALENDAR + SELECTED DATE
+        ================================================== */}
+
         <div className="mt-7 grid gap-7 xl:grid-cols-[1fr_0.8fr]">
           {/* CALENDAR */}
+
           <motion.section
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 28 }}
-            animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.72, ease: EASE }}
+            initial={
+              shouldReduceMotion
+                ? false
+                : {
+                    opacity: 0,
+                    y: 28,
+                  }
+            }
+            animate={
+              shouldReduceMotion
+                ? undefined
+                : {
+                    opacity: 1,
+                    y: 0,
+                  }
+            }
+            transition={{
+              delay: 0.1,
+              duration: 0.72,
+              ease: EASE,
+            }}
             className="rounded-[30px] border border-[#E2E1DD] bg-white p-6 shadow-[0_12px_32px_rgba(44,30,22,0.035)] sm:p-7"
           >
             <div className="flex items-center justify-between gap-3">
@@ -363,14 +546,34 @@ export default function MentorSchedulePage() {
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.h2
                     key={`${month.getFullYear()}-${month.getMonth()}`}
-                    initial={shouldReduceMotion ? false : { opacity: 0, y: 7 }}
+                    initial={
+                      shouldReduceMotion
+                        ? false
+                        : {
+                            opacity: 0,
+                            y: 7,
+                          }
+                    }
                     animate={
-                      shouldReduceMotion ? undefined : { opacity: 1, y: 0 }
+                      shouldReduceMotion
+                        ? undefined
+                        : {
+                            opacity: 1,
+                            y: 0,
+                          }
                     }
                     exit={
-                      shouldReduceMotion ? undefined : { opacity: 0, y: -7 }
+                      shouldReduceMotion
+                        ? undefined
+                        : {
+                            opacity: 0,
+                            y: -7,
+                          }
                     }
-                    transition={{ duration: 0.28, ease: EASE }}
+                    transition={{
+                      duration: 0.28,
+                      ease: EASE,
+                    }}
                     className="mt-2 text-2xl font-extrabold text-[#2C1E16]"
                   >
                     {new Intl.DateTimeFormat("en-US", {
@@ -393,10 +596,25 @@ export default function MentorSchedulePage() {
                   type="button"
                   onClick={handleToday}
                   whileHover={
-                    shouldReduceMotion ? undefined : { y: -1, scale: 1.015 }
+                    shouldReduceMotion
+                      ? undefined
+                      : {
+                          y: -1,
+                          scale: 1.015,
+                        }
                   }
-                  whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 26 }}
+                  whileTap={
+                    shouldReduceMotion
+                      ? undefined
+                      : {
+                          scale: 0.96,
+                        }
+                  }
+                  transition={{
+                    type: "spring",
+                    stiffness: 400,
+                    damping: 26,
+                  }}
                   className="rounded-xl bg-[#EEF5FC] px-3 py-2 text-[10px] font-extrabold text-[#4476B7] transition-colors hover:bg-[#E2EFFB]"
                 >
                   Today
@@ -424,11 +642,13 @@ export default function MentorSchedulePage() {
               {calendarCells.map((cell, index) => {
                 const key = `${cell.date.getFullYear()}-${String(
                   cell.date.getMonth() + 1,
-                ).padStart(
+                ).padStart(2, "0")}-${String(cell.date.getDate()).padStart(
                   2,
                   "0",
-                )}-${String(cell.date.getDate()).padStart(2, "0")}`;
+                )}`;
+
                 const count = sessionDates.get(key)?.length ?? 0;
+
                 const active = key === selectedDateKey;
 
                 return (
@@ -451,7 +671,11 @@ export default function MentorSchedulePage() {
                             scale: 0.94,
                           }
                     }
-                    transition={{ type: "spring", stiffness: 420, damping: 24 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 420,
+                      damping: 24,
+                    }}
                     className="relative flex aspect-square cursor-pointer items-center justify-center rounded-xl text-xs font-bold outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-[#4577B8]/30"
                   >
                     <motion.span
@@ -459,10 +683,17 @@ export default function MentorSchedulePage() {
                         shouldReduceMotion
                           ? undefined
                           : active
-                            ? { scale: [0.92, 1.04, 1] }
-                            : { scale: 1 }
+                            ? {
+                                scale: [0.92, 1.04, 1],
+                              }
+                            : {
+                                scale: 1,
+                              }
                       }
-                      transition={{ duration: 0.34, ease: EASE }}
+                      transition={{
+                        duration: 0.34,
+                        ease: EASE,
+                      }}
                       className={[
                         "absolute inset-0 rounded-xl",
                         active
@@ -487,19 +718,31 @@ export default function MentorSchedulePage() {
                           initial={
                             shouldReduceMotion
                               ? false
-                              : { opacity: 0, scale: 0 }
+                              : {
+                                  opacity: 0,
+                                  scale: 0,
+                                }
                           }
                           animate={
                             shouldReduceMotion
                               ? undefined
-                              : { opacity: 1, scale: 1 }
+                              : {
+                                  opacity: 1,
+                                  scale: 1,
+                                }
                           }
                           exit={
                             shouldReduceMotion
                               ? undefined
-                              : { opacity: 0, scale: 0 }
+                              : {
+                                  opacity: 0,
+                                  scale: 0,
+                                }
                           }
-                          transition={{ duration: 0.25, ease: EASE }}
+                          transition={{
+                            duration: 0.25,
+                            ease: EASE,
+                          }}
                           className={[
                             "absolute bottom-1 z-20 rounded-full",
                             count > 2 ? "h-1.5 w-1.5" : "h-1 w-1",
@@ -526,11 +769,30 @@ export default function MentorSchedulePage() {
             </div>
           </motion.section>
 
-          {/* SELECTED DATE */}
+          {/* SELECTED DAY */}
+
           <motion.section
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 30 }}
-            animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-            transition={{ delay: 0.18, duration: 0.72, ease: EASE }}
+            initial={
+              shouldReduceMotion
+                ? false
+                : {
+                    opacity: 0,
+                    y: 30,
+                  }
+            }
+            animate={
+              shouldReduceMotion
+                ? undefined
+                : {
+                    opacity: 1,
+                    y: 0,
+                  }
+            }
+            transition={{
+              delay: 0.18,
+              duration: 0.72,
+              ease: EASE,
+            }}
             className="rounded-[30px] border border-[#E2E1DD] bg-white p-6 shadow-[0_12px_32px_rgba(44,30,22,0.035)] sm:p-7"
           >
             <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-gray-400">
@@ -540,10 +802,34 @@ export default function MentorSchedulePage() {
             <AnimatePresence mode="wait" initial={false}>
               <motion.h2
                 key={selectedDateKey}
-                initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
-                animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-                exit={shouldReduceMotion ? undefined : { opacity: 0, y: -8 }}
-                transition={{ duration: 0.3, ease: EASE }}
+                initial={
+                  shouldReduceMotion
+                    ? false
+                    : {
+                        opacity: 0,
+                        y: 8,
+                      }
+                }
+                animate={
+                  shouldReduceMotion
+                    ? undefined
+                    : {
+                        opacity: 1,
+                        y: 0,
+                      }
+                }
+                exit={
+                  shouldReduceMotion
+                    ? undefined
+                    : {
+                        opacity: 0,
+                        y: -8,
+                      }
+                }
+                transition={{
+                  duration: 0.3,
+                  ease: EASE,
+                }}
                 className="mt-2 text-2xl font-extrabold text-[#2C1E16]"
               >
                 {new Intl.DateTimeFormat("en-US", {
@@ -562,24 +848,43 @@ export default function MentorSchedulePage() {
                     initial={
                       shouldReduceMotion
                         ? false
-                        : { opacity: 0, y: 10, scale: 0.985 }
+                        : {
+                            opacity: 0,
+                            y: 10,
+                            scale: 0.985,
+                          }
                     }
                     animate={
                       shouldReduceMotion
                         ? undefined
-                        : { opacity: 1, y: 0, scale: 1 }
+                        : {
+                            opacity: 1,
+                            y: 0,
+                            scale: 1,
+                          }
                     }
                     exit={
                       shouldReduceMotion
                         ? undefined
-                        : { opacity: 0, y: -8, scale: 0.985 }
+                        : {
+                            opacity: 0,
+                            y: -8,
+                            scale: 0.985,
+                          }
                     }
-                    transition={{ duration: 0.38, ease: EASE }}
+                    transition={{
+                      duration: 0.38,
+                      ease: EASE,
+                    }}
                     className="rounded-2xl border border-dashed border-[#DDD8CC] bg-[#FCFBF8] px-5 py-10 text-center"
                   >
                     <motion.div
                       animate={
-                        shouldReduceMotion ? undefined : { y: [0, -4, 0] }
+                        shouldReduceMotion
+                          ? undefined
+                          : {
+                              y: [0, -4, 0],
+                            }
                       }
                       transition={{
                         duration: 2.2,
@@ -614,11 +919,32 @@ export default function MentorSchedulePage() {
           </motion.section>
         </div>
 
-        {/* UPCOMING */}
+        {/* =================================================
+            UPCOMING
+        ================================================== */}
+
         <motion.section
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 32 }}
-          animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-          transition={{ delay: 0.25, duration: 0.75, ease: EASE }}
+          initial={
+            shouldReduceMotion
+              ? false
+              : {
+                  opacity: 0,
+                  y: 32,
+                }
+          }
+          animate={
+            shouldReduceMotion
+              ? undefined
+              : {
+                  opacity: 1,
+                  y: 0,
+                }
+          }
+          transition={{
+            delay: 0.25,
+            duration: 0.75,
+            ease: EASE,
+          }}
           className="mt-7 rounded-[30px] border border-[#E2E1DD] bg-white p-6 shadow-[0_12px_32px_rgba(44,30,22,0.035)] sm:p-7"
         >
           <div className="mb-6">
@@ -635,10 +961,34 @@ export default function MentorSchedulePage() {
             {upcoming.length === 0 ? (
               <motion.div
                 key="empty-upcoming"
-                initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
-                animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-                exit={shouldReduceMotion ? undefined : { opacity: 0, y: -8 }}
-                transition={{ duration: 0.4, ease: EASE }}
+                initial={
+                  shouldReduceMotion
+                    ? false
+                    : {
+                        opacity: 0,
+                        y: 10,
+                      }
+                }
+                animate={
+                  shouldReduceMotion
+                    ? undefined
+                    : {
+                        opacity: 1,
+                        y: 0,
+                      }
+                }
+                exit={
+                  shouldReduceMotion
+                    ? undefined
+                    : {
+                        opacity: 0,
+                        y: -8,
+                      }
+                }
+                transition={{
+                  duration: 0.4,
+                  ease: EASE,
+                }}
                 className="rounded-2xl bg-[#FCFBF8] p-8 text-center text-sm font-semibold text-gray-500"
               >
                 No upcoming sessions.
@@ -674,16 +1024,53 @@ function ScheduleCard({
   return (
     <motion.div
       layout="position"
-      initial={shouldReduceMotion ? false : { opacity: 0, y: 12, scale: 0.985 }}
-      animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
+      initial={
+        shouldReduceMotion
+          ? false
+          : {
+              opacity: 0,
+              y: 12,
+              scale: 0.985,
+            }
+      }
+      animate={
+        shouldReduceMotion
+          ? undefined
+          : {
+              opacity: 1,
+              y: 0,
+              scale: 1,
+            }
+      }
       exit={
-        shouldReduceMotion ? undefined : { opacity: 0, y: -10, scale: 0.985 }
+        shouldReduceMotion
+          ? undefined
+          : {
+              opacity: 0,
+              y: -10,
+              scale: 0.985,
+            }
       }
       transition={{
-        opacity: { duration: 0.34, delay: delay / 1000, ease: EASE },
-        y: { duration: 0.48, delay: delay / 1000, ease: EASE },
-        scale: { duration: 0.48, delay: delay / 1000, ease: EASE },
-        layout: { duration: 0.38, ease: EASE },
+        opacity: {
+          duration: 0.34,
+          delay: delay / 1000,
+          ease: EASE,
+        },
+        y: {
+          duration: 0.48,
+          delay: delay / 1000,
+          ease: EASE,
+        },
+        scale: {
+          duration: 0.48,
+          delay: delay / 1000,
+          ease: EASE,
+        },
+        layout: {
+          duration: 0.38,
+          ease: EASE,
+        },
       }}
       whileHover={
         shouldReduceMotion
@@ -715,9 +1102,18 @@ function ScheduleCard({
       <div className="flex items-start gap-3">
         <motion.div
           whileHover={
-            shouldReduceMotion ? undefined : { scale: 1.05, rotate: -1.5 }
+            shouldReduceMotion
+              ? undefined
+              : {
+                  scale: 1.05,
+                  rotate: -1.5,
+                }
           }
-          transition={{ type: "spring", stiffness: 380, damping: 24 }}
+          transition={{
+            type: "spring",
+            stiffness: 380,
+            damping: 24,
+          }}
           className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#4577B8] text-sm font-extrabold text-white"
         >
           {session.mentee?.profile?.profile_photo ? (
@@ -751,6 +1147,7 @@ function ScheduleCard({
 
           <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-bold text-gray-400">
             {session.duration && <span>{session.duration} minutes</span>}
+
             {session.meeting_type && <span>{session.meeting_type}</span>}
           </div>
         </div>
@@ -768,9 +1165,18 @@ function StatusBadge({ status }: { status: string }) {
 
   return (
     <motion.span
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.25, ease: EASE }}
+      initial={{
+        opacity: 0,
+        scale: 0.9,
+      }}
+      animate={{
+        opacity: 1,
+        scale: 1,
+      }}
+      transition={{
+        duration: 0.25,
+        ease: EASE,
+      }}
       className={`rounded-full px-2.5 py-1 text-[9px] font-extrabold ${
         styles[status] || "bg-gray-100 text-gray-500"
       }`}
@@ -811,7 +1217,11 @@ function CalendarNavButton({
               scale: 0.92,
             }
       }
-      transition={{ type: "spring", stiffness: 420, damping: 26 }}
+      transition={{
+        type: "spring",
+        stiffness: 420,
+        damping: 26,
+      }}
       className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border border-[#E8E5DE] text-gray-500 outline-none transition-colors duration-200 hover:bg-[#F7F5EF] focus-visible:ring-2 focus-visible:ring-[#4577B8]/20"
     >
       {icon}
@@ -823,20 +1233,43 @@ function LoadingPage() {
   return (
     <div className="flex min-h-[calc(100vh-76px)] items-center justify-center">
       <motion.div
-        initial={{ opacity: 0, scale: 0.94 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.45, ease: EASE }}
+        initial={{
+          opacity: 0,
+          scale: 0.94,
+        }}
+        animate={{
+          opacity: 1,
+          scale: 1,
+        }}
+        transition={{
+          duration: 0.45,
+          ease: EASE,
+        }}
         className="flex flex-col items-center"
       >
         <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1.1, repeat: Infinity, ease: "linear" }}
+          animate={{
+            rotate: 360,
+          }}
+          transition={{
+            duration: 1.1,
+            repeat: Infinity,
+            ease: "linear",
+          }}
           className="h-10 w-10 rounded-full border-4 border-[#DDE4DB] border-t-[#4577B8]"
         />
+
         <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.15, duration: 0.35 }}
+          initial={{
+            opacity: 0,
+          }}
+          animate={{
+            opacity: 1,
+          }}
+          transition={{
+            delay: 0.15,
+            duration: 0.35,
+          }}
           className="mt-4 text-xs font-bold text-gray-400"
         >
           Loading your schedule...
@@ -858,6 +1291,7 @@ function CalendarIcon() {
         stroke="currentColor"
         strokeWidth="1.7"
       />
+
       <path
         d="M7 3V7M17 3V7M3 10H21"
         stroke="currentColor"
@@ -895,7 +1329,9 @@ function AlertIcon() {
         strokeWidth="1.8"
         strokeLinecap="round"
       />
+
       <circle cx="12" cy="16.5" r="1" fill="currentColor" />
+
       <path
         d="M10.3 4.7L3.9 16C3.2 17.2 4.1 18.7 5.5 18.7H18.5C19.9 18.7 20.8 17.2 20.1 16L13.7 4.7C13 3.5 11 3.5 10.3 4.7Z"
         stroke="currentColor"

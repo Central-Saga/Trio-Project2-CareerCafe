@@ -49,6 +49,7 @@ type Feedback = {
   id?: number;
   rating?: number;
   comment?: string | null;
+  created_at?: string | null;
 };
 
 type Session = {
@@ -63,16 +64,8 @@ type Session = {
   meeting_link?: string | null;
   meeting_location?: string | null;
   status: SessionStatus;
-
   mentor?: Mentor | null;
 
-  /*
-   * Laravel Eloquent bisa mengirim relasi:
-   * booked_slot
-   *
-   * Kita tetap mempertahankan bookedSlot sebagai fallback
-   * supaya frontend lebih toleran terhadap bentuk response.
-   */
   booked_slot?: BookedSlot | null;
   bookedSlot?: BookedSlot | null;
 
@@ -95,6 +88,16 @@ type DetailResponse = {
   success: boolean;
   message?: string;
   data?: Session;
+};
+
+type RatingResponse = {
+  success: boolean;
+  message?: string;
+  data?:
+    | {
+        feedback?: Feedback;
+      }
+    | Feedback;
 };
 
 type RevealProps = {
@@ -171,7 +174,6 @@ function CalendarIcon({ size = 18 }: { size?: number }) {
         stroke="currentColor"
         strokeWidth="1.8"
       />
-
       <path
         d="M7 2.75V6.5M17 2.75V6.5M3 9.5H21"
         stroke="currentColor"
@@ -198,7 +200,6 @@ function ClockIcon({ size = 18 }: { size?: number }) {
         stroke="currentColor"
         strokeWidth="1.8"
       />
-
       <path
         d="M12 7.5V12L15 14"
         stroke="currentColor"
@@ -228,7 +229,6 @@ function VideoIcon({ size = 18 }: { size?: number }) {
         stroke="currentColor"
         strokeWidth="1.8"
       />
-
       <path
         d="M15.5 10L20 7.75V16.25L15.5 14V10Z"
         stroke="currentColor"
@@ -254,7 +254,6 @@ function LocationIcon({ size = 18 }: { size?: number }) {
         strokeWidth="1.8"
         strokeLinejoin="round"
       />
-
       <circle
         cx="12"
         cy="10.2"
@@ -305,6 +304,53 @@ function CloseIcon({ size = 18 }: { size?: number }) {
   );
 }
 
+function StarIcon({
+  size = 24,
+  filled = false,
+}: {
+  size?: number;
+  filled?: boolean;
+}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill={filled ? "currentColor" : "none"}
+      aria-hidden="true"
+    >
+      <path
+        d="M12 3.75L14.55 8.91L20.25 9.74L16.12 13.76L17.1 19.43L12 16.75L6.9 19.43L7.88 13.76L3.75 9.74L9.45 8.91L12 3.75Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function CheckCircleIcon({ size = 24 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M8 12.2L10.7 15L16.2 9.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function EmptyCalendarIcon() {
   return (
     <svg
@@ -323,14 +369,12 @@ function EmptyCalendarIcon() {
         stroke="currentColor"
         strokeWidth="1.6"
       />
-
       <path
         d="M7 2.75V6.5M17 2.75V6.5M3 9.5H21"
         stroke="currentColor"
         strokeWidth="1.6"
         strokeLinecap="round"
       />
-
       <path
         d="M8 14H16M8 17H13"
         stroke="currentColor"
@@ -345,22 +389,16 @@ function getStatusLabel(status: SessionStatus) {
   switch (status) {
     case "pending":
       return "Menunggu Persetujuan";
-
     case "approved":
       return "Disetujui";
-
     case "completed":
       return "Selesai";
-
     case "cancelled":
       return "Dibatalkan";
-
     case "rejected":
       return "Ditolak";
-
     case "expired":
       return "Kadaluarsa";
-
     default:
       return status;
   }
@@ -370,22 +408,16 @@ function getStatusClass(status: SessionStatus) {
   switch (status) {
     case "pending":
       return "bg-[#FFF6E5] text-[#9A681A] border-[#F2D7A0]";
-
     case "approved":
       return "bg-[#E8F0E8] text-[#1E3F20] border-[#C9DAC9]";
-
     case "completed":
       return "bg-[#EEF2F7] text-[#4C5F78] border-[#D8E0EA]";
-
     case "cancelled":
       return "bg-[#F9EEEE] text-[#9A4C4C] border-[#ECD1D1]";
-
     case "rejected":
       return "bg-[#F9EEEE] text-[#9A4C4C] border-[#ECD1D1]";
-
     case "expired":
       return "bg-[#F3F3F1] text-[#77736E] border-[#E3E1DD]";
-
     default:
       return "bg-gray-100 text-gray-700 border-gray-200";
   }
@@ -407,7 +439,6 @@ function formatDate(value?: string | null) {
   }
 
   const cleanValue = value.includes("T") ? value.split("T")[0] : value;
-
   const date = new Date(`${cleanValue}T00:00:00`);
 
   if (Number.isNaN(date.getTime())) {
@@ -427,12 +458,6 @@ function formatTime(value?: string | null) {
     return "-";
   }
 
-  /*
-   * Mendukung:
-   * 14:00
-   * 14:00:00
-   * 2026-09-28T14:00:00
-   */
   if (value.includes("T")) {
     const timePart = value.split("T")[1];
 
@@ -461,7 +486,6 @@ function isUpcoming(session: Session) {
 
   const dateValue = bookedSlot.date;
   const timeValue = bookedSlot.start_time ?? "00:00";
-
   const start = new Date(`${dateValue}T${timeValue}`);
 
   if (Number.isNaN(start.getTime())) {
@@ -469,6 +493,15 @@ function isUpcoming(session: Session) {
   }
 
   return start.getTime() >= Date.now();
+}
+
+function hasRating(session?: Session | null) {
+  return Boolean(
+    session?.feedback &&
+    typeof session.feedback.rating === "number" &&
+    session.feedback.rating >= 1 &&
+    session.feedback.rating <= 5,
+  );
 }
 
 const TABS = [
@@ -511,8 +544,18 @@ export default function ScheduleHistoryPage() {
   const [detailLoading, setDetailLoading] = useState(false);
 
   const [cancelTarget, setCancelTarget] = useState<Session | null>(null);
-
   const [cancelling, setCancelling] = useState(false);
+
+  // ============================
+  // RATING STATE
+  // ============================
+
+  const [ratingTarget, setRatingTarget] = useState<Session | null>(null);
+  const [ratingValue, setRatingValue] = useState(0);
+  const [ratingComment, setRatingComment] = useState("");
+  const [ratingSubmitting, setRatingSubmitting] = useState(false);
+  const [ratingError, setRatingError] = useState("");
+  const [ratingSuccess, setRatingSuccess] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("auth_token");
@@ -687,6 +730,155 @@ export default function ScheduleHistoryPage() {
     }
   }
 
+  // ============================
+  // RATING
+  // ============================
+
+  function openRating(session: Session) {
+    if (session.status !== "completed") {
+      return;
+    }
+
+    setRatingTarget(session);
+    setRatingValue(session.feedback?.rating ?? 0);
+    setRatingComment(session.feedback?.comment ?? "");
+    setRatingError("");
+  }
+
+  function closeRating() {
+    if (ratingSubmitting) {
+      return;
+    }
+
+    setRatingTarget(null);
+    setRatingValue(0);
+    setRatingComment("");
+    setRatingError("");
+  }
+
+  function updateSessionFeedback(sessionId: number, feedback: Feedback) {
+    setSessions((current) =>
+      current.map((item) =>
+        item.id === sessionId
+          ? {
+              ...item,
+              feedback,
+            }
+          : item,
+      ),
+    );
+
+    setSelectedSession((current) =>
+      current?.id === sessionId
+        ? {
+            ...current,
+            feedback,
+          }
+        : current,
+    );
+  }
+
+  async function submitRating() {
+    if (!ratingTarget) {
+      return;
+    }
+
+    if (ratingTarget.status !== "completed") {
+      setRatingError(
+        "Rating hanya bisa diberikan untuk sesi yang sudah selesai.",
+      );
+      return;
+    }
+
+    if (ratingValue < 1 || ratingValue > 5) {
+      setRatingError("Silakan pilih rating antara 1 sampai 5 bintang.");
+      return;
+    }
+
+    const token = localStorage.getItem("auth_token");
+
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
+
+    try {
+      setRatingSubmitting(true);
+      setRatingError("");
+
+      /*
+       * Endpoint yang digunakan:
+       * POST /sessions/{sessionId}/feedback
+       *
+       * Body:
+       * {
+       *   rating: 1-5,
+       *   comment: "..."
+       * }
+       */
+      const response = await fetch(
+        `${API_BASE_URL}/sessions/${ratingTarget.id}/feedback`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            rating: ratingValue,
+            comment: ratingComment.trim() || null,
+          }),
+        },
+      );
+
+      if (response.status === 401) {
+        localStorage.removeItem("auth_token");
+        router.replace("/login");
+        return;
+      }
+
+      const result: RatingResponse = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message ?? "Gagal menyimpan rating.");
+      }
+
+      let savedFeedback: Feedback = {
+        id: ratingTarget.feedback?.id,
+        rating: ratingValue,
+        comment: ratingComment.trim() || null,
+      };
+
+      if (result.data) {
+        if (
+          typeof result.data === "object" &&
+          "feedback" in result.data &&
+          result.data.feedback
+        ) {
+          savedFeedback = result.data.feedback;
+        } else if (typeof result.data === "object" && "rating" in result.data) {
+          savedFeedback = result.data as Feedback;
+        }
+      }
+
+      updateSessionFeedback(ratingTarget.id, savedFeedback);
+
+      setRatingSuccess(true);
+      setRatingTarget(null);
+      setRatingValue(0);
+      setRatingComment("");
+    } catch (err) {
+      setRatingError(
+        err instanceof Error
+          ? err.message
+          : "Terjadi kesalahan saat menyimpan rating.",
+      );
+    } finally {
+      setRatingSubmitting(false);
+    }
+  }
+
   const summary = useMemo(() => {
     return {
       total: sessions.length,
@@ -743,9 +935,9 @@ export default function ScheduleHistoryPage() {
         {/* =========================
             HERO
         ========================== */}
+
         <section className="relative overflow-hidden border-b border-[#EAE6E0] bg-[#F4EFE8]">
           <div className="pointer-events-none absolute -right-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-[#DCE6D8]/70 blur-3xl" />
-
           <div className="pointer-events-none absolute -bottom-32 -left-32 h-[24rem] w-[24rem] rounded-full bg-[#E8D8C7]/60 blur-3xl" />
 
           <div className="relative z-10 mx-auto max-w-7xl px-6 py-14 md:px-8 md:py-18">
@@ -767,6 +959,7 @@ export default function ScheduleHistoryPage() {
             </Reveal>
 
             {/* SUMMARY */}
+
             <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4">
               {[
                 {
@@ -809,8 +1002,10 @@ export default function ScheduleHistoryPage() {
         {/* =========================
             CONTENT
         ========================== */}
+
         <section className="mx-auto max-w-7xl px-6 py-10 md:px-8 md:py-14">
           {/* FILTER */}
+
           <Reveal>
             <div className="rounded-3xl border border-[#E9E5DE] bg-white p-3 shadow-[0_18px_60px_rgba(44,30,22,0.05)]">
               <div className="flex flex-wrap gap-2">
@@ -854,7 +1049,6 @@ export default function ScheduleHistoryPage() {
                       strokeWidth="1.8"
                       strokeLinecap="round"
                     />
-
                     <path
                       d="M20 5V11H14"
                       stroke="currentColor"
@@ -870,6 +1064,7 @@ export default function ScheduleHistoryPage() {
           </Reveal>
 
           {/* ERROR */}
+
           {error && (
             <Reveal className="mt-6">
               <div className="rounded-2xl border border-[#EBCFCF] bg-[#FFF7F7] p-5">
@@ -891,6 +1086,7 @@ export default function ScheduleHistoryPage() {
           )}
 
           {/* LOADING */}
+
           {loading ? (
             <div className="mt-8 space-y-5">
               {[1, 2, 3].map((item) => (
@@ -903,7 +1099,6 @@ export default function ScheduleHistoryPage() {
 
                     <div className="flex-1">
                       <div className="h-4 w-44 rounded bg-[#EEEAE4]" />
-
                       <div className="mt-3 h-3 w-60 rounded bg-[#F1EEEA]" />
 
                       <div className="mt-7 grid gap-3 sm:grid-cols-3">
@@ -917,7 +1112,6 @@ export default function ScheduleHistoryPage() {
               ))}
             </div>
           ) : sessions.length === 0 ? (
-            /* EMPTY STATE */
             <Reveal className="mt-8">
               <div className="rounded-3xl border border-[#EAE5DE] bg-white px-6 py-14 text-center shadow-[0_18px_60px_rgba(44,30,22,0.04)]">
                 <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-[#F3F0EA] text-[#8A6A47]">
@@ -943,15 +1137,10 @@ export default function ScheduleHistoryPage() {
               </div>
             </Reveal>
           ) : (
-            /* SESSION LIST */
             <div className="mt-8 space-y-5">
               {sessions.map((session, index) => {
                 const mentor = session.mentor;
                 const profile = mentor?.profile;
-
-                /*
-                 * Ambil booked slot dari snake_case atau camelCase.
-                 */
                 const bookedSlot = getBookedSlot(session);
 
                 return (
@@ -960,6 +1149,7 @@ export default function ScheduleHistoryPage() {
                       <div className="p-6 md:p-7">
                         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                           {/* MAIN */}
+
                           <div className="min-w-0 flex-1">
                             <div className="flex items-start gap-4">
                               {profile?.profile_photo ? (
@@ -1003,6 +1193,7 @@ export default function ScheduleHistoryPage() {
                             </div>
 
                             {/* TOPIC */}
+
                             <div className="mt-6 rounded-2xl bg-[#F8F5F0] p-5">
                               <p className="text-[9px] font-extrabold uppercase tracking-[0.16em] text-[#9A7B5F]">
                                 Topik Konsultasi
@@ -1020,8 +1211,10 @@ export default function ScheduleHistoryPage() {
                             </div>
 
                             {/* SESSION INFO */}
+
                             <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                               {/* TANGGAL */}
+
                               <div className="rounded-2xl border border-[#ECE7E0] bg-white p-4 transition-all duration-500 hover:-translate-y-0.5 hover:bg-[#FCFBF8]">
                                 <div className="flex items-center gap-2 text-[#8A6A47]">
                                   <CalendarIcon size={16} />
@@ -1037,6 +1230,7 @@ export default function ScheduleHistoryPage() {
                               </div>
 
                               {/* WAKTU */}
+
                               <div className="rounded-2xl border border-[#ECE7E0] bg-white p-4 transition-all duration-500 hover:-translate-y-0.5 hover:bg-[#FCFBF8]">
                                 <div className="flex items-center gap-2 text-[#8A6A47]">
                                   <ClockIcon size={16} />
@@ -1053,6 +1247,7 @@ export default function ScheduleHistoryPage() {
                               </div>
 
                               {/* FORMAT */}
+
                               <div className="rounded-2xl border border-[#ECE7E0] bg-white p-4 transition-all duration-500 hover:-translate-y-0.5 hover:bg-[#FCFBF8]">
                                 <div className="flex items-center gap-2 text-[#8A6A47]">
                                   {session.meeting_type === "online" ? (
@@ -1074,6 +1269,7 @@ export default function ScheduleHistoryPage() {
                               </div>
 
                               {/* DURASI */}
+
                               <div className="rounded-2xl border border-[#ECE7E0] bg-white p-4 transition-all duration-500 hover:-translate-y-0.5 hover:bg-[#FCFBF8]">
                                 <div className="flex items-center gap-2 text-[#8A6A47]">
                                   <ClockIcon size={16} />
@@ -1088,9 +1284,46 @@ export default function ScheduleHistoryPage() {
                                 </p>
                               </div>
                             </div>
+
+                            {/* RATING STATUS */}
+
+                            {session.status === "completed" &&
+                              hasRating(session) && (
+                                <div className="mt-5 rounded-2xl border border-[#E6DDC7] bg-[#FCF8EE] p-4">
+                                  <div className="flex flex-wrap items-center gap-3">
+                                    <span className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-[#9A7B5F]">
+                                      Rating Kamu
+                                    </span>
+
+                                    <div className="flex items-center gap-1 text-[#D59A2A]">
+                                      {[1, 2, 3, 4, 5].map((star) => (
+                                        <StarIcon
+                                          key={star}
+                                          size={15}
+                                          filled={
+                                            star <=
+                                            (session.feedback?.rating ?? 0)
+                                          }
+                                        />
+                                      ))}
+                                    </div>
+
+                                    <span className="text-xs font-black text-[#6F5B3D]">
+                                      {session.feedback?.rating}/5
+                                    </span>
+                                  </div>
+
+                                  {session.feedback?.comment && (
+                                    <p className="mt-2 text-xs leading-6 text-[#746A5F]">
+                                      “{session.feedback.comment}”
+                                    </p>
+                                  )}
+                                </div>
+                              )}
                           </div>
 
                           {/* ACTIONS */}
+
                           <div className="w-full lg:max-w-[220px]">
                             <div className="rounded-2xl border border-[#ECE7E0] bg-[#FCFBF8] p-4">
                               <p className="text-[9px] font-extrabold uppercase tracking-[0.15em] text-[#9A7B5F]">
@@ -1150,6 +1383,30 @@ export default function ScheduleHistoryPage() {
                                   <ArrowRightIcon size={15} />
                                 </button>
 
+                                {session.status === "completed" &&
+                                  !hasRating(session) && (
+                                    <button
+                                      type="button"
+                                      onClick={() => openRating(session)}
+                                      className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#E5D5AB] bg-[#FFF9EB] px-4 py-3 text-xs font-extrabold text-[#8A682E] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#FFF4D7] active:scale-[0.985]"
+                                    >
+                                      <StarIcon size={15} filled />
+                                      Beri Rating
+                                    </button>
+                                  )}
+
+                                {session.status === "completed" &&
+                                  hasRating(session) && (
+                                    <button
+                                      type="button"
+                                      disabled
+                                      className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl border border-[#DCE6D8] bg-[#EDF4EA] px-4 py-3 text-xs font-extrabold text-[#5D735E]"
+                                    >
+                                      <CheckCircleIcon size={15} />
+                                      Sudah Dinilai
+                                    </button>
+                                  )}
+
                                 {session.status === "approved" &&
                                   session.meeting_type === "online" &&
                                   session.meeting_link && (
@@ -1192,6 +1449,7 @@ export default function ScheduleHistoryPage() {
       {/* =========================
           DETAIL MODAL
       ========================== */}
+
       {selectedSession && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#2C1E16]/45 p-4 backdrop-blur-sm">
           <div
@@ -1222,6 +1480,7 @@ export default function ScheduleHistoryPage() {
 
             <div className="space-y-5 p-6">
               {/* Mentor */}
+
               <div className="flex items-center gap-4 rounded-2xl border border-[#EAE5DE] bg-white p-4">
                 {selectedSession.mentor?.profile?.profile_photo ? (
                   <img
@@ -1254,6 +1513,7 @@ export default function ScheduleHistoryPage() {
               </div>
 
               {/* Status */}
+
               <div className="rounded-2xl border border-[#EAE5DE] bg-white p-5">
                 <div className="flex items-center justify-between gap-4">
                   <p className="text-xs font-extrabold text-[#6D655E]">
@@ -1272,6 +1532,7 @@ export default function ScheduleHistoryPage() {
               </div>
 
               {/* Topic */}
+
               <div className="rounded-2xl border border-[#EAE5DE] bg-white p-5">
                 <p className="text-[9px] font-extrabold uppercase tracking-[0.15em] text-[#8A6A47]">
                   Topik
@@ -1289,6 +1550,7 @@ export default function ScheduleHistoryPage() {
               </div>
 
               {/* Schedule */}
+
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl border border-[#EAE5DE] bg-white p-5">
                   <div className="flex items-center gap-2 text-[#8A6A47]">
@@ -1333,6 +1595,7 @@ export default function ScheduleHistoryPage() {
               </div>
 
               {/* Meeting */}
+
               <div className="rounded-2xl border border-[#EAE5DE] bg-white p-5">
                 <div className="flex items-center gap-2 text-[#8A6A47]">
                   {selectedSession.meeting_type === "online" ? (
@@ -1373,8 +1636,60 @@ export default function ScheduleHistoryPage() {
                   )}
               </div>
 
+              {/* Existing Rating */}
+
+              {selectedSession.status === "completed" &&
+                hasRating(selectedSession) && (
+                  <div className="rounded-2xl border border-[#E6DDC7] bg-[#FCF8EE] p-5">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div>
+                        <p className="text-[9px] font-extrabold uppercase tracking-[0.15em] text-[#9A7B5F]">
+                          Rating Kamu
+                        </p>
+
+                        <div className="mt-2 flex items-center gap-1 text-[#D59A2A]">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <StarIcon
+                              key={star}
+                              size={18}
+                              filled={
+                                star <= (selectedSession.feedback?.rating ?? 0)
+                              }
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      <span className="text-sm font-black text-[#6F5B3D]">
+                        {selectedSession.feedback?.rating}/5
+                      </span>
+                    </div>
+
+                    {selectedSession.feedback?.comment && (
+                      <p className="mt-3 text-sm leading-7 text-[#746A5F]">
+                        “{selectedSession.feedback.comment}”
+                      </p>
+                    )}
+                  </div>
+                )}
+
               {/* Footer actions */}
+
               <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:justify-end">
+                {selectedSession.status === "completed" &&
+                  !hasRating(selectedSession) && (
+                    <button
+                      type="button"
+                      onClick={() => openRating(selectedSession)}
+                      className="cursor-pointer rounded-xl border border-[#E5D5AB] bg-[#FFF9EB] px-5 py-3 text-xs font-extrabold text-[#8A682E] transition-all duration-300 hover:bg-[#FFF4D7]"
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <StarIcon size={15} filled />
+                        Beri Rating
+                      </span>
+                    </button>
+                  )}
+
                 {canCancel(selectedSession.status) && (
                   <button
                     type="button"
@@ -1397,21 +1712,242 @@ export default function ScheduleHistoryPage() {
                 </button>
               </div>
             </div>
-          </div>
 
-          {detailLoading && (
-            <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#2C1E16]/10">
-              <div className="rounded-2xl border border-white/70 bg-white px-5 py-4 text-sm font-bold text-[#2C1E16] shadow-xl">
-                Memuat detail...
+            {detailLoading && (
+              <div className="absolute inset-0 z-30 flex items-center justify-center bg-[#2C1E16]/10">
+                <div className="rounded-2xl border border-white/70 bg-white px-5 py-4 text-sm font-bold text-[#2C1E16] shadow-xl">
+                  Memuat detail...
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* =========================
+          RATING MODAL
+      ========================== */}
+
+      {ratingTarget && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#2C1E16]/50 p-4 backdrop-blur-sm">
+          <div
+            className="absolute inset-0"
+            onClick={() => {
+              if (!ratingSubmitting) {
+                closeRating();
+              }
+            }}
+          />
+
+          <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-3xl bg-[#FCFBF8] shadow-2xl">
+            {/* Header */}
+
+            <div className="flex items-center justify-between border-b border-[#ECE7E0] px-6 py-5">
+              <div>
+                <p className="text-[9px] font-extrabold uppercase tracking-[0.16em] text-[#8A6A47]">
+                  Feedback Mentor
+                </p>
+
+                <h2 className="mt-1 text-xl font-black text-[#2C1E16]">
+                  Beri Rating
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeRating}
+                disabled={ratingSubmitting}
+                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#E6E0D9] bg-white text-[#6D655E] transition-all duration-300 hover:bg-[#F4F0EA] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <CloseIcon size={18} />
+              </button>
+            </div>
+
+            <div className="p-6">
+              {/* Mentor */}
+
+              <div className="flex items-center gap-4 rounded-2xl border border-[#EAE5DE] bg-white p-4">
+                {ratingTarget.mentor?.profile?.profile_photo ? (
+                  <img
+                    src={ratingTarget.mentor.profile.profile_photo}
+                    alt={ratingTarget.mentor.name}
+                    className="h-14 w-14 rounded-2xl object-cover"
+                  />
+                ) : (
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#E8F0E8] text-sm font-black text-[#1E3F20]">
+                    {getInitials(ratingTarget.mentor?.name)}
+                  </div>
+                )}
+
+                <div className="min-w-0">
+                  <p className="truncate text-base font-black text-[#2C1E16]">
+                    {ratingTarget.mentor?.name ?? "Mentor"}
+                  </p>
+
+                  <p className="mt-1 text-xs font-semibold text-[#1E3F20]">
+                    {ratingTarget.mentor?.profile?.job_title ?? "Career Mentor"}
+                  </p>
+
+                  {ratingTarget.mentor?.profile?.company && (
+                    <p className="mt-1 truncate text-xs text-[#817970]">
+                      {ratingTarget.mentor.profile.company}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Rating */}
+
+              <div className="mt-6 rounded-2xl bg-[#F8F5F0] p-5 text-center">
+                <p className="text-sm font-black text-[#2C1E16]">
+                  Bagaimana pengalamanmu?
+                </p>
+
+                <p className="mt-1 text-xs leading-6 text-[#7A726C]">
+                  Berikan penilaian untuk sesi konsultasi bersama mentor.
+                </p>
+
+                <div className="mt-5 flex justify-center gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => {
+                    const active = star <= ratingValue;
+
+                    return (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setRatingValue(star)}
+                        disabled={ratingSubmitting}
+                        aria-label={`Beri ${star} dari 5 bintang`}
+                        className={[
+                          "flex h-12 w-12 cursor-pointer items-center justify-center rounded-2xl transition-all duration-300",
+                          active
+                            ? "bg-[#FFF0C7] text-[#D59A2A] scale-105"
+                            : "bg-white text-[#C8C0B7] hover:bg-[#FFF7E4] hover:text-[#D6A64A]",
+                          ratingSubmitting
+                            ? "cursor-not-allowed opacity-60"
+                            : "",
+                        ].join(" ")}
+                      >
+                        <StarIcon size={25} filled={active} />
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <p className="mt-4 text-sm font-extrabold text-[#8A682E]">
+                  {ratingValue === 0 && "Pilih rating"}
+                  {ratingValue === 1 && "Sangat kurang"}
+                  {ratingValue === 2 && "Kurang"}
+                  {ratingValue === 3 && "Cukup"}
+                  {ratingValue === 4 && "Bagus"}
+                  {ratingValue === 5 && "Sangat bagus"}
+                </p>
+              </div>
+
+              {/* Comment */}
+
+              <div className="mt-5">
+                <label
+                  htmlFor="rating-comment"
+                  className="text-xs font-extrabold text-[#2C1E16]"
+                >
+                  Komentar
+                  <span className="ml-1 font-normal text-[#8B837C]">
+                    (opsional)
+                  </span>
+                </label>
+
+                <textarea
+                  id="rating-comment"
+                  value={ratingComment}
+                  onChange={(event) => setRatingComment(event.target.value)}
+                  disabled={ratingSubmitting}
+                  placeholder="Ceritakan pengalamanmu bersama mentor..."
+                  rows={4}
+                  maxLength={500}
+                  className="mt-2 w-full resize-none rounded-2xl border border-[#E5DED6] bg-white px-4 py-3 text-sm leading-6 text-[#2C1E16] outline-none transition-all duration-300 placeholder:text-[#A29A92] focus:border-[#AEBFA9] focus:ring-4 focus:ring-[#DDE9DD] disabled:cursor-not-allowed disabled:bg-[#F5F2ED]"
+                />
+
+                <p className="mt-2 text-right text-[10px] text-[#9A928A]">
+                  {ratingComment.length}/500
+                </p>
+              </div>
+
+              {/* Error */}
+
+              {ratingError && (
+                <div className="mt-4 rounded-2xl border border-[#EBCFCF] bg-[#FFF7F7] p-4">
+                  <p className="text-xs font-bold leading-6 text-[#984F4F]">
+                    {ratingError}
+                  </p>
+                </div>
+              )}
+
+              {/* Buttons */}
+
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={closeRating}
+                  disabled={ratingSubmitting}
+                  className="cursor-pointer rounded-xl border border-[#E5DED6] bg-white px-5 py-3 text-xs font-extrabold text-[#645D57] transition-all duration-300 hover:bg-[#F6F2ED] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Batal
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => void submitRating()}
+                  disabled={ratingSubmitting || ratingValue === 0}
+                  className="cursor-pointer rounded-xl bg-[#1E3F20] px-5 py-3 text-xs font-extrabold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#173219] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {ratingSubmitting ? "Menyimpan..." : "Kirim Rating"}
+                </button>
               </div>
             </div>
-          )}
+          </div>
+        </div>
+      )}
+
+      {/* =========================
+          RATING SUCCESS MODAL
+      ========================== */}
+
+      {ratingSuccess && (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center bg-[#2C1E16]/35 p-4 backdrop-blur-sm">
+          <div
+            className="absolute inset-0"
+            onClick={() => setRatingSuccess(false)}
+          />
+
+          <div className="relative z-10 w-full max-w-sm rounded-3xl bg-[#FCFBF8] p-7 text-center shadow-2xl">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#E8F0E8] text-[#1E3F20]">
+              <CheckCircleIcon size={34} />
+            </div>
+
+            <h2 className="mt-5 text-xl font-black text-[#2C1E16]">
+              Rating berhasil disimpan
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-[#746C65]">
+              Terima kasih sudah memberikan feedback untuk mentor.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setRatingSuccess(false)}
+              className="mt-6 w-full cursor-pointer rounded-xl bg-[#1E3F20] px-5 py-3 text-xs font-extrabold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#173219]"
+            >
+              Oke, Tutup
+            </button>
+          </div>
         </div>
       )}
 
       {/* =========================
           CANCEL MODAL
       ========================== */}
+
       {cancelTarget && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-[#2C1E16]/45 p-4 backdrop-blur-sm">
           <div
