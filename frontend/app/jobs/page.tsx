@@ -390,7 +390,7 @@ export default function JobsPage() {
   };
 
   const handleCardKeyDown = (
-    event: React.KeyboardEvent<HTMLDivElement>,
+    event: React.KeyboardEvent<HTMLElement>,
     jobId: number,
   ) => {
     if (event.key === "Enter" || event.key === " ") {

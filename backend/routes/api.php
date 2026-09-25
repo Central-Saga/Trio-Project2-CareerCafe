@@ -12,6 +12,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\IndustrySkillController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\JobApplicationController;
+use App\Http\Controllers\MentorApplicationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,8 +24,15 @@ use App\Http\Controllers\JobApplicationController;
 // Public options
 // =========================================================
 
-Route::get('/industries', [IndustrySkillController::class, 'industries']);
-Route::get('/skills', [IndustrySkillController::class, 'skills']);
+Route::get(
+    '/industries',
+    [IndustrySkillController::class, 'industries']
+);
+
+Route::get(
+    '/skills',
+    [IndustrySkillController::class, 'skills']
+);
 
 // =========================================================
 // Authentication
@@ -32,22 +40,39 @@ Route::get('/skills', [IndustrySkillController::class, 'skills']);
 // =========================================================
 
 Route::middleware('throttle:5,1')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post(
+        '/register',
+        [AuthController::class, 'register']
+    );
+
+    Route::post(
+        '/login',
+        [AuthController::class, 'login']
+    );
 });
 
 // =========================================================
 // Jobs (Public discovery)
 // =========================================================
 
-Route::get('/jobs', [JobController::class, 'index']);
-Route::get('/jobs/{id}', [JobController::class, 'show']);
+Route::get(
+    '/jobs',
+    [JobController::class, 'index']
+);
+
+Route::get(
+    '/jobs/{id}',
+    [JobController::class, 'show']
+);
 
 // =========================================================
 // Mentors (Public discovery)
 // =========================================================
 
-Route::get('/mentors', [MentorController::class, 'index']);
+Route::get(
+    '/mentors',
+    [MentorController::class, 'index']
+);
 
 Route::get(
     '/mentors/{id}',
@@ -73,15 +98,21 @@ Route::get(
 // Career Feed (Public read)
 // =========================================================
 
-Route::get('/posts', [PostController::class, 'index']);
-Route::get('/posts/{id}', [PostController::class, 'show']);
+Route::get(
+    '/posts',
+    [PostController::class, 'index']
+);
+
+Route::get(
+    '/posts/{id}',
+    [PostController::class, 'show']
+);
 
 // =========================================================
 // Authenticated Routes (Sanctum Bearer Token)
 // =========================================================
 
 Route::middleware('auth:sanctum')->group(function () {
-
     // =========================================================
     // Auth & Profile
     // =========================================================
@@ -96,37 +127,31 @@ Route::middleware('auth:sanctum')->group(function () {
         [AuthController::class, 'me']
     );
 
-    // Ambil data profile
     Route::get(
         '/profile',
         [ProfileController::class, 'getProfile']
     );
 
-    // Update data profile
     Route::put(
         '/profile',
         [ProfileController::class, 'updateProfile']
     );
 
-    // Upload foto profil
     Route::post(
         '/profile/photo',
         [ProfileController::class, 'uploadPhoto']
     );
 
-    // Hapus foto profil
     Route::delete(
         '/profile/photo',
         [ProfileController::class, 'deletePhoto']
     );
 
-    // Upload cover profile
     Route::post(
         '/profile/cover',
         [ProfileController::class, 'uploadCover']
     );
 
-    // Hapus cover profile
     Route::delete(
         '/profile/cover',
         [ProfileController::class, 'deleteCover']
@@ -136,16 +161,61 @@ Route::middleware('auth:sanctum')->group(function () {
     // Job Applications
     // =========================================================
 
-    // Melamar pekerjaan
     Route::post(
         '/jobs/{jobId}/apply',
         [JobApplicationController::class, 'store']
     );
 
-    // Melihat semua lamaran milik user yang sedang login
     Route::get(
         '/applications',
         [JobApplicationController::class, 'index']
+    );
+
+    // =========================================================
+    // Mentor Applications - Mentee
+    // =========================================================
+
+    Route::get(
+        '/mentor-applications/my',
+        [MentorApplicationController::class, 'index']
+    );
+
+    Route::post(
+        '/mentor-applications',
+        [MentorApplicationController::class, 'store']
+    );
+
+    // =========================================================
+    // Mentor Applications - Admin
+    // =========================================================
+
+    Route::get(
+        '/admin/mentor-applications',
+        [MentorApplicationController::class, 'adminIndex']
+    );
+
+    Route::patch(
+        '/admin/mentor-applications/{id}/approve',
+        [MentorApplicationController::class, 'approve']
+    );
+
+    Route::patch(
+        '/admin/mentor-applications/{id}/reject',
+        [MentorApplicationController::class, 'reject']
+    );
+
+    /*
+     * Membuka dokumen verifikasi mentor.
+     *
+     * Dokumen tetap berada di private/local storage.
+     * Hanya admin yang sudah login yang dapat mengaksesnya.
+     *
+     * Contoh:
+     * GET /api/admin/mentor-applications/1/documents/3
+     */
+    Route::get(
+        '/admin/mentor-applications/{id}/documents/{documentId}',
+        [MentorApplicationController::class, 'viewDocument']
     );
 
     // =========================================================
@@ -158,7 +228,7 @@ Route::middleware('auth:sanctum')->group(function () {
     );
 
     // =========================================================
-    // Mentoring Sessions (FR-06, FR-07, FR-09)
+    // Mentoring Sessions
     // =========================================================
 
     Route::post(
@@ -197,7 +267,7 @@ Route::middleware('auth:sanctum')->group(function () {
     );
 
     // =========================================================
-    // Feedback & Rating (FR-13, FR-14)
+    // Feedback & Rating
     // =========================================================
 
     Route::post(
@@ -206,7 +276,7 @@ Route::middleware('auth:sanctum')->group(function () {
     );
 
     // =========================================================
-    // Posts (Create, Update, Delete)
+    // Posts
     // =========================================================
 
     Route::post(
