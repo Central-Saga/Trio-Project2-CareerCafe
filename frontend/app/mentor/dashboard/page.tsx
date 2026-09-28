@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 
 const API_URL = (
@@ -10,16 +9,9 @@ const API_URL = (
 
 const BACKEND_URL = API_URL.replace(/\/api$/, "");
 
-/*
- * Foto khusus untuk dashboard mentor.
- *
- * File berada di:
- * public/past-forward-1990.jpg
- *
- * Karena berada di folder public, URL yang digunakan:
- * /past-forward-1990.jpg
- */
-const DEFAULT_MENTOR_PHOTO = "/past-forward-1990s.jpg";
+/* =========================================================
+   TYPES
+========================================================= */
 
 type Profile = {
   profile_photo?: string | null;
@@ -67,6 +59,30 @@ type ActivityPoint = {
   value: number;
 };
 
+type ProfileApiResponse = {
+  success?: boolean;
+  message?: string;
+  data?: {
+    id?: number;
+    name?: string | null;
+    email?: string | null;
+    role?: string | null;
+    profile?: Profile | null;
+    skills?: unknown[];
+  } | null;
+};
+
+type MeApiResponse = {
+  success?: boolean;
+  message?: string;
+  data?: {
+    id?: number;
+    name?: string | null;
+    email?: string | null;
+    role?: string | null;
+  } | null;
+};
+
 /* =========================================================
    HELPERS
 ========================================================= */
@@ -89,6 +105,10 @@ function parseDate(value?: string | null) {
   return date;
 }
 
+/**
+ * Mengubah path foto dari Laravel menjadi URL yang bisa
+ * langsung digunakan oleh browser.
+ */
 function resolveImageUrl(value?: string | null) {
   if (!value) {
     return "";
@@ -234,19 +254,17 @@ function isCompleted(session: Session) {
 ========================================================= */
 
 export default function MentorDashboardPage() {
-  const [mentorName, setMentorName] = useState("Mentor Profesional");
+  const [mentorName, setMentorName] = useState("Mentor Professional");
 
   const [profile, setProfile] = useState<Profile | null>(null);
 
-  /*
-   * Penting:
+  /**
+   * Foto sekarang TIDAK lagi menggunakan hardcode.
    *
-   * Foto dashboard sekarang SELALU menggunakan
-   * foto dari folder public.
-   *
-   * Tidak lagi mengambil profile_image dari localStorage.
+   * Nilainya akan diambil dari:
+   * /api/profile -> data.profile.profile_photo
    */
-  const [profileImage, setProfileImage] = useState(DEFAULT_MENTOR_PHOTO);
+  const [profileImage, setProfileImage] = useState("");
 
   const [sessions, setSessions] = useState<Session[]>([]);
 
@@ -264,21 +282,15 @@ export default function MentorDashboardPage() {
 
       const storedName = localStorage.getItem("user_name") || "";
 
-      /*
-       * Sengaja TIDAK membaca:
-       *
-       * localStorage.getItem("profile_image")
-       *
-       * karena dashboard harus selalu menggunakan
-       * foto /past-forward-1990.jpg
-       */
-
       if (storedName) {
         setMentorName(storedName);
       }
 
-      setProfileImage(DEFAULT_MENTOR_PHOTO);
-
+      /**
+       * Jangan lagi memasang foto default Trio.
+       * Dashboard akan menunggu foto dari backend.
+       */
+      setProfileImage("");
       setImageFailed(false);
 
       if (!token) {
@@ -294,6 +306,7 @@ export default function MentorDashboardPage() {
                 Accept: "application/json",
                 Authorization: `Bearer ${token}`,
               },
+              cache: "no-store",
             }),
 
             fetch(`${API_URL}/profile`, {
@@ -301,6 +314,7 @@ export default function MentorDashboardPage() {
                 Accept: "application/json",
                 Authorization: `Bearer ${token}`,
               },
+              cache: "no-store",
             }),
 
             fetch(`${API_URL}/sessions?per_page=100`, {
@@ -308,14 +322,13 @@ export default function MentorDashboardPage() {
                 Accept: "application/json",
                 Authorization: `Bearer ${token}`,
               },
+              cache: "no-store",
             }),
           ]);
 
         const [meData, profileData, sessionsData] = await Promise.all([
           meResponse.json().catch(() => null),
-
           profileResponse.json().catch(() => null),
-
           sessionsResponse.json().catch(() => null),
         ]);
 
@@ -324,11 +337,12 @@ export default function MentorDashboardPage() {
         ================================================== */
 
         if (meResponse.ok) {
-          const user = meData?.data ?? meData;
+          const typedMe = meData as MeApiResponse | null;
+
+          const user = typedMe?.data;
 
           if (user?.name) {
             setMentorName(user.name);
-
             localStorage.setItem("user_name", user.name);
           }
         }
@@ -338,20 +352,36 @@ export default function MentorDashboardPage() {
         ================================================== */
 
         if (profileResponse.ok) {
-          const resolvedProfile = profileData?.data ?? profileData;
+          const typedProfile = profileData as ProfileApiResponse | null;
 
-          setProfile(resolvedProfile ?? null);
-
-          /*
-           * Jangan gunakan profile_photo
-           * untuk hero dashboard.
+          /**
+           * Backend:
            *
-           * Dashboard tetap menggunakan:
+           * data: {
+           *   id,
+           *   name,
+           *   email,
+           *   role,
+           *   profile: {
+           *      profile_photo,
+           *      ...
+           *   }
+           * }
            *
-           * /past-forward-1990.jpg
+           * Jadi yang kita butuhkan adalah:
+           *
+           * typedProfile.data.profile
            */
-          setProfileImage(DEFAULT_MENTOR_PHOTO);
+          const resolvedProfile = typedProfile?.data?.profile ?? null;
 
+          setProfile(resolvedProfile);
+
+          /**
+           * Ambil foto dari profile database.
+           */
+          const photoUrl = resolveImageUrl(resolvedProfile?.profile_photo);
+
+          setProfileImage(photoUrl);
           setImageFailed(false);
         }
 
@@ -372,13 +402,14 @@ export default function MentorDashboardPage() {
 
           setSessions(list);
         }
-      } catch {
-        /*
-         * Jika API error, foto dashboard
-         * tetap menggunakan foto public.
-         */
-        setProfileImage(DEFAULT_MENTOR_PHOTO);
+      } catch (error) {
+        console.error("Dashboard load error:", error);
 
+        /**
+         * Kalau API gagal, jangan kembali ke foto Trio.
+         * Tampilkan inisial mentor.
+         */
+        setProfileImage("");
         setImageFailed(false);
       } finally {
         setLoading(false);
@@ -517,10 +548,6 @@ export default function MentorDashboardPage() {
 
   const ratingText = statistics.rating > 0 ? statistics.rating.toFixed(1) : "—";
 
-  /*
-   * Dashboard photo hanya berasal dari
-   * public/past-forward-1990.jpg.
-   */
   const hasMentorPhoto = Boolean(profileImage) && !imageFailed;
 
   const monthName = new Date().toLocaleDateString("en-US", {
@@ -569,15 +596,17 @@ export default function MentorDashboardPage() {
         <section className="mentor-reveal flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#AAA097]">
-              Mentor dashboard
+              Mentor Dashboard
             </p>
 
             <h1 className="mt-1.5 text-[38px] font-black tracking-[-0.065em] text-[#302923] sm:text-[44px]">
-              Hello, {firstName}
+              Welcome back, {firstName}
             </h1>
 
-            <p className="mt-1.5 text-xs font-medium text-[#978D85]">
-              Track. Mentor. Grow.
+            <p className="mt-2 max-w-[520px] text-xs font-medium leading-5 text-[#978D85] sm:text-sm">
+              Track your sessions, guide your mentees,
+              <br className="hidden sm:block" />
+              and make every conversation count.
             </p>
           </div>
 
@@ -607,56 +636,58 @@ export default function MentorDashboardPage() {
           <div className="mentor-reveal mentor-delay-1 relative min-h-[318px] overflow-hidden rounded-[28px] bg-[#668269] shadow-[0_22px_48px_rgba(71,98,76,.14)]">
             {/* BASE GRADIENT */}
 
-            <div className="absolute inset-0 bg-[linear-gradient(135deg,#58755D_0%,#6B886F_48%,#91A493_100%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(135deg,#58755D_0%,#668269_42%,#7F967F_72%,#91A493_100%)]" />
 
             {/* BACKGROUND SHAPES */}
 
             <div className="pointer-events-none absolute -left-28 -top-28 h-[320px] w-[320px] rounded-full border-[45px] border-white/[0.03]" />
 
-            <div className="pointer-events-none absolute -bottom-36 left-[25%] h-[320px] w-[320px] rounded-full bg-white/[0.03] blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-36 left-[25%] h-[320px] w-[320px] rounded-full bg-white/[0.035] blur-3xl" />
+
+            <div className="pointer-events-none absolute right-[22%] top-[-30%] h-[280px] w-[280px] rounded-full bg-white/[0.025] blur-3xl" />
 
             {/* ==================================================
                 MENTOR PHOTO
             =================================================== */}
 
-            <div className="absolute inset-y-0 right-0 z-0 w-[49%] overflow-hidden">
+            <div className="pointer-events-none absolute inset-0 z-[1]">
               {hasMentorPhoto ? (
                 <img
-                  src={DEFAULT_MENTOR_PHOTO}
-                  alt="Career Cafe mentor"
-                  className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-[900ms] ease-out hover:scale-[1.018]"
+                  src={profileImage}
+                  alt={mentorName}
+                  className="absolute inset-y-0 right-0 h-full w-[66%] object-cover object-[center_28%] transition-transform duration-[1000ms] ease-out hover:scale-[1.018]"
                   onError={() => {
                     setImageFailed(true);
                   }}
                 />
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-[#6C886F]">
+                <div className="absolute inset-0 flex items-center justify-end bg-[#6C886F] pr-[12%]">
                   <span className="text-6xl font-black text-white/75">
                     {getInitial(mentorName)}
                   </span>
                 </div>
               )}
-
-              {/* SOFT TOP FADE */}
-
-              <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-20 bg-gradient-to-b from-[#58755D]/50 via-[#58755D]/12 to-transparent" />
-
-              {/* SOFT LEFT TRANSITION */}
-
-              <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-[62%] bg-gradient-to-r from-[#58755D] via-[#58755D]/80 via-[45%] to-transparent" />
-
-              {/* ADDITIONAL BLEND */}
-
-              <div className="pointer-events-none absolute inset-y-0 left-[20%] z-20 w-[42%] bg-gradient-to-r from-[#58755D]/55 to-transparent blur-[12px]" />
-
-              {/* BOTTOM FADE */}
-
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-28 bg-gradient-to-t from-[#405A45]/65 via-[#405A45]/12 to-transparent" />
             </div>
 
-            {/* WHOLE CARD SOFT BLEND */}
+            {/* GLOBAL PHOTO BLEND */}
 
-            <div className="pointer-events-none absolute inset-0 z-10 bg-gradient-to-r from-transparent via-white/[0.015] to-white/[0.025]" />
+            <div className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(to_right,#58755D_0%,#58755D_26%,rgba(88,117,93,0.97)_36%,rgba(88,117,93,0.86)_45%,rgba(88,117,93,0.65)_53%,rgba(88,117,93,0.38)_61%,rgba(88,117,93,0.14)_69%,rgba(88,117,93,0)_79%)]" />
+
+            {/* SOFT CENTER HAZE */}
+
+            <div className="pointer-events-none absolute inset-y-0 left-[38%] z-[11] w-[31%] bg-[radial-gradient(ellipse_at_center,rgba(173,195,174,0.16)_0%,rgba(173,195,174,0.07)_32%,rgba(173,195,174,0)_72%)] blur-[18px]" />
+
+            {/* TOP BLEND */}
+
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-[12] h-24 bg-gradient-to-b from-[#58755D]/52 via-[#58755D]/12 to-transparent" />
+
+            {/* BOTTOM BLEND */}
+
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[12] h-32 bg-gradient-to-t from-[#405A45]/75 via-[#405A45]/18 to-transparent" />
+
+            {/* WHOLE CARD SOFT LIGHT */}
+
+            <div className="pointer-events-none absolute inset-0 z-[13] bg-[linear-gradient(108deg,rgba(255,255,255,0)_20%,rgba(255,255,255,0.012)_60%,rgba(255,255,255,0.025)_100%)]" />
 
             {/* ==================================================
                 CONTENT
@@ -694,7 +725,7 @@ export default function MentorDashboardPage() {
 
               <div className="mt-6 flex flex-wrap items-center gap-2">
                 <Link
-                  href="/profile"
+                  href="/mentor/profile"
                   className="rounded-xl bg-[#D5A253] px-4 py-2.5 text-[9px] font-black text-white shadow-[0_9px_22px_rgba(0,0,0,.08)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#C79449]"
                 >
                   View profile
@@ -777,7 +808,6 @@ export default function MentorDashboardPage() {
                   points={activity
                     .map((point, index) => {
                       const x = 28 + index * 90;
-
                       const y = 168 - (point.value / maxActivity) * 110;
 
                       return `${x},${y}`;
@@ -827,29 +857,33 @@ export default function MentorDashboardPage() {
             STATISTICS
         =================================================== */}
 
-        <section className="mentor-reveal mentor-delay-2 mt-4 grid grid-cols-2 overflow-hidden rounded-[24px] border border-[#ECE7E1] bg-white shadow-[0_14px_34px_rgba(53,39,29,.04)] sm:grid-cols-4">
+        <section className="mentor-reveal mentor-delay-2 mt-4 grid grid-cols-2 overflow-visible rounded-[24px] border border-[#ECE7E1] bg-white shadow-[0_14px_34px_rgba(53,39,29,.04)] sm:grid-cols-4">
           <DashboardStat
             label="Total mentees"
             value={statistics.totalMentees.toString()}
             note="people helped"
+            emphasis="green"
           />
 
           <DashboardStat
             label="Upcoming"
             value={statistics.upcoming.toString()}
             note="sessions"
+            emphasis="blue"
           />
 
           <DashboardStat
             label="Pending"
             value={statistics.pending.toString()}
             note="requests"
+            emphasis="amber"
           />
 
           <DashboardStat
             label="Rating"
             value={ratingText}
             note={`${profile?.total_reviews ?? 0} reviews`}
+            emphasis="gold"
           />
         </section>
 
@@ -1065,7 +1099,8 @@ export default function MentorDashboardPage() {
                     <span
                       key={index}
                       className={[
-                        "h-8 rounded-lg",
+                        "h-8 rounded-lg transition-all duration-300",
+                        "hover:-translate-y-1",
                         index < Math.min(8, statistics.completed + 2)
                           ? "bg-[#7A927D]"
                           : "bg-[#E4DFD8]",
@@ -1088,7 +1123,7 @@ export default function MentorDashboardPage() {
                   </div>
 
                   <Link
-                    href="/profile"
+                    href="/mentor/profile"
                     className="rounded-xl bg-[#F5F1EB] px-3 py-2 text-[8px] font-black text-[#71675F] transition hover:bg-[#ECE5DC] hover:text-[#55765B]"
                   >
                     Edit
@@ -1255,7 +1290,8 @@ function QuickAction({
     >
       <span
         className={[
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition group-hover:scale-105",
+          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition",
+          "group-hover:scale-105",
           tones[tone],
         ].join(" ")}
       >
@@ -1287,26 +1323,85 @@ function DashboardStat({
   label,
   value,
   note,
+  emphasis,
 }: {
   label: string;
   value: string;
   note: string;
+  emphasis: "green" | "blue" | "amber" | "gold";
 }) {
+  const accent = {
+    green: {
+      glow: "hover:border-[#D7E4D8]",
+      value: "group-hover:text-[#55765B]",
+      dot: "bg-[#6D8A70]",
+    },
+
+    blue: {
+      glow: "hover:border-[#D8E4F2]",
+      value: "group-hover:text-[#4B73A4]",
+      dot: "bg-[#7093C0]",
+    },
+
+    amber: {
+      glow: "hover:border-[#F0DFBF]",
+      value: "group-hover:text-[#AA6C1C]",
+      dot: "bg-[#C99045]",
+    },
+
+    gold: {
+      glow: "hover:border-[#E9DCC7]",
+      value: "group-hover:text-[#A87834]",
+      dot: "bg-[#C49A56]",
+    },
+  };
+
+  const selectedAccent = accent[emphasis];
+
   return (
-    <div className="border-b border-[#EFE9E3] px-5 py-4 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0">
-      <p className="text-[8px] font-black uppercase tracking-[0.15em] text-[#AAA097]">
+    <div
+      className={[
+        "group relative min-h-[94px] overflow-visible border-b border-[#EFE9E3] px-5 py-4",
+        "transform-gpu will-change-transform",
+        "transition-all duration-300 ease-out",
+        "hover:z-20 hover:-translate-y-1.5 hover:scale-[1.025]",
+        "hover:bg-white hover:shadow-[0_18px_36px_rgba(53,39,29,.09)]",
+        "last:border-b-0",
+        "sm:border-b-0 sm:border-r sm:last:border-r-0",
+        selectedAccent.glow,
+      ].join(" ")}
+    >
+      <span
+        className={[
+          "pointer-events-none absolute right-5 top-4 h-1.5 w-1.5 rounded-full opacity-0",
+          "transition-all duration-300",
+          "group-hover:opacity-100",
+          selectedAccent.dot,
+        ].join(" ")}
+      />
+
+      <p className="text-[8px] font-black uppercase tracking-[0.15em] text-[#AAA097] transition-colors duration-300 group-hover:text-[#887D74]">
         {label}
       </p>
 
       <div className="mt-1 flex items-end gap-2">
-        <span className="text-2xl font-black tracking-[-0.05em] text-[#302923]">
+        <span
+          className={[
+            "text-2xl font-black tracking-[-0.05em] text-[#302923]",
+            "transform-gpu transition-all duration-300 ease-out",
+            "group-hover:-translate-y-0.5 group-hover:scale-[1.06]",
+            selectedAccent.value,
+          ].join(" ")}
+        >
           {value}
         </span>
 
-        <span className="mb-1 text-[8px] font-semibold text-[#9D938B]">
+        <span className="mb-1 text-[8px] font-semibold text-[#9D938B] transition-colors duration-300 group-hover:text-[#7F756D]">
           {note}
         </span>
       </div>
+
+      <span className="absolute bottom-0 left-5 h-[2px] w-0 rounded-full bg-[#66836B] transition-all duration-300 group-hover:w-10" />
     </div>
   );
 }
@@ -1349,7 +1444,7 @@ function ImpactIcon() {
 }
 
 /* =========================================================
-   ICONS
+   REQUEST ICON
 ========================================================= */
 
 function RequestIcon() {
@@ -1374,6 +1469,10 @@ function RequestIcon() {
   );
 }
 
+/* =========================================================
+   CALENDAR ICON
+========================================================= */
+
 function CalendarIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -1397,6 +1496,10 @@ function CalendarIcon() {
   );
 }
 
+/* =========================================================
+   CLOCK ICON
+========================================================= */
+
 function ClockIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -1412,28 +1515,9 @@ function ClockIcon() {
   );
 }
 
-function SessionIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-      <rect
-        x="3"
-        y="5"
-        width="18"
-        height="14"
-        rx="2.2"
-        stroke="currentColor"
-        strokeWidth="1.7"
-      />
-
-      <path
-        d="M8 21H16M12 19V21"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
+/* =========================================================
+   STAR ICON
+========================================================= */
 
 function StarIcon() {
   return (

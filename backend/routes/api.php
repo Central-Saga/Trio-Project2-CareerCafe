@@ -13,6 +13,7 @@ use App\Http\Controllers\IndustrySkillController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\MentorApplicationController;
+use App\Http\Controllers\AdminMenteeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,7 +22,7 @@ use App\Http\Controllers\MentorApplicationController;
 */
 
 // =========================================================
-// Public options
+// Public Options
 // =========================================================
 
 Route::get(
@@ -52,7 +53,7 @@ Route::middleware('throttle:5,1')->group(function () {
 });
 
 // =========================================================
-// Jobs (Public discovery)
+// Jobs - Public Discovery
 // =========================================================
 
 Route::get(
@@ -66,7 +67,7 @@ Route::get(
 );
 
 // =========================================================
-// Mentors (Public discovery)
+// Mentors - Public Discovery
 // =========================================================
 
 Route::get(
@@ -95,7 +96,7 @@ Route::get(
 );
 
 // =========================================================
-// Career Feed (Public read)
+// Career Feed - Public Read
 // =========================================================
 
 Route::get(
@@ -109,13 +110,14 @@ Route::get(
 );
 
 // =========================================================
-// Authenticated Routes (Sanctum Bearer Token)
+// Authenticated Routes - Sanctum Bearer Token
 // =========================================================
 
 Route::middleware('auth:sanctum')->group(function () {
-    // =========================================================
+
+    // =====================================================
     // Auth & Profile
-    // =========================================================
+    // =====================================================
 
     Route::post(
         '/logout',
@@ -157,9 +159,9 @@ Route::middleware('auth:sanctum')->group(function () {
         [ProfileController::class, 'deleteCover']
     );
 
-    // =========================================================
+    // =====================================================
     // Job Applications
-    // =========================================================
+    // =====================================================
 
     Route::post(
         '/jobs/{jobId}/apply',
@@ -171,9 +173,9 @@ Route::middleware('auth:sanctum')->group(function () {
         [JobApplicationController::class, 'index']
     );
 
-    // =========================================================
+    // =====================================================
     // Mentor Applications - Mentee
-    // =========================================================
+    // =====================================================
 
     Route::get(
         '/mentor-applications/my',
@@ -185,9 +187,9 @@ Route::middleware('auth:sanctum')->group(function () {
         [MentorApplicationController::class, 'store']
     );
 
-    // =========================================================
+    // =====================================================
     // Mentor Applications - Admin
-    // =========================================================
+    // =====================================================
 
     Route::get(
         '/admin/mentor-applications',
@@ -213,23 +215,38 @@ Route::middleware('auth:sanctum')->group(function () {
      * Contoh:
      * GET /api/admin/mentor-applications/1/documents/3
      */
+
     Route::get(
         '/admin/mentor-applications/{id}/documents/{documentId}',
         [MentorApplicationController::class, 'viewDocument']
     );
 
-    // =========================================================
+    // =====================================================
+    // Admin - Mentees
+    // =====================================================
+
+    Route::get(
+        '/admin/mentees',
+        [AdminMenteeController::class, 'index']
+    );
+
+    Route::get(
+        '/admin/mentees/{id}',
+        [AdminMenteeController::class, 'show']
+    );
+
+    // =====================================================
     // Mentor Availability Management
-    // =========================================================
+    // =====================================================
 
     Route::post(
         '/availability',
         [SlotController::class, 'setAvailability']
     );
 
-    // =========================================================
+    // =====================================================
     // Mentoring Sessions
-    // =========================================================
+    // =====================================================
 
     Route::post(
         '/sessions',
@@ -266,18 +283,18 @@ Route::middleware('auth:sanctum')->group(function () {
         [SessionController::class, 'complete']
     );
 
-    // =========================================================
+    // =====================================================
     // Feedback & Rating
-    // =========================================================
+    // =====================================================
 
     Route::post(
         '/sessions/{id}/feedback',
         [FeedbackController::class, 'store']
     );
 
-    // =========================================================
+    // =====================================================
     // Posts
-    // =========================================================
+    // =====================================================
 
     Route::post(
         '/posts',

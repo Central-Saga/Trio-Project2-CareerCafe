@@ -1,0 +1,2301 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
+type Profile = {
+  profile_photo?: string | null;
+  job_title?: string | null;
+  company?: string | null;
+};
+
+type NotificationKind =
+  | "pending"
+  | "approved"
+  | "rejected";
+
+type AdminApplicationNotification = {
+  id: number;
+  status: string;
+  full_name?: string | null;
+  job_title?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
+type AdminNotification = {
+  key: string;
+  applicationId: number;
+  kind: NotificationKind;
+  title: string;
+  description: string;
+  href: string;
+  timestamp?: string | null;
+};
+
+type Accent =
+  | "green"
+  | "amber"
+  | "blue"
+  | "lavender"
+  | "teal"
+  | "coral"
+  | "cream";
+
+const API_URL = (
+  process.env.NEXT_PUBLIC_API_URL ??
+  "http://127.0.0.1:8000/api"
+).replace(/\/$/, "");
+
+const BACKEND_URL = API_URL.replace(/\/api$/, "");
+
+/* =========================================================
+   NAVIGATION
+   Struktur, ukuran, dan spacing mengikuti Mentor Layout
+========================================================= */
+
+const navItems = [
+  {
+    label: "Dashboard",
+    href: "/admin/dashboard",
+    accent: "green" as const,
+    icon: <DashboardIcon />,
+  },
+  {
+    label: "Mentor Applications",
+    href: "/admin/mentor-applications",
+    accent: "amber" as const,
+    icon: <RequestIcon />,
+  },
+  {
+    label: "Mentors",
+    href: "/admin/mentors",
+    accent: "blue" as const,
+    icon: <MentorIcon />,
+  },
+  {
+    label: "Mentees",
+    href: "/admin/mentees",
+    accent: "lavender" as const,
+    icon: <MenteeIcon />,
+  },
+  {
+    label: "Sessions",
+    href: "/admin/sessions",
+    accent: "teal" as const,
+    icon: <SessionIcon />,
+  },
+  {
+    label: "Reports",
+    href: "/admin/reports",
+    accent: "coral" as const,
+    icon: <ChartIcon />,
+  },
+  {
+    label: "Settings",
+    href: "/admin/settings",
+    accent: "cream" as const,
+    icon: <SettingsIcon />,
+  },
+];
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function resolveImageUrl(value?: string | null) {
+  if (!value) {
+    return "";
+  }
+
+  if (
+    value.startsWith("http://") ||
+    value.startsWith("https://") ||
+    value.startsWith("data:")
+  ) {
+    return value;
+  }
+
+  if (value.startsWith("/")) {
+    return `${BACKEND_URL}${value}`;
+  }
+
+  if (value.startsWith("storage/")) {
+    return `${BACKEND_URL}/${value}`;
+  }
+
+  return `${BACKEND_URL}/storage/${value}`;
+}
+
+function getInitial(name: string) {
+  return name.trim().charAt(0).toUpperCase() || "A";
+}
+
+function getNotificationKey(
+  application: AdminApplicationNotification,
+): string | null {
+  const status = String(
+    application.status || "",
+  ).toLowerCase();
+
+  if (
+    !(
+      ["pending", "approved", "rejected"] as string[]
+    ).includes(status)
+  ) {
+    return null;
+  }
+
+  return `application-${application.id}-${status}`;
+}
+
+function isAdminApplicationNotification(
+  value: unknown,
+): value is AdminApplicationNotification {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const item = value as Record<string, unknown>;
+
+  return (
+    typeof item.id === "number" &&
+    typeof item.status === "string"
+  );
+}
+
+/* =========================================================
+   LAYOUT
+========================================================= */
+
+export default function AdminLayout({
+  children,
+}: Readonly<{
+  children: ReactNode;
+}>) {
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  const [logoutOpen, setLogoutOpen] = useState(false);
+
+  const [adminName, setAdminName] =
+    useState("Administrator");
+
+  const [profile, setProfile] =
+    useState<Profile | null>(null);
+
+  const [profileImage, setProfileImage] =
+    useState("");
+
+  const [
+    notificationApplications,
+    setNotificationApplications,
+  ] = useState<AdminApplicationNotification[]>(
+    [],
+  );
+
+  const [notificationOpen, setNotificationOpen] =
+    useState(false);
+
+  const [
+    readNotificationKeys,
+    setReadNotificationKeys,
+  ] = useState<string[]>([]);
+
+  const notificationRef =
+    useRef<HTMLDivElement | null>(null);
+
+  const hasNotificationPollStarted =
+    useRef(false);
+
+  /* =========================================================
+     LOAD NOTIFICATIONS
+  ========================================================= */
+
+  const loadNotifications = useCallback(
+    async () => {
+      const token =
+        localStorage.getItem("auth_token") || "";
+
+      if (!token) {
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `${API_URL}/admin/mentor-applications`,
+          {
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            cache: "no-store",
+          },
+        );
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data: unknown =
+          await response
+            .json()
+            .catch(() => null);
+
+        const raw =
+          data &&
+          typeof data === "object" &&
+          "data" in data
+            ? (
+                data as {
+                  data?: unknown;
+                }
+              ).data
+            : data;
+
+        let candidates: unknown[] = [];
+
+        if (Array.isArray(raw)) {
+          candidates = raw;
+        } else if (
+          raw &&
+          typeof raw === "object" &&
+          "data" in raw
+        ) {
+          const nested = (
+            raw as {
+              data?: unknown;
+            }
+          ).data;
+
+          candidates = Array.isArray(
+            nested,
+          )
+            ? nested
+            : [];
+        }
+
+        const list =
+          candidates.filter(
+            isAdminApplicationNotification,
+          );
+
+        setNotificationApplications(list);
+
+        if (
+          !hasNotificationPollStarted.current
+        ) {
+          const initialReadKeys =
+            list
+              .filter(
+                (item) =>
+                  String(
+                    item.status || "",
+                  ).toLowerCase() !==
+                  "pending",
+              )
+              .map((item) =>
+                getNotificationKey(
+                  item,
+                ),
+              )
+              .filter(
+                (
+                  key,
+                ): key is string =>
+                  key !== null &&
+                  key.length > 0,
+              );
+
+          setReadNotificationKeys(
+            (current) => {
+              const next =
+                Array.from(
+                  new Set<string>([
+                    ...current,
+                    ...initialReadKeys,
+                  ]),
+                ).slice(-100);
+
+              localStorage.setItem(
+                "admin_read_notification_keys",
+                JSON.stringify(
+                  next,
+                ),
+              );
+
+              return next;
+            },
+          );
+
+          hasNotificationPollStarted.current =
+            true;
+        }
+      } catch {
+        // Notification error tidak mengganggu workspace.
+      }
+    },
+    [],
+  );
+
+  /* =========================================================
+     LOAD READ NOTIFICATIONS
+  ========================================================= */
+
+  useEffect(() => {
+    try {
+      const savedRaw =
+        localStorage.getItem(
+          "admin_read_notification_keys",
+        ) || "[]";
+
+      const savedUnknown: unknown =
+        JSON.parse(savedRaw);
+
+      if (Array.isArray(savedUnknown)) {
+        const saved =
+          savedUnknown.filter(
+            (
+              item,
+            ): item is string =>
+              typeof item === "string",
+          );
+
+        setReadNotificationKeys(saved);
+      }
+    } catch {
+      setReadNotificationKeys([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadNotifications();
+  }, [loadNotifications]);
+
+  useEffect(() => {
+    const interval =
+      window.setInterval(() => {
+        void loadNotifications();
+      }, 20000);
+
+    return () =>
+      window.clearInterval(interval);
+  }, [loadNotifications]);
+
+  /* =========================================================
+     CLOSE NOTIFICATION OUTSIDE
+  ========================================================= */
+
+  useEffect(() => {
+    const handlePointerDown = (
+      event: MouseEvent,
+    ) => {
+      const target = event.target;
+
+      if (!(target instanceof Node)) {
+        return;
+      }
+
+      if (
+        !notificationRef.current?.contains(
+          target,
+        )
+      ) {
+        setNotificationOpen(false);
+      }
+    };
+
+    const handleKeyDown = (
+      event: KeyboardEvent,
+    ) => {
+      if (event.key === "Escape") {
+        setNotificationOpen(false);
+      }
+    };
+
+    document.addEventListener(
+      "mousedown",
+      handlePointerDown,
+    );
+
+    document.addEventListener(
+      "keydown",
+      handleKeyDown,
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handlePointerDown,
+      );
+
+      document.removeEventListener(
+        "keydown",
+        handleKeyDown,
+      );
+    };
+  }, []);
+
+  /* =========================================================
+     NOTIFICATIONS
+  ========================================================= */
+
+  const notifications =
+    useMemo<AdminNotification[]>(
+      () => {
+        const build = (
+          application: AdminApplicationNotification,
+        ): AdminNotification | null => {
+          const status =
+            String(
+              application.status || "",
+            ).toLowerCase();
+
+          const applicant =
+            application.full_name ||
+            "Calon mentor";
+
+          const jobTitle =
+            application.job_title ||
+            "mentor professional";
+
+          const timestamp =
+            application.updated_at ||
+            application.created_at ||
+            null;
+
+          if (status === "pending") {
+            return {
+              key: `application-${application.id}-pending`,
+              applicationId:
+                application.id,
+              kind: "pending",
+              title:
+                "Pengajuan mentor baru",
+              description: `${applicant} mengajukan diri sebagai ${jobTitle}.`,
+              href:
+                "/admin/mentor-applications",
+              timestamp,
+            };
+          }
+
+          if (
+            status === "approved"
+          ) {
+            return {
+              key: `application-${application.id}-approved`,
+              applicationId:
+                application.id,
+              kind: "approved",
+              title:
+                "Pengajuan mentor disetujui",
+              description: `${applicant} telah disetujui menjadi mentor.`,
+              href:
+                "/admin/mentor-applications",
+              timestamp,
+            };
+          }
+
+          if (
+            status === "rejected"
+          ) {
+            return {
+              key: `application-${application.id}-rejected`,
+              applicationId:
+                application.id,
+              kind: "rejected",
+              title:
+                "Pengajuan mentor ditolak",
+              description: `${applicant} memiliki pengajuan yang ditolak.`,
+              href:
+                "/admin/mentor-applications",
+              timestamp,
+            };
+          }
+
+          return null;
+        };
+
+        return notificationApplications
+          .map((item) =>
+            build(item),
+          )
+          .filter(
+            (
+              item,
+            ): item is AdminNotification =>
+              item !== null,
+          )
+          .sort(
+            (a, b) => {
+              const timeA =
+                a.timestamp
+                  ? new Date(
+                      a.timestamp,
+                    ).getTime()
+                  : 0;
+
+              const timeB =
+                b.timestamp
+                  ? new Date(
+                      b.timestamp,
+                    ).getTime()
+                  : 0;
+
+              return timeB - timeA;
+            },
+          )
+          .slice(0, 8);
+      },
+      [notificationApplications],
+    );
+
+  const unreadNotifications =
+    useMemo<AdminNotification[]>(
+      () =>
+        notifications.filter(
+          (item) =>
+            !readNotificationKeys.includes(
+              item.key,
+            ),
+        ),
+      [
+        notifications,
+        readNotificationKeys,
+      ],
+    );
+
+  const markNotificationRead = (
+    key: string,
+  ) => {
+    setReadNotificationKeys(
+      (current) => {
+        if (current.includes(key)) {
+          return current;
+        }
+
+        const next = [
+          ...current,
+          key,
+        ].slice(-100);
+
+        localStorage.setItem(
+          "admin_read_notification_keys",
+          JSON.stringify(next),
+        );
+
+        return next;
+      },
+    );
+  };
+
+  const markAllNotificationsRead = () => {
+    const next =
+      Array.from(
+        new Set<string>([
+          ...readNotificationKeys,
+          ...notifications.map(
+            (item) => item.key,
+          ),
+        ]),
+      ).slice(-100);
+
+    setReadNotificationKeys(next);
+
+    localStorage.setItem(
+      "admin_read_notification_keys",
+      JSON.stringify(next),
+    );
+  };
+
+  const handleNotificationClick = (
+    notification: AdminNotification,
+  ) => {
+    markNotificationRead(
+      notification.key,
+    );
+
+    setNotificationOpen(false);
+
+    router.push(
+      notification.href,
+    );
+  };
+
+  const notificationTime = (
+    value?: string | null,
+  ) => {
+    if (!value) {
+      return "Baru saja";
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return "Baru saja";
+    }
+
+    const diff = Math.max(
+      0,
+      Date.now() -
+        date.getTime(),
+    );
+
+    const minutes = Math.floor(
+      diff / 60000,
+    );
+
+    const hours = Math.floor(
+      diff / 3600000,
+    );
+
+    const days = Math.floor(
+      diff / 86400000,
+    );
+
+    if (minutes < 1) {
+      return "Baru saja";
+    }
+
+    if (minutes < 60) {
+      return `${minutes} mnt lalu`;
+    }
+
+    if (hours < 24) {
+      return `${hours} jam lalu`;
+    }
+
+    if (days < 7) {
+      return `${days} hari lalu`;
+    }
+
+    return new Intl.DateTimeFormat(
+      "id-ID",
+      {
+        day: "numeric",
+        month: "short",
+      },
+    ).format(date);
+  };
+
+  /* =========================================================
+     LOAD ADMIN PROFILE
+  ========================================================= */
+
+  const loadProfile =
+    useCallback(async () => {
+      const token =
+        localStorage.getItem(
+          "auth_token",
+        ) || "";
+
+      if (!token) {
+        router.replace("/login");
+        return;
+      }
+
+      const role =
+        (
+          localStorage.getItem(
+            "user_role",
+          ) || ""
+        ).toLowerCase();
+
+      if (role !== "admin") {
+        router.replace("/");
+        return;
+      }
+
+      const storedName =
+        localStorage.getItem(
+          "user_name",
+        ) || "";
+
+      if (storedName) {
+        setAdminName(storedName);
+      }
+
+      try {
+        const [
+          meResponse,
+          profileResponse,
+        ] = await Promise.all([
+          fetch(`${API_URL}/me`, {
+            headers: {
+              Accept:
+                "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            cache: "no-store",
+          }),
+
+          fetch(
+            `${API_URL}/profile`,
+            {
+              headers: {
+                Accept:
+                  "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              cache: "no-store",
+            },
+          ),
+        ]);
+
+        const meData: unknown =
+          await meResponse
+            .json()
+            .catch(() => null);
+
+        const profileData: unknown =
+          await profileResponse
+            .json()
+            .catch(() => null);
+
+        /* USER */
+
+        if (meResponse.ok) {
+          const user =
+            meData &&
+            typeof meData ===
+              "object" &&
+            "data" in meData
+              ? (
+                  meData as {
+                    data?: unknown;
+                  }
+                ).data
+              : meData;
+
+          if (
+            user &&
+            typeof user ===
+              "object" &&
+            "name" in user &&
+            typeof (
+              user as {
+                name?: unknown;
+              }
+            ).name === "string"
+          ) {
+            const name =
+              (
+                user as {
+                  name: string;
+                }
+              ).name;
+
+            setAdminName(name);
+
+            localStorage.setItem(
+              "user_name",
+              name,
+            );
+          }
+        }
+
+        /* PROFILE */
+
+        if (profileResponse.ok) {
+          const resolvedData =
+            profileData &&
+            typeof profileData ===
+              "object" &&
+            "data" in profileData
+              ? (
+                  profileData as {
+                    data?: unknown;
+                  }
+                ).data
+              : profileData;
+
+          if (
+            resolvedData &&
+            typeof resolvedData ===
+              "object"
+          ) {
+            const envelope =
+              resolvedData as {
+                name?: string | null;
+                profile?: Profile | null;
+              };
+
+            const nextProfile =
+              envelope.profile ??
+              null;
+
+            setProfile(
+              nextProfile,
+            );
+
+            if (
+              nextProfile?.profile_photo
+            ) {
+              setProfileImage(
+                resolveImageUrl(
+                  nextProfile.profile_photo,
+                ),
+              );
+            } else {
+              setProfileImage("");
+            }
+
+            if (envelope.name) {
+              setAdminName(
+                envelope.name,
+              );
+
+              localStorage.setItem(
+                "user_name",
+                envelope.name,
+              );
+            }
+          }
+        }
+      } catch {
+        // Gunakan data yang sudah tersimpan.
+      } finally {
+        setCheckingAuth(false);
+      }
+    }, [router]);
+
+  useEffect(() => {
+    void loadProfile();
+  }, [loadProfile]);
+
+  /* =========================================================
+     PROFILE UPDATE EVENT
+  ========================================================= */
+
+  useEffect(() => {
+    const handleProfileUpdated =
+      () => {
+        void loadProfile();
+      };
+
+    window.addEventListener(
+      "admin-profile-updated",
+      handleProfileUpdated,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "admin-profile-updated",
+        handleProfileUpdated,
+      );
+    };
+  }, [loadProfile]);
+
+  /* =========================================================
+     SIDEBAR
+  ========================================================= */
+
+  useEffect(() => {
+    const saved =
+      localStorage.getItem(
+        "admin_sidebar_collapsed",
+      );
+
+    if (saved === "true") {
+      setCollapsed(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  const toggleCollapsed =
+    () => {
+      setCollapsed(
+        (current) => {
+          const next =
+            !current;
+
+          localStorage.setItem(
+            "admin_sidebar_collapsed",
+            String(next),
+          );
+
+          return next;
+        },
+      );
+    };
+
+  /* =========================================================
+     LOGOUT
+  ========================================================= */
+
+  const performLogout =
+    () => {
+      [
+        "auth_token",
+        "token",
+        "user_name",
+        "user_role",
+        "user_email",
+        "user_id",
+      ].forEach(
+        (key) => {
+          localStorage.removeItem(
+            key,
+          );
+        },
+      );
+
+      router.push(
+        "/login",
+      );
+    };
+
+  const handleLogout =
+    () => {
+      setLogoutOpen(true);
+    };
+
+  const cancelLogout =
+    () => {
+      setLogoutOpen(false);
+    };
+
+  const confirmLogout =
+    () => {
+      setLogoutOpen(false);
+      performLogout();
+    };
+
+  const isActive =
+    (href: string) => {
+      if (
+        href ===
+        "/admin/dashboard"
+      ) {
+        return pathname === href;
+      }
+
+      return (
+        pathname === href ||
+        pathname.startsWith(
+          `${href}/`,
+        )
+      );
+    };
+
+  /* =========================================================
+     LOADING
+  ========================================================= */
+
+  if (checkingAuth) {
+    return (
+      <>
+        <style jsx global>{`
+          @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap");
+
+          html,
+          body {
+            font-family:
+              "Poppins",
+              sans-serif !important;
+          }
+        `}</style>
+
+        <main className="flex min-h-screen items-center justify-center bg-[#FFFDFC]">
+          <div className="text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-[#1E3F20] text-white shadow-lg">
+              {profileImage ? (
+                <img
+                  src={profileImage}
+                  alt={adminName}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="text-lg font-black">
+                  {getInitial(
+                    adminName,
+                  )}
+                </span>
+              )}
+            </div>
+
+            <div className="mx-auto mt-5 h-1.5 w-24 overflow-hidden rounded-full bg-[#EAE5DF]">
+              <div className="h-full w-1/2 animate-pulse rounded-full bg-[#D8953C]" />
+            </div>
+
+            <p className="mt-4 text-xs font-bold text-[#8B8178]">
+              Preparing admin workspace...
+            </p>
+          </div>
+        </main>
+      </>
+    );
+  }
+
+  /* =========================================================
+     MAIN
+  ========================================================= */
+
+  return (
+    <>
+      <style jsx global>{`
+        @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap");
+
+        html {
+          scroll-behavior: smooth;
+        }
+
+        html,
+        body {
+          font-family:
+            "Poppins",
+            sans-serif !important;
+        }
+
+        @keyframes mentorFadeUp {
+          from {
+            opacity: 0;
+            transform:
+              translateY(20px)
+              scale(0.992);
+          }
+
+          to {
+            opacity: 1;
+            transform:
+              translateY(0)
+              scale(1);
+          }
+        }
+
+        @keyframes mentorFadeIn {
+          from {
+            opacity: 0;
+          }
+
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes mentorScaleIn {
+          from {
+            opacity: 0;
+            transform: scale(0.97);
+          }
+
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        .mentor-reveal {
+          animation:
+            mentorFadeUp 0.8s
+              cubic-bezier(
+                0.16,
+                1,
+                0.3,
+                1
+              )
+              both;
+        }
+
+        .mentor-fade {
+          animation:
+            mentorFadeIn 0.7s
+              ease-out both;
+        }
+
+        .mentor-scale {
+          animation:
+            mentorScaleIn 0.7s
+              cubic-bezier(
+                0.16,
+                1,
+                0.3,
+                1
+              )
+              both;
+        }
+
+        .mentor-delay-1 {
+          animation-delay: 0.06s;
+        }
+
+        .mentor-delay-2 {
+          animation-delay: 0.12s;
+        }
+
+        .mentor-delay-3 {
+          animation-delay: 0.18s;
+        }
+
+        .mentor-delay-4 {
+          animation-delay: 0.24s;
+        }
+
+        ::selection {
+          background:
+            rgba(
+              216,
+              149,
+              60,
+              0.22
+            );
+        }
+
+        @media (
+          prefers-reduced-motion:
+            reduce
+        ) {
+          *,
+          *::before,
+          *::after {
+            animation-duration:
+              0.01ms !important;
+            animation-iteration-count:
+              1 !important;
+            transition-duration:
+              0.01ms !important;
+            scroll-behavior:
+              auto !important;
+          }
+        }
+      `}</style>
+
+      <div className="min-h-screen bg-[#FFFDFC] text-[#2F2722]">
+        {/* =================================================
+            MOBILE OVERLAY
+        ================================================== */}
+
+        {mobileOpen && (
+          <button
+            type="button"
+            aria-label="Close navigation"
+            onClick={() =>
+              setMobileOpen(false)
+            }
+            className="fixed inset-0 z-40 bg-black/25 backdrop-blur-[2px] lg:hidden"
+          />
+        )}
+
+        {/* =================================================
+            SIDEBAR
+        ================================================== */}
+
+        <aside
+          className={[
+            "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-[#E9E1D8] bg-[#F3EAE0]",
+            "transition-[width,transform] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+            collapsed
+              ? "w-[78px]"
+              : "w-[238px]",
+            mobileOpen
+              ? "translate-x-0"
+              : "-translate-x-full lg:translate-x-0",
+          ].join(" ")}
+        >
+          {/* =================================================
+              TOP
+          ================================================== */}
+
+          <div
+            className={[
+              "relative shrink-0 border-b border-[#E4D9CE]",
+              collapsed
+                ? "px-3 pb-5 pt-5"
+                : "px-4 pb-5 pt-5",
+            ].join(" ")}
+          >
+            <div
+              className={[
+                "flex",
+                collapsed
+                  ? "justify-center"
+                  : "justify-end",
+              ].join(" ")}
+            >
+              <button
+                type="button"
+                onClick={
+                  toggleCollapsed
+                }
+                aria-label={
+                  collapsed
+                    ? "Expand sidebar"
+                    : "Collapse sidebar"
+                }
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[#DFD3C7] bg-white text-[#746A62] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#FEFCFA] hover:text-[#1E3F20] hover:shadow-md"
+              >
+                <ChevronIcon
+                  direction={
+                    collapsed
+                      ? "right"
+                      : "left"
+                  }
+                />
+              </button>
+            </div>
+
+            {/* =================================================
+                PROFILE
+            ================================================== */}
+
+            <div
+              className={
+                collapsed
+                  ? "mt-5"
+                  : "mt-6"
+              }
+            >
+              <Link
+                href="/admin/profile"
+                title={
+                  collapsed
+                    ? adminName
+                    : undefined
+                }
+                className="group flex flex-col items-center text-center"
+              >
+                <div
+                  className={[
+                    "overflow-hidden rounded-full border-[3px] border-white bg-[#1E3F20] text-white shadow-[0_10px_24px_rgba(30,63,32,.17)] transition-all duration-300",
+                    "group-hover:scale-105 group-hover:shadow-[0_14px_30px_rgba(30,63,32,.22)]",
+                    collapsed
+                      ? "h-12 w-12"
+                      : "h-[68px] w-[68px]",
+                  ].join(" ")}
+                >
+                  {profileImage ? (
+                    <img
+                      src={profileImage}
+                      alt={adminName}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-xl font-black">
+                      {getInitial(
+                        adminName,
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {!collapsed && (
+                  <div className="mt-3 w-full px-1">
+                    <p className="truncate text-xs font-black text-[#382E28]">
+                      {adminName}
+                    </p>
+
+                    <p className="mt-1 truncate text-[9px] font-semibold text-[#968A80]">
+                      {profile?.job_title ||
+                        "Administrator"}
+                    </p>
+
+                    {profile?.company && (
+                      <p className="mt-0.5 truncate text-[8px] font-medium text-[#ADA096]">
+                        {profile.company}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </Link>
+            </div>
+          </div>
+
+          {/* =================================================
+              NAV
+          ================================================== */}
+
+          <div
+            className={[
+              "flex-1 overflow-hidden",
+              collapsed
+                ? "px-2 py-5"
+                : "px-3 py-5",
+            ].join(" ")}
+          >
+            {!collapsed && (
+              <div className="mb-2 px-2 text-[8px] font-black uppercase tracking-[0.2em] text-[#A3988E]">
+                Workspace
+              </div>
+            )}
+
+            <nav className="space-y-1.5">
+              {navItems.map(
+                (item) => (
+                  <SidebarLink
+                    key={item.href}
+                    href={item.href}
+                    label={item.label}
+                    icon={item.icon}
+                    active={isActive(
+                      item.href,
+                    )}
+                    accent={
+                      item.accent
+                    }
+                    collapsed={
+                      collapsed
+                    }
+                  />
+                ),
+              )}
+            </nav>
+          </div>
+
+          {/* =================================================
+              LOGOUT
+          ================================================== */}
+
+          <div
+            className={[
+              "shrink-0 border-t border-[#E4D9CE]",
+              collapsed
+                ? "p-3"
+                : "p-4",
+            ].join(" ")}
+          >
+            <button
+              type="button"
+              onClick={
+                handleLogout
+              }
+              title={
+                collapsed
+                  ? "Sign out"
+                  : undefined
+              }
+              className={[
+                "group flex w-full items-center rounded-xl text-[#8E8379] transition-all duration-300 hover:bg-white/80 hover:text-[#B95349]",
+                collapsed
+                  ? "justify-center p-2"
+                  : "gap-3 px-2.5 py-2.5",
+              ].join(" ")}
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#F8F0E8] transition group-hover:bg-[#FBECE8]">
+                <LogoutIcon />
+              </span>
+
+              {!collapsed && (
+                <span className="text-xs font-black">
+                  Sign out
+                </span>
+              )}
+            </button>
+          </div>
+        </aside>
+
+        {/* =================================================
+            MAIN
+        ================================================== */}
+
+        <main
+          className={[
+            "min-h-screen transition-[padding] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+            collapsed
+              ? "lg:pl-[78px]"
+              : "lg:pl-[238px]",
+          ].join(" ")}
+        >
+          {/* =================================================
+              TOP NAVBAR
+          ================================================== */}
+
+          <header className="sticky top-0 z-30 flex h-[72px] items-center border-b border-[#EEE8E2] bg-white/90 px-5 backdrop-blur-xl sm:px-7 lg:px-9">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() =>
+                  setMobileOpen(
+                    true,
+                  )
+                }
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#E7E0D9] bg-white text-[#5D554E] shadow-sm transition-all duration-300 hover:bg-[#F8F5F1] hover:text-[#1E3F20] lg:hidden"
+                aria-label="Open navigation"
+              >
+                <MenuIcon />
+              </button>
+
+              <div>
+                <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#AAA097]">
+                  Career Cafe
+                </p>
+
+                <p className="mt-0.5 text-sm font-black text-[#302823]">
+                  Admin Workspace
+                </p>
+              </div>
+            </div>
+
+            {/* NOTIFICATION */}
+
+            <div
+              className="relative ml-auto"
+              ref={notificationRef}
+            >
+              <button
+                type="button"
+                onClick={() =>
+                  setNotificationOpen(
+                    (current) =>
+                      !current,
+                  )
+                }
+                aria-label={
+                  unreadNotifications.length >
+                  0
+                    ? `Buka notifikasi, ${unreadNotifications.length} belum dibaca`
+                    : "Buka notifikasi"
+                }
+                aria-expanded={
+                  notificationOpen
+                }
+                className={[
+                  "group relative flex h-10 w-10 items-center justify-center rounded-full text-[#6C645D] transition-all duration-300",
+                  notificationOpen
+                    ? "bg-[#EAF2E8] text-[#1E3F20]"
+                    : "hover:bg-[#F4F7F2] hover:text-[#1E3F20]",
+                ].join(" ")}
+              >
+                <BellIcon className="h-5 w-5 transition-transform duration-300 group-hover:scale-105" />
+
+                {unreadNotifications.length >
+                  0 && (
+                  <span className="absolute right-0 top-0 flex min-h-[17px] min-w-[17px] items-center justify-center rounded-full border-2 border-white bg-[#D26C61] px-1 text-[7px] font-black leading-none text-white shadow-sm">
+                    {unreadNotifications.length >
+                    9
+                      ? "9+"
+                      : unreadNotifications.length}
+                  </span>
+                )}
+              </button>
+
+              {notificationOpen && (
+                <NotificationPanel
+                  notifications={
+                    notifications
+                  }
+                  readKeys={
+                    readNotificationKeys
+                  }
+                  unreadCount={
+                    unreadNotifications.length
+                  }
+                  onRead={
+                    handleNotificationClick
+                  }
+                  onMarkAllRead={
+                    markAllNotificationsRead
+                  }
+                  formatTime={
+                    notificationTime
+                  }
+                />
+              )}
+            </div>
+          </header>
+
+          {/* CONTENT */}
+
+          <div className="min-h-[calc(100vh-72px)]">
+            {children}
+          </div>
+        </main>
+
+        {/* =================================================
+            LOGOUT MODAL
+        ================================================== */}
+
+        {logoutOpen && (
+          <LogoutConfirmModal
+            adminName={adminName}
+            onCancel={cancelLogout}
+            onConfirm={confirmLogout}
+          />
+        )}
+      </div>
+    </>
+  );
+}
+
+/* =========================================================
+   SIDEBAR LINK
+   Ini sengaja dibuat mengikuti Mentor 1:1
+========================================================= */
+
+function SidebarLink({
+  href,
+  label,
+  icon,
+  active,
+  accent,
+  collapsed,
+}: {
+  href: string;
+  label: string;
+  icon: ReactNode;
+  active: boolean;
+  accent: Accent;
+  collapsed: boolean;
+}) {
+  const accents: Record<
+    Accent,
+    {
+      icon: string;
+      active: string;
+      inactive: string;
+    }
+  > = {
+    green: {
+      icon: active
+        ? "bg-[#1E3F20] text-white"
+        : "bg-[#E6EFE5] text-[#1E3F20]",
+      active:
+        "bg-white text-[#1E3F20] shadow-[0_7px_20px_rgba(30,63,32,.08)]",
+      inactive:
+        "text-[#766D65] hover:bg-white/70 hover:text-[#302923]",
+    },
+
+    amber: {
+      icon: active
+        ? "bg-[#D8953C] text-white"
+        : "bg-[#FFF0D4] text-[#B76C19]",
+      active:
+        "bg-white text-[#9A621B] shadow-[0_7px_20px_rgba(216,149,60,.08)]",
+      inactive:
+        "text-[#766D65] hover:bg-white/70 hover:text-[#302923]",
+    },
+
+    blue: {
+      icon: active
+        ? "bg-[#4577B8] text-white"
+        : "bg-[#E8F1FB] text-[#4577B8]",
+      active:
+        "bg-white text-[#35679F] shadow-[0_7px_20px_rgba(69,119,184,.08)]",
+      inactive:
+        "text-[#766D65] hover:bg-white/70 hover:text-[#302923]",
+    },
+
+    lavender: {
+      icon: active
+        ? "bg-[#8B6FB5] text-white"
+        : "bg-[#F0E9F8] text-[#7A5CA7]",
+      active:
+        "bg-white text-[#704E9A] shadow-[0_7px_20px_rgba(139,111,181,.08)]",
+      inactive:
+        "text-[#766D65] hover:bg-white/70 hover:text-[#302923]",
+    },
+
+    teal: {
+      icon: active
+        ? "bg-[#3E8D8B] text-white"
+        : "bg-[#E3F2F1] text-[#377E7D]",
+      active:
+        "bg-white text-[#327775] shadow-[0_7px_20px_rgba(62,141,139,.08)]",
+      inactive:
+        "text-[#766D65] hover:bg-white/70 hover:text-[#302923]",
+    },
+
+    coral: {
+      icon: active
+        ? "bg-[#D26C61] text-white"
+        : "bg-[#F9E8E4] text-[#BE5D52]",
+      active:
+        "bg-white text-[#B95349] shadow-[0_7px_20px_rgba(210,108,97,.08)]",
+      inactive:
+        "text-[#766D65] hover:bg-white/70 hover:text-[#302923]",
+    },
+
+    cream: {
+      icon:
+        "bg-[#F6EFE7] text-[#6D675D]",
+      active:
+        "bg-white text-[#48443E] shadow-[0_7px_20px_rgba(44,30,22,.05)]",
+      inactive:
+        "text-[#766D65] hover:bg-white/70 hover:text-[#302923]",
+    },
+  };
+
+  return (
+    <Link
+      href={href}
+      title={
+        collapsed
+          ? label
+          : undefined
+      }
+      className={[
+        "group flex items-center rounded-[14px] border border-transparent transition-all duration-300",
+        collapsed
+          ? "justify-center px-2 py-2"
+          : "gap-2.5 px-2.5 py-2",
+        active
+          ? accents[accent].active
+          : accents[accent]
+              .inactive,
+      ].join(" ")}
+    >
+      <span
+        className={[
+          "flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] transition-all duration-300 group-hover:scale-105",
+          accents[accent].icon,
+        ].join(" ")}
+      >
+        {icon}
+      </span>
+
+      <span
+        className={[
+          "whitespace-nowrap text-[11px] font-black transition-all duration-300",
+          collapsed
+            ? "pointer-events-none w-0 translate-x-[-6px] overflow-hidden opacity-0"
+            : "opacity-100",
+        ].join(" ")}
+      >
+        {label}
+      </span>
+
+      {!collapsed && active && (
+        <span className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-current opacity-65" />
+      )}
+    </Link>
+  );
+}
+
+/* =========================================================
+   NOTIFICATION PANEL
+========================================================= */
+
+function NotificationPanel({
+  notifications,
+  readKeys,
+  unreadCount,
+  onRead,
+  onMarkAllRead,
+  formatTime,
+}: {
+  notifications: AdminNotification[];
+  readKeys: string[];
+  unreadCount: number;
+  onRead: (
+    notification: AdminNotification,
+  ) => void;
+  onMarkAllRead: () => void;
+  formatTime: (
+    value?: string | null,
+  ) => string;
+}) {
+  return (
+    <div className="mentor-scale absolute right-0 top-[50px] z-50 w-[min(390px,calc(100vw-24px))] origin-top-right overflow-hidden rounded-[22px] border border-[#E7E0D9] bg-white shadow-[0_24px_70px_rgba(44,30,22,.14)]">
+      <div className="border-b border-[#EEE8E2] bg-[#FFFEFC] px-4 py-4 sm:px-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#A19890]">
+              Admin Workspace
+            </p>
+
+            <div className="mt-1 flex items-center gap-2">
+              <h3 className="text-sm font-black text-[#302823]">
+                Notifikasi
+              </h3>
+
+              {unreadCount > 0 && (
+                <span className="rounded-full bg-[#F9E8E4] px-2 py-1 text-[8px] font-black text-[#B95349]">
+                  {unreadCount} baru
+                </span>
+              )}
+            </div>
+          </div>
+
+          {unreadCount > 0 && (
+            <button
+              type="button"
+              onClick={
+                onMarkAllRead
+              }
+              className="cursor-pointer whitespace-nowrap rounded-lg px-2 py-1.5 text-[9px] font-extrabold text-[#648066] transition hover:bg-[#F2F6F0] hover:text-[#1E3F20]"
+            >
+              Tandai semua dibaca
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="max-h-[430px] overflow-y-auto p-2">
+        {notifications.length ===
+        0 ? (
+          <div className="px-5 py-10 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F5F1EC] text-[#8B8178]">
+              <BellIcon />
+            </div>
+
+            <p className="mt-4 text-xs font-black text-[#3A302A]">
+              Belum ada notifikasi
+            </p>
+
+            <p className="mx-auto mt-2 max-w-[250px] text-[10px] leading-5 text-[#948980]">
+              Pengajuan mentor baru akan muncul di sini.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-1">
+            {notifications.map(
+              (
+                notification,
+              ) => {
+                const isUnread =
+                  !readKeys.includes(
+                    notification.key,
+                  );
+
+                return (
+                  <button
+                    key={
+                      notification.key
+                    }
+                    type="button"
+                    onClick={() =>
+                      onRead(
+                        notification,
+                      )
+                    }
+                    className={[
+                      "group flex w-full cursor-pointer items-start gap-3 rounded-2xl px-3 py-3 text-left transition-all duration-200 hover:bg-[#F8F5F0]",
+                      isUnread
+                        ? "bg-[#FCFAF6]"
+                        : "",
+                    ].join(" ")}
+                  >
+                    <span
+                      className={[
+                        "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[10px] font-black",
+                        notification.kind ===
+                        "pending"
+                          ? "bg-[#FFF0D4] text-[#B76C19]"
+                          : notification.kind ===
+                              "approved"
+                            ? "bg-[#E6EFE5] text-[#1E3F20]"
+                            : "bg-[#F9E8E4] text-[#B95349]",
+                      ].join(" ")}
+                    >
+                      {notification.kind ===
+                      "pending" ? (
+                        <RequestIcon />
+                      ) : notification.kind ===
+                        "approved" ? (
+                        <CalendarIcon />
+                      ) : (
+                        <span className="text-sm">
+                          ×
+                        </span>
+                      )}
+                    </span>
+
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-start justify-between gap-3">
+                        <span className="text-[11px] font-black text-[#3A302A]">
+                          {
+                            notification.title
+                          }
+                        </span>
+
+                        {isUnread && (
+                          <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#D26C61]" />
+                        )}
+                      </span>
+
+                      <span className="mt-1 block text-[10px] leading-5 text-[#80766E]">
+                        {
+                          notification.description
+                        }
+                      </span>
+
+                      <span className="mt-1.5 block text-[8px] font-bold uppercase tracking-[0.08em] text-[#A59B93]">
+                        {formatTime(
+                          notification.timestamp,
+                        )}
+                      </span>
+                    </span>
+                  </button>
+                );
+              },
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   LOGOUT MODAL
+========================================================= */
+
+function LogoutConfirmModal({
+  adminName,
+  onCancel,
+  onConfirm,
+}: {
+  adminName: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#241D18]/35 p-4 backdrop-blur-md">
+      <button
+        type="button"
+        aria-label="Close logout confirmation"
+        onClick={onCancel}
+        className="absolute inset-0 cursor-default"
+      />
+
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="logout-title"
+        className="mentor-scale relative z-10 w-full max-w-[420px] overflow-hidden rounded-[28px] border border-[#E8E0D8] bg-[#FFFDFC] shadow-[0_35px_100px_rgba(44,30,22,.22)]"
+      >
+        <div className="h-1.5 w-full bg-[#B65A51]" />
+
+        <div className="p-6 sm:p-7">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#FDF0EE] text-[#B65A51]">
+              <LogoutIcon />
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#AAA097]">
+                Admin Workspace
+              </p>
+
+              <h2
+                id="logout-title"
+                className="mt-1.5 text-xl font-black tracking-[-0.04em] text-[#342B25]"
+              >
+                Yakin ingin keluar?
+              </h2>
+
+              <p className="mt-2 text-xs font-medium leading-6 text-[#7D736B]">
+                Kamu sedang login
+                sebagai{" "}
+                <span className="font-black text-[#493D35]">
+                  {adminName}
+                </span>
+                .
+                <br />
+                Setelah keluar, kamu perlu login kembali untuk membuka Admin Workspace.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-2xl border border-[#EEE7E1] bg-[#FBF8F4] px-4 py-3">
+            <div className="flex items-center gap-2.5">
+              <span className="h-2 w-2 rounded-full bg-[#D8953C]" />
+
+              <p className="text-[10px] font-bold text-[#776D65]">
+                Sesi login kamu akan diakhiri di perangkat ini.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="cursor-pointer rounded-xl border border-[#E5DED6] bg-white px-5 py-3 text-[10px] font-black text-[#766C64] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#F7F3EE] hover:text-[#4E7060]"
+            >
+              Batal
+            </button>
+
+            <button
+              type="button"
+              onClick={onConfirm}
+              className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#B65A51] px-5 py-3 text-[10px] font-black text-white shadow-[0_10px_24px_rgba(182,90,81,.16)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#A84D45]"
+            >
+              <LogoutIcon />
+              Ya, Sign out
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   ICONS
+========================================================= */
+
+function DashboardIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <rect
+        x="3"
+        y="3"
+        width="7"
+        height="7"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+
+      <rect
+        x="14"
+        y="3"
+        width="7"
+        height="7"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+
+      <rect
+        x="3"
+        y="14"
+        width="7"
+        height="7"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+
+      <rect
+        x="14"
+        y="14"
+        width="7"
+        height="7"
+        rx="1.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+    </svg>
+  );
+}
+
+function RequestIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <circle
+        cx="9"
+        cy="8"
+        r="3.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+
+      <path
+        d="M3.5 19C4.3 15.7 6.1 14.2 9 14.2C11.9 14.2 13.7 15.7 14.5 19"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+
+      <path
+        d="M18 8V14M15 11H21"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function MentorIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <circle
+        cx="9"
+        cy="8"
+        r="3.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+
+      <path
+        d="M3.5 19C4.3 15.7 6.1 14.2 9 14.2C11.9 14.2 13.7 15.7 14.5 19"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+
+      <path
+        d="M17 5.5H21M19 3.5V7.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function MenteeIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <circle
+        cx="12"
+        cy="8"
+        r="3.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+
+      <path
+        d="M5 20C5.4 16.7 7.9 14.8 12 14.8C16.1 14.8 18.6 16.7 19 20"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <rect
+        x="3"
+        y="5"
+        width="18"
+        height="16"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+
+      <path
+        d="M7 3V7M17 3V7M3 10H21"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function SessionIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <rect
+        x="3"
+        y="5"
+        width="18"
+        height="14"
+        rx="2.2"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+
+      <path
+        d="M8 21H16M12 19V21"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function ChartIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <path
+        d="M4 19V5M4 19H20"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+
+      <path
+        d="M7 15L10.5 11.5L13.5 14L18.5 8"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function SettingsIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="3"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+
+      <path
+        d="M19 12C19 12.54 18.95 13.06 18.85 13.57L20.2 14.63L18.2 18.1L16.55 17.43C15.77 18.1 14.85 18.61 13.83 18.9L13.58 20.7H9.58L9.33 18.9C8.31 18.61 7.39 18.1 6.61 17.43L4.96 18.1L2.96 14.63L4.31 13.57C4.21 13.06 4.16 12.54 4.16 12C4.16 11.46 4.21 10.94 4.31 10.43L2.96 9.37L4.96 5.9L6.61 6.57C7.39 5.9 8.31 5.39 9.33 5.1L9.58 3.3H13.58L13.83 5.1C14.85 5.39 15.77 5.9 16.55 6.57L18.2 5.9L20.2 9.37L18.85 10.43C18.95 10.94 19 11.46 19 12Z"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function LogoutIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <path
+        d="M10 5H6C5.44772 5 5 5.44772 5 5.5V18.5C5 19.0523 5.44772 19.5 5.5 19.5H10"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+
+      <path
+        d="M14 8L18 12L14 16"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      <path
+        d="M18 12H9"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function BellIcon({
+  className = "h-[18px] w-[18px]",
+}: {
+  className?: string;
+}) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M18 9.5C18 6.19 15.76 4 12 4C8.24 4 6 6.19 6 9.5C6 14 4.5 15.5 4 17H20C19.5 15.5 18 14 18 9.5Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      <path
+        d="M9.5 20C10.1 20.67 10.93 21 12 21C13.07 21 13.9 20.67 14.5 20"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function MenuIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <path
+        d="M4 7H20M4 12H20M4 17H20"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function ChevronIcon({
+  direction,
+}: {
+  direction: "left" | "right";
+}) {
+  const path =
+    direction === "left"
+      ? "M14.5 6L8.5 12L14.5 18"
+      : "M9.5 6L15.5 12L9.5 18";
+
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <path
+        d={path}
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

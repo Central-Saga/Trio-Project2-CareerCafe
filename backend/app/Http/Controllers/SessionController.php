@@ -52,10 +52,22 @@ class SessionController extends Controller
         $perPage = (int) $request->input('per_page', 20);
         $sessions = $query->latest('id')->paginate($perPage);
 
+        // Pastikan rejection_reason selalu dikirim ke frontend mentee,
+        // termasuk bila field tersebut di-hide oleh model Session.
+        $sessionItems = collect($sessions->items())
+            ->map(function ($session) {
+                $payload = $session->toArray();
+                $payload['rejection_reason'] = $session->getAttribute('rejection_reason');
+
+                return $payload;
+            })
+            ->values()
+            ->all();
+
         return response()->json([
             'success' => true,
             'message' => 'Daftar sesi berhasil diambil.',
-            'data' => $sessions->items(),
+            'data' => $sessionItems,
             'pagination' => [
                 'current_page' => $sessions->currentPage(),
                 'last_page' => $sessions->lastPage(),
@@ -96,10 +108,13 @@ class SessionController extends Controller
             ], 403);
         }
 
+        $payload = $session->toArray();
+        $payload['rejection_reason'] = $session->getAttribute('rejection_reason');
+
         return response()->json([
             'success' => true,
             'message' => 'Detail sesi berhasil diambil.',
-            'data' => $session,
+            'data' => $payload,
         ]);
     }
 
@@ -228,6 +243,39 @@ class SessionController extends Controller
     public function reject(Request $request, $id)
     {
         $mentor = $request->user();
+
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'rejection_reason' => ['required', 'string', 'min:5', 'max:3000'],
+            ],
+            [
+                'rejection_reason.required' => 'Alasan penolakan wajib diisi.',
+                'rejection_reason.min' => 'Alasan penolakan minimal 5 karakter.',
+                'rejection_reason.max' => 'Alasan penolakan maksimal 3000 karakter.',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Alasan penolakan tidak valid.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $rejectionReason = trim($request->input('rejection_reason'));
+
+        if (mb_strlen($rejectionReason) < 5) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Alasan penolakan minimal 5 karakter.',
+                'errors' => [
+                    'rejection_reason' => ['Alasan penolakan minimal 5 karakter.'],
+                ],
+            ], 422);
+        }
+
         $session = Session::with('bookedSlot')->find($id);
 
         if (!$session) {
@@ -251,16 +299,34 @@ class SessionController extends Controller
             ], 422);
         }
 
-        DB::transaction(function () use ($session) {
-            $session->update(['status' => 'rejected']);
+        DB::transaction(function () use ($session, $rejectionReason) {
+            // Simpan secara eksplisit agar tidak bergantung pada konfigurasi $fillable.
+            $session->status = 'rejected';
+            $session->rejection_reason = $rejectionReason;
+
+            // Sesi yang ditolak tidak boleh lagi membawa tautan meeting aktif.
+            $session->meeting_link = null;
+            $session->save();
+
             // FR-09 Point 4: Slot kembali menjadi available
-            $session->bookedSlot->update(['status' => 'available']);
+            if ($session->bookedSlot) {
+                $session->bookedSlot->update(['status' => 'available']);
+            }
         });
+
+        $freshSession = $session->fresh([
+            'mentor.profile',
+            'mentee.profile',
+            'bookedSlot',
+        ]);
+
+        $payload = $freshSession->toArray();
+        $payload['rejection_reason'] = $freshSession->getAttribute('rejection_reason');
 
         return response()->json([
             'success' => true,
             'message' => 'Sesi coffee chat telah ditolak dan slot dikembalikan.',
-            'data' => $session->fresh(),
+            'data' => $payload,
         ]);
     }
 

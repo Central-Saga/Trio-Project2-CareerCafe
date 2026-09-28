@@ -64,6 +64,7 @@ type Session = {
   meeting_link?: string | null;
   meeting_location?: string | null;
   status: SessionStatus;
+  rejection_reason?: string | null;
   mentor?: Mentor | null;
 
   booked_slot?: BookedSlot | null;
@@ -1285,6 +1286,37 @@ export default function ScheduleHistoryPage() {
                               </div>
                             </div>
 
+                            {/* REJECTION REASON */}
+
+                            {session.status === "rejected" &&
+                              session.rejection_reason && (
+                                <div className="mt-5 rounded-2xl border border-[#EBCFCF] bg-[#FFF7F7] p-4">
+                                  <div className="flex items-center gap-3">
+                                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#F9E7E5] text-[#A85A52]">
+                                      <span className="text-sm font-black">
+                                        !
+                                      </span>
+                                    </div>
+
+                                    <div>
+                                      <p className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-[#A85A52]">
+                                        Alasan dari Mentor
+                                      </p>
+
+                                      <p className="mt-1 text-xs font-semibold text-[#7F514C]">
+                                        Permintaan kamu ditolak oleh mentor.
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className="mt-3 rounded-xl bg-white/80 px-4 py-3">
+                                    <p className="text-xs leading-6 text-[#6F5F5A]">
+                                      {session.rejection_reason}
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+
                             {/* RATING STATUS */}
 
                             {session.status === "completed" &&
@@ -1362,9 +1394,23 @@ export default function ScheduleHistoryPage() {
                               )}
 
                               {session.status === "rejected" && (
-                                <p className="mt-2 text-xs leading-5 text-[#7B746E]">
-                                  Permintaan ini tidak disetujui oleh mentor.
-                                </p>
+                                <>
+                                  <p className="mt-2 text-xs leading-5 text-[#7B746E]">
+                                    Permintaan ini tidak disetujui oleh mentor.
+                                  </p>
+
+                                  {session.rejection_reason && (
+                                    <div className="mt-3 rounded-xl border border-[#EBCFCF] bg-[#FFF7F7] p-3">
+                                      <p className="text-[8px] font-extrabold uppercase tracking-[0.12em] text-[#A85A52]">
+                                        Alasan Mentor
+                                      </p>
+
+                                      <p className="mt-1.5 text-[10px] font-semibold leading-5 text-[#7F514C]">
+                                        {session.rejection_reason}
+                                      </p>
+                                    </div>
+                                  )}
+                                </>
                               )}
 
                               {session.status === "expired" && (
@@ -1531,6 +1577,27 @@ export default function ScheduleHistoryPage() {
                 </div>
               </div>
 
+              {selectedSession.status === "rejected" &&
+                selectedSession.rejection_reason && (
+                  <div className="rounded-2xl border border-[#EBCFCF] bg-[#FFF7F7] p-5">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[#F9E7E5] text-[#A85A52]">
+                        <span className="text-sm font-black">!</span>
+                      </div>
+
+                      <div className="min-w-0">
+                        <p className="text-[9px] font-extrabold uppercase tracking-[0.15em] text-[#A85A52]">
+                          Alasan dari Mentor
+                        </p>
+
+                        <p className="mt-2 text-sm font-semibold leading-7 text-[#6F5F5A]">
+                          {selectedSession.rejection_reason}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
               {/* Topic */}
 
               <div className="rounded-2xl border border-[#EAE5DE] bg-white p-5">
@@ -1615,7 +1682,8 @@ export default function ScheduleHistoryPage() {
                     : "Offline"}
                 </p>
 
-                {selectedSession.meeting_type === "online" &&
+                {selectedSession.status !== "rejected" &&
+                  selectedSession.meeting_type === "online" &&
                   selectedSession.meeting_link && (
                     <a
                       href={selectedSession.meeting_link}

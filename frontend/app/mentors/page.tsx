@@ -247,6 +247,7 @@ function Reveal({
   delay?: number;
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
+
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -345,19 +346,52 @@ function MentorCard({
   const skills = mentor.skills ?? [];
 
   return (
-    <article className="group overflow-hidden rounded-[24px] border border-gray-100 bg-white shadow-sm transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-xl">
-      <div className="grid min-h-[265px] grid-cols-[minmax(0,1fr)_125px] sm:grid-cols-[minmax(0,1fr)_155px] lg:grid-cols-[minmax(0,1fr)_175px]">
+    <article
+      className="
+        group
+        h-full
+        min-h-[390px]
+        overflow-hidden
+        rounded-[24px]
+        border
+        border-gray-100
+        bg-white
+        shadow-sm
+        transition-all
+        duration-500
+        ease-out
+        hover:-translate-y-1
+        hover:shadow-xl
+        sm:min-h-[410px]
+        xl:h-[430px]
+        xl:min-h-0
+      "
+    >
+      <div
+        className="
+          grid
+          h-full
+          min-h-[390px]
+          grid-cols-[minmax(0,1fr)_125px]
+          sm:min-h-[410px]
+          sm:grid-cols-[minmax(0,1fr)_155px]
+          xl:min-h-0
+          xl:grid-cols-[minmax(0,1fr)_175px]
+        "
+      >
         {/* ======================================================
-            KONTEN
+            CONTENT
         ======================================================= */}
+
         <div className="flex min-w-0 flex-col p-4 sm:p-5 lg:p-6">
           {/* BADGE + RATING */}
+
           <div className="flex items-center justify-between gap-2">
-            <span className="inline-flex w-fit items-center rounded-full bg-[#EAF2EA] px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider text-[#1E3F20] transition-colors duration-300">
+            <span className="inline-flex w-fit items-center rounded-full bg-[#EAF2EA] px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider text-[#1E3F20] transition-colors duration-300 group-hover:bg-[#DFEADF]">
               Mentor Profesional
             </span>
 
-            <div className="flex items-center gap-1 rounded-full bg-[#FFF8E6] px-2.5 py-1 transition-transform duration-300 group-hover:scale-[1.02]">
+            <div className="flex items-center gap-1 rounded-full bg-[#FFF8E6] px-2.5 py-1 transition-transform duration-300 group-hover:scale-[1.03]">
               <span className="text-xs text-yellow-500">★</span>
 
               <span className="text-[10px] font-extrabold text-[#2C1E16]">
@@ -371,6 +405,7 @@ function MentorCard({
           </div>
 
           {/* NAMA + PROFESI */}
+
           <div className="mt-4">
             <h2 className="line-clamp-1 text-lg font-extrabold tracking-tight text-[#2C1E16] transition-colors duration-300 group-hover:text-[#1E3F20] sm:text-xl">
               {mentor.name}
@@ -388,6 +423,7 @@ function MentorCard({
               {profile?.location && (
                 <>
                   <span className="text-gray-300">•</span>
+
                   <span>{profile.location}</span>
                 </>
               )}
@@ -395,12 +431,14 @@ function MentorCard({
           </div>
 
           {/* BIO */}
+
           <p className="mt-3 line-clamp-3 text-[11px] leading-5 text-gray-500 sm:text-xs">
             {profile?.bio ||
               "Mentor berpengalaman yang siap membantu kamu berkembang, berdiskusi, dan menemukan langkah karier yang tepat."}
           </p>
 
           {/* SKILL */}
+
           <div className="mt-3">
             <p className="mb-2 text-[9px] font-extrabold uppercase tracking-[0.14em] text-gray-400">
               Ahli dalam
@@ -416,7 +454,7 @@ function MentorCard({
                 ))}
 
                 {skills.length > 4 && (
-                  <div className="inline-flex items-center rounded-lg bg-gray-100 px-2.5 py-1.5 text-[10px] font-bold text-gray-500">
+                  <div className="inline-flex items-center rounded-lg bg-gray-100 px-2.5 py-1.5 text-[10px] font-bold text-gray-500 transition-all duration-300 group-hover:bg-[#EDF2ED] group-hover:text-[#1E3F20]">
                     +{skills.length - 4}
                   </div>
                 )}
@@ -429,6 +467,7 @@ function MentorCard({
           </div>
 
           {/* CARD FOOTER */}
+
           <div className="mt-auto pt-4">
             <div className="flex items-end justify-between gap-3 border-t border-gray-100 pt-3">
               <div className="min-w-0">
@@ -437,7 +476,7 @@ function MentorCard({
                 </p>
 
                 <div className="mt-0.5 flex items-baseline gap-1">
-                  <span className="truncate text-base font-extrabold text-[#1E3F20] sm:text-lg">
+                  <span className="truncate text-base font-extrabold text-[#1E3F20] transition-transform duration-300 group-hover:translate-x-0.5 sm:text-lg">
                     {price}
                   </span>
 
@@ -450,7 +489,7 @@ function MentorCard({
               <button
                 type="button"
                 onClick={onOpen}
-                className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#1E3F20] px-3.5 py-2.5 text-[10px] font-extrabold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#173119] hover:shadow-md active:translate-y-0"
+                className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#1E3F20] px-3.5 py-2.5 text-[10px] font-extrabold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.025] hover:bg-[#173119] hover:shadow-md active:translate-y-0 active:scale-100"
               >
                 Profil
                 <span className="text-xs transition-transform duration-300 group-hover:translate-x-0.5">
@@ -464,6 +503,7 @@ function MentorCard({
         {/* ======================================================
             FOTO KANAN
         ======================================================= */}
+
         <div className="relative min-h-full overflow-hidden bg-[#EAF2EA]">
           <img
             src={image}
@@ -471,9 +511,9 @@ function MentorCard({
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.045]"
           />
 
-          <div className="absolute inset-0 bg-gradient-to-l from-black/15 via-transparent to-transparent transition-opacity duration-500 group-hover:from-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-l from-black/15 via-transparent to-transparent transition-all duration-500 group-hover:from-black/20" />
 
-          <div className="absolute right-2.5 top-2.5 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 shadow-md backdrop-blur-sm transition-transform duration-300 group-hover:-translate-y-0.5">
+          <div className="absolute right-2.5 top-2.5 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 shadow-md backdrop-blur-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:scale-[1.02]">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
 
             <span className="text-[8px] font-extrabold uppercase tracking-wide text-gray-700">
@@ -492,8 +532,8 @@ function MentorCard({
 
 function MentorSkeleton() {
   return (
-    <div className="overflow-hidden rounded-[24px] border border-gray-100 bg-white shadow-sm">
-      <div className="grid min-h-[265px] grid-cols-[minmax(0,1fr)_125px] sm:grid-cols-[minmax(0,1fr)_155px] lg:grid-cols-[minmax(0,1fr)_175px]">
+    <div className="h-full overflow-hidden rounded-[24px] border border-gray-100 bg-white shadow-sm xl:h-[430px]">
+      <div className="grid h-full min-h-[390px] grid-cols-[minmax(0,1fr)_125px] sm:min-h-[410px] sm:grid-cols-[minmax(0,1fr)_155px] xl:min-h-0 xl:grid-cols-[minmax(0,1fr)_175px]">
         <div className="animate-pulse p-5">
           <div className="h-5 w-28 rounded-full bg-gray-200" />
 
@@ -505,6 +545,7 @@ function MentorSkeleton() {
 
           <div className="mt-4 flex gap-2">
             <div className="h-7 w-20 rounded-lg bg-gray-100" />
+
             <div className="h-7 w-20 rounded-lg bg-gray-100" />
           </div>
 
@@ -529,14 +570,21 @@ export default function MentorsPage() {
   const router = useRouter();
 
   const [mentors, setMentors] = useState<Mentor[]>([]);
+
   const [search, setSearch] = useState("");
+
   const [industryFilter, setIndustryFilter] = useState("all");
+
   const [priceFilter, setPriceFilter] = useState("all");
+
   const [ratingFilter, setRatingFilter] = useState("all");
+
   const [experienceFilter, setExperienceFilter] = useState("all");
 
   const [loading, setLoading] = useState(true);
+
   const [error, setError] = useState("");
+
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
   /* ============================================================
@@ -604,7 +652,7 @@ export default function MentorsPage() {
       }
     };
 
-    fetchMentors();
+    void fetchMentors();
 
     return () => controller.abort();
   }, [debouncedSearch]);
@@ -706,13 +754,21 @@ export default function MentorsPage() {
   const activeFilterCount = useMemo(() => {
     let count = 0;
 
-    if (industryFilter !== "all") count++;
+    if (industryFilter !== "all") {
+      count++;
+    }
 
-    if (priceFilter !== "all") count++;
+    if (priceFilter !== "all") {
+      count++;
+    }
 
-    if (ratingFilter !== "all") count++;
+    if (ratingFilter !== "all") {
+      count++;
+    }
 
-    if (experienceFilter !== "all") count++;
+    if (experienceFilter !== "all") {
+      count++;
+    }
 
     return count;
   }, [industryFilter, priceFilter, ratingFilter, experienceFilter]);
@@ -736,6 +792,7 @@ export default function MentorsPage() {
         {/* ======================================================
             HEADER
         ======================================================= */}
+
         <Reveal>
           <section className="mb-8 text-center sm:mb-9">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#EAF2EA] px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-[0.15em] text-[#1E3F20]">
@@ -761,11 +818,13 @@ export default function MentorsPage() {
         {/* ======================================================
             SEARCH + FILTER
         ======================================================= */}
+
         <Reveal delay={100}>
           <section className="mb-8">
             <div className="rounded-3xl border border-gray-100 bg-white p-3 shadow-sm transition-all duration-500 hover:shadow-md">
               <div className="flex flex-col gap-2.5 xl:flex-row">
                 {/* SEARCH */}
+
                 <div className="relative min-w-0 flex-1">
                   <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                     <svg
@@ -774,7 +833,7 @@ export default function MentorsPage() {
                       viewBox="0 0 24 24"
                       strokeWidth={1.8}
                       stroke="currentColor"
-                      className="h-4.5 w-4.5"
+                      className="h-4 w-4"
                     >
                       <path
                         strokeLinecap="round"
@@ -818,6 +877,7 @@ export default function MentorsPage() {
                 </div>
 
                 {/* INDUSTRY */}
+
                 <div className="xl:w-40">
                   <select
                     value={industryFilter}
@@ -835,6 +895,7 @@ export default function MentorsPage() {
                 </div>
 
                 {/* PRICE */}
+
                 <div className="xl:w-40">
                   <select
                     value={priceFilter}
@@ -842,14 +903,19 @@ export default function MentorsPage() {
                     className="w-full rounded-2xl border border-gray-200 bg-[#FCFBF8] px-4 py-3 text-xs font-semibold text-gray-700 outline-none transition-all duration-300 focus:border-[#1E3F20] focus:ring-4 focus:ring-[#1E3F20]/10"
                   >
                     <option value="all">Semua Harga</option>
+
                     <option value="free">Gratis</option>
+
                     <option value="under100">Di bawah Rp100rb</option>
+
                     <option value="100to200">Rp100rb - Rp200rb</option>
+
                     <option value="above200">Di atas Rp200rb</option>
                   </select>
                 </div>
 
                 {/* RATING */}
+
                 <div className="xl:w-36">
                   <select
                     value={ratingFilter}
@@ -857,13 +923,17 @@ export default function MentorsPage() {
                     className="w-full rounded-2xl border border-gray-200 bg-[#FCFBF8] px-4 py-3 text-xs font-semibold text-gray-700 outline-none transition-all duration-300 focus:border-[#1E3F20] focus:ring-4 focus:ring-[#1E3F20]/10"
                   >
                     <option value="all">Semua Rating</option>
+
                     <option value="4plus">⭐ 4.0+</option>
+
                     <option value="4.5plus">⭐ 4.5+</option>
+
                     <option value="4.8plus">⭐ 4.8+</option>
                   </select>
                 </div>
 
                 {/* EXPERIENCE */}
+
                 <div className="xl:w-36">
                   <select
                     value={experienceFilter}
@@ -873,8 +943,11 @@ export default function MentorsPage() {
                     className="w-full rounded-2xl border border-gray-200 bg-[#FCFBF8] px-4 py-3 text-xs font-semibold text-gray-700 outline-none transition-all duration-300 focus:border-[#1E3F20] focus:ring-4 focus:ring-[#1E3F20]/10"
                   >
                     <option value="all">Pengalaman</option>
+
                     <option value="1plus">1+ tahun</option>
+
                     <option value="3plus">3+ tahun</option>
+
                     <option value="5plus">5+ tahun</option>
                   </select>
                 </div>
@@ -912,6 +985,7 @@ export default function MentorsPage() {
         {/* ======================================================
             ERROR
         ======================================================= */}
+
         {error && (
           <Reveal>
             <div className="mb-6 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -923,6 +997,7 @@ export default function MentorsPage() {
         {/* ======================================================
             MENTOR GRID
         ======================================================= */}
+
         <section>
           {loading ? (
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
@@ -976,9 +1051,13 @@ export default function MentorsPage() {
               </div>
             </Reveal>
           ) : (
-            <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+            <div className="grid grid-cols-1 items-stretch gap-5 xl:grid-cols-2">
               {filteredMentors.map((mentor, index) => (
-                <Reveal key={mentor.id} delay={Math.min(index * 90, 450)}>
+                <Reveal
+                  key={mentor.id}
+                  delay={Math.min(index * 90, 450)}
+                  className="h-full"
+                >
                   <MentorCard
                     mentor={mentor}
                     onOpen={() => router.push(`/mentors/${mentor.id}`)}
@@ -993,6 +1072,7 @@ export default function MentorsPage() {
       {/* ============================================================
           SHARED FOOTER
       ============================================================ */}
+
       <Footer />
     </div>
   );

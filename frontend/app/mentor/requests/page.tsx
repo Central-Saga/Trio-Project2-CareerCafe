@@ -14,6 +14,7 @@ type Session = {
   duration?: number | null;
   status: string;
   message?: string | null;
+  rejection_reason?: string | null;
   meeting_link?: string | null;
   created_at?: string | null;
   mentee?: {
@@ -260,6 +261,20 @@ export default function MentorRequestsPage() {
 
   const [selectedRequest, setSelectedRequest] = useState<Session | null>(null);
 
+  /* -------------------------------------------------------
+     APPROVE MODAL
+  ------------------------------------------------------- */
+  const [approveRequest, setApproveRequest] = useState<Session | null>(null);
+  const [approveSubmitting, setApproveSubmitting] = useState(false);
+
+  /* -------------------------------------------------------
+     REJECT MODAL
+  ------------------------------------------------------- */
+  const [rejectRequest, setRejectRequest] = useState<Session | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [rejectError, setRejectError] = useState("");
+  const [rejectSubmitting, setRejectSubmitting] = useState(false);
+
   /* =======================================================
      LOAD SESSIONS
   ======================================================== */
@@ -369,40 +384,38 @@ export default function MentorRequestsPage() {
   }, [sessions]);
 
   /* =======================================================
-     ACTION
+     APPROVE
   ======================================================== */
 
-  const handleAction = async (
-    session: Session,
-    action: "approve" | "reject",
-  ) => {
-    const menteeName = session.mentee?.name || "this mentee";
+  const openApproveModal = (session: Session) => {
+    setApproveRequest(session);
+    setError("");
+    setSuccess("");
+  };
 
-    const message =
-      action === "approve"
-        ? `Approve the mentoring request from ${menteeName}?`
-        : `Reject the mentoring request from ${menteeName}?`;
+  const closeApproveModal = () => {
+    if (approveSubmitting) return;
+    setApproveRequest(null);
+  };
 
-    if (!window.confirm(message)) {
-      return;
-    }
+  const handleApproveSubmit = async () => {
+    if (!approveRequest) return;
 
     const token = localStorage.getItem("auth_token") || "";
 
     if (!token) {
       setError("Your session has expired. Please log in again.");
-
       return;
     }
 
-    setActionLoading(session.id);
-
+    setApproveSubmitting(true);
+    setActionLoading(approveRequest.id);
     setError("");
     setSuccess("");
 
     try {
       const response = await fetch(
-        `${API_URL}/sessions/${session.id}/${action}`,
+        `${API_URL}/sessions/${approveRequest.id}/approve`,
         {
           method: "PATCH",
           headers: {
@@ -415,23 +428,114 @@ export default function MentorRequestsPage() {
       const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        setError(data?.message || `Unable to ${action} the request.`);
-
+        setError(data?.message || "Unable to approve the request.");
         return;
       }
 
-      setSuccess(
-        action === "approve"
-          ? "Mentoring request approved successfully."
-          : "Mentoring request rejected successfully.",
-      );
-
+      setSuccess("Mentoring request approved successfully.");
+      setApproveRequest(null);
       setSelectedRequest(null);
-
       await loadSessions();
     } catch {
       setError("Unable to connect to the Laravel backend.");
     } finally {
+      setApproveSubmitting(false);
+      setActionLoading(null);
+    }
+  };
+
+  /* =======================================================
+     REJECT
+  ======================================================== */
+
+  const openRejectModal = (session: Session) => {
+    setRejectRequest(session);
+    setRejectionReason("");
+    setRejectError("");
+    setError("");
+    setSuccess("");
+  };
+
+  const closeRejectModal = () => {
+    if (rejectSubmitting) return;
+    setRejectRequest(null);
+    setRejectionReason("");
+    setRejectError("");
+  };
+
+  const handleRejectSubmit = async () => {
+    if (!rejectRequest) return;
+
+    const reason = rejectionReason.trim();
+
+    if (!reason) {
+      setRejectError("Alasan penolakan wajib diisi.");
+      return;
+    }
+
+    if (reason.length < 5) {
+      setRejectError(
+        "Alasan penolakan terlalu singkat. Jelaskan alasan dengan lebih jelas.",
+      );
+      return;
+    }
+
+    if (reason.length > 3000) {
+      setRejectError("Alasan penolakan maksimal 3000 karakter.");
+      return;
+    }
+
+    const token = localStorage.getItem("auth_token") || "";
+
+    if (!token) {
+      setRejectError("Your session has expired. Please log in again.");
+      return;
+    }
+
+    setRejectSubmitting(true);
+    setActionLoading(rejectRequest.id);
+    setRejectError("");
+    setError("");
+    setSuccess("");
+
+    try {
+      const response = await fetch(
+        `${API_URL}/sessions/${rejectRequest.id}/reject`,
+        {
+          method: "PATCH",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            rejection_reason: reason,
+          }),
+        },
+      );
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const serverFieldError = data?.errors?.rejection_reason?.[0];
+        setRejectError(
+          serverFieldError || data?.message || "Unable to reject the request.",
+        );
+        return;
+      }
+
+      setSuccess(
+        "Permintaan mentoring berhasil ditolak. Alasan penolakan telah disimpan.",
+      );
+      setRejectRequest(null);
+      setRejectionReason("");
+      setRejectError("");
+      setSelectedRequest(null);
+      await loadSessions();
+    } catch {
+      setRejectError("Unable to connect to the Laravel backend.");
+    } finally {
+      setRejectSubmitting(false);
       setActionLoading(null);
     }
   };
@@ -616,7 +720,8 @@ export default function MentorRequestsPage() {
                   index={index}
                   actionLoading={actionLoading}
                   onSelect={() => setSelectedRequest(session)}
-                  onAction={handleAction}
+                  onApprove={openApproveModal}
+                  onReject={openRejectModal}
                 />
               ))}
             </div>
@@ -632,7 +737,29 @@ export default function MentorRequestsPage() {
           session={selectedRequest}
           actionLoading={actionLoading}
           onClose={() => setSelectedRequest(null)}
-          onAction={handleAction}
+          onApprove={openApproveModal}
+          onReject={openRejectModal}
+        />
+      )}
+
+      {approveRequest && (
+        <ApproveModal
+          session={approveRequest}
+          submitting={approveSubmitting}
+          onClose={closeApproveModal}
+          onSubmit={handleApproveSubmit}
+        />
+      )}
+
+      {rejectRequest && (
+        <RejectModal
+          session={rejectRequest}
+          reason={rejectionReason}
+          error={rejectError}
+          submitting={rejectSubmitting}
+          onReasonChange={setRejectionReason}
+          onClose={closeRejectModal}
+          onSubmit={handleRejectSubmit}
         />
       )}
     </main>
@@ -648,13 +775,15 @@ function RequestRow({
   index,
   actionLoading,
   onSelect,
-  onAction,
+  onApprove,
+  onReject,
 }: {
   session: Session;
   index: number;
   actionLoading: number | null;
   onSelect: () => void;
-  onAction: (session: Session, action: "approve" | "reject") => void;
+  onApprove: (session: Session) => void;
+  onReject: (session: Session) => void;
 }) {
   const slot = getSlot(session);
 
@@ -763,7 +892,7 @@ function RequestRow({
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => onAction(session, "reject")}
+                onClick={() => onReject(session)}
                 disabled={actionLoading === session.id}
                 className="cursor-pointer rounded-xl border border-[#F0D4CF] bg-[#FDF2EF] px-3.5 py-2.5 text-[9px] font-black text-[#B65A51] transition duration-300 hover:-translate-y-0.5 hover:bg-[#FBE8E4] disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -772,7 +901,7 @@ function RequestRow({
 
               <button
                 type="button"
-                onClick={() => onAction(session, "approve")}
+                onClick={() => onApprove(session)}
                 disabled={actionLoading === session.id}
                 className="cursor-pointer rounded-xl bg-[#607E64] px-4 py-2.5 text-[9px] font-black text-white shadow-[0_8px_18px_rgba(96,126,100,.14)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#547259] disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -811,12 +940,14 @@ function RequestModal({
   session,
   actionLoading,
   onClose,
-  onAction,
+  onApprove,
+  onReject,
 }: {
   session: Session;
   actionLoading: number | null;
   onClose: () => void;
-  onAction: (session: Session, action: "approve" | "reject") => void;
+  onApprove: (session: Session) => void;
+  onReject: (session: Session) => void;
 }) {
   const slot = getSlot(session);
 
@@ -939,12 +1070,25 @@ function RequestModal({
             </p>
           </div>
 
+          {/* EXISTING REJECTION REASON */}
+          {session.status === "rejected" && session.rejection_reason && (
+            <div className="mt-5 rounded-[20px] border border-[#F0D0CC] bg-[#FDF2EF] p-4">
+              <p className="text-[8px] font-black uppercase tracking-[0.15em] text-[#B35850]">
+                Rejection reason
+              </p>
+
+              <p className="mt-2 text-xs font-medium leading-6 text-[#8B453E]">
+                {session.rejection_reason}
+              </p>
+            </div>
+          )}
+
           {/* ACTION */}
           {session.status === "pending" && (
             <div className="mt-5 flex flex-col gap-2 sm:flex-row">
               <button
                 type="button"
-                onClick={() => onAction(session, "reject")}
+                onClick={() => onReject(session)}
                 disabled={actionLoading === session.id}
                 className="flex-1 cursor-pointer rounded-xl border border-[#EFCFC9] bg-[#FDF1EF] px-4 py-3 text-[10px] font-black text-[#B45950] transition hover:bg-[#F9E8E4] disabled:opacity-50"
               >
@@ -953,7 +1097,7 @@ function RequestModal({
 
               <button
                 type="button"
-                onClick={() => onAction(session, "approve")}
+                onClick={() => onApprove(session)}
                 disabled={actionLoading === session.id}
                 className="flex-1 cursor-pointer rounded-xl bg-[#607E64] px-4 py-3 text-[10px] font-black text-white shadow-[0_10px_22px_rgba(96,126,100,.14)] transition hover:-translate-y-0.5 hover:bg-[#547259] disabled:opacity-50"
               >
@@ -974,6 +1118,265 @@ function RequestModal({
               Join meeting
             </a>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   APPROVE MODAL
+========================================================= */
+
+function ApproveModal({
+  session,
+  submitting,
+  onClose,
+  onSubmit,
+}: {
+  session: Session;
+  submitting: boolean;
+  onClose: () => void;
+  onSubmit: () => void;
+}) {
+  const menteeName = session.mentee?.name || "mentee ini";
+  const slot = getSlot(session);
+
+  return (
+    <div className="fixed inset-0 z-[130] flex items-center justify-center bg-[#2C241F]/35 p-4 backdrop-blur-md">
+      <button
+        type="button"
+        aria-label="Close approval dialog"
+        onClick={onClose}
+        className="absolute inset-0 cursor-default"
+        disabled={submitting}
+      />
+
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="approve-request-title"
+        className="relative z-10 w-full max-w-[460px] overflow-hidden rounded-[30px] border border-[#E3E0D9] bg-[#FFFDFC] shadow-[0_35px_90px_rgba(44,30,22,.22)]"
+      >
+        <div className="h-1.5 w-full bg-[#607E64]" />
+
+        <div className="p-6 sm:p-7">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#EAF1E9] text-[#55765B]">
+              <ApproveConfirmIcon />
+            </div>
+
+            <div className="min-w-0">
+              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#AAA097]">
+                Approve request
+              </p>
+
+              <h2
+                id="approve-request-title"
+                className="mt-1.5 text-xl font-black tracking-[-0.04em] text-[#342B25]"
+              >
+                Terima permintaan ini?
+              </h2>
+
+              <p className="mt-2 text-xs font-medium leading-6 text-[#7E756D]">
+                Kamu akan menerima permintaan mentoring dari{" "}
+                <span className="font-black text-[#4B4038]">{menteeName}</span>.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-2xl border border-[#E7EDE5] bg-[#F7FAF6] p-4">
+            <p className="text-[8px] font-black uppercase tracking-[0.15em] text-[#839282]">
+              Session summary
+            </p>
+
+            <p className="mt-1.5 text-sm font-black text-[#3E5141]">
+              {session.topic || "Career mentoring"}
+            </p>
+
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-[9px] font-bold text-[#7A887C]">
+              <span>{formatRequestDate(session)}</span>
+              <span>
+                {formatTime(slot?.start_time)} – {formatTime(slot?.end_time)}{" "}
+                WITA
+              </span>
+              <span>{session.duration || 45} min</span>
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-[#EEE8E1] bg-[#FBF9F6] px-4 py-3">
+            <p className="text-[10px] leading-5 text-[#766D64]">
+              Setelah disetujui, slot akan ditandai sebagai booked dan sesi akan
+              masuk ke jadwal mentor.
+            </p>
+          </div>
+
+          <div className="mt-6 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={submitting}
+              className="cursor-pointer rounded-xl border border-[#E5DED6] bg-white px-5 py-3 text-[10px] font-black text-[#766C64] transition duration-300 hover:bg-[#F7F3EE] hover:text-[#4E7060] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Batal
+            </button>
+
+            <button
+              type="button"
+              onClick={onSubmit}
+              disabled={submitting}
+              className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#607E64] px-5 py-3 text-[10px] font-black text-white shadow-[0_10px_24px_rgba(96,126,100,.16)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#547259] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {submitting ? (
+                <>
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/35 border-t-white" />
+                  Menyetujui...
+                </>
+              ) : (
+                <>
+                  <ApproveCheckIcon />
+                  Approve Request
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   REJECT MODAL
+========================================================= */
+
+function RejectModal({
+  session,
+  reason,
+  error,
+  submitting,
+  onReasonChange,
+  onClose,
+  onSubmit,
+}: {
+  session: Session;
+  reason: string;
+  error: string;
+  submitting: boolean;
+  onReasonChange: (value: string) => void;
+  onClose: () => void;
+  onSubmit: () => void;
+}) {
+  const menteeName = session.mentee?.name || "mentee ini";
+
+  return (
+    <div className="fixed inset-0 z-[140] flex items-center justify-center bg-[#2C241F]/40 p-4 backdrop-blur-md">
+      <button
+        type="button"
+        aria-label="Close rejection dialog"
+        onClick={() => {
+          if (!submitting) onClose();
+        }}
+        className="absolute inset-0 cursor-default"
+      />
+
+      <div className="relative z-10 w-full max-w-[520px] overflow-hidden rounded-[30px] border border-[#E7DFD8] bg-[#FFFDFC] shadow-[0_35px_90px_rgba(44,30,22,.20)]">
+        <div className="h-1.5 w-full bg-[#B65A51]" />
+        <div className="p-6 sm:p-7">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#FDF0EE] text-[#B65A51]">
+              <RejectWarningIcon />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#AAA097]">
+                Reject request
+              </p>
+              <h2 className="mt-1.5 text-xl font-black tracking-[-0.04em] text-[#342B25]">
+                Tolak permintaan ini?
+              </h2>
+              <p className="mt-2 text-xs font-medium leading-6 text-[#7E756D]">
+                Kamu akan menolak permintaan mentoring dari{" "}
+                <span className="font-black text-[#4B4038]">{menteeName}</span>.
+              </p>
+            </div>
+          </div>
+          <div className="mt-5 rounded-2xl border border-[#EEE7E1] bg-[#FBF8F4] p-4">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-white text-[#8A8078] shadow-sm">
+                <InfoIcon />
+              </div>
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-[0.14em] text-[#AAA097]">
+                  Why is a reason needed?
+                </p>
+                <p className="mt-1.5 text-[11px] font-medium leading-5 text-[#746B63]">
+                  Alasan ini akan disimpan dan dapat digunakan untuk memberi
+                  tahu mentee mengapa permintaannya ditolak.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="mt-5">
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="rejection-reason"
+                className="text-[10px] font-black uppercase tracking-[0.14em] text-[#71675F]"
+              >
+                Alasan penolakan
+              </label>
+              <span className="text-[9px] font-bold text-[#AAA097]">
+                {reason.length}/3000
+              </span>
+            </div>
+            <textarea
+              id="rejection-reason"
+              value={reason}
+              onChange={(event) => onReasonChange(event.target.value)}
+              placeholder="Contoh: Saya tidak tersedia pada waktu tersebut. Silakan pilih jadwal lain yang masih tersedia."
+              maxLength={3000}
+              rows={5}
+              disabled={submitting}
+              autoFocus
+              className="mt-2 w-full resize-none rounded-2xl border border-[#E6DED7] bg-white px-4 py-3.5 text-xs font-medium leading-6 text-[#4A4038] outline-none transition placeholder:text-[#B7AEA6] focus:border-[#B65A51] focus:ring-4 focus:ring-[#B65A51]/8 disabled:cursor-not-allowed disabled:bg-[#F7F4F0]"
+            />
+            {error && (
+              <div className="mt-2 flex items-start gap-2 rounded-xl border border-[#F0D0CC] bg-[#FDF1EF] px-3 py-2.5">
+                <ErrorIcon />
+                <p className="text-[10px] font-bold leading-5 text-[#B4544B]">
+                  {error}
+                </p>
+              </div>
+            )}
+          </div>
+          <div className="mt-6 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={submitting}
+              className="cursor-pointer rounded-xl border border-[#E5DED6] bg-white px-5 py-3 text-[10px] font-black text-[#766C64] transition duration-300 hover:bg-[#F7F3EE] hover:text-[#4E7060] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              onClick={onSubmit}
+              disabled={submitting}
+              className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#B65A51] px-5 py-3 text-[10px] font-black text-white shadow-[0_10px_24px_rgba(182,90,81,.16)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#A84D45] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {submitting ? (
+                <>
+                  {" "}
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/35 border-t-white" />{" "}
+                  Menolak...{" "}
+                </>
+              ) : (
+                <>
+                  {" "}
+                  <RejectIcon /> Tolak Permintaan{" "}
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1341,6 +1744,117 @@ function InboxIcon() {
         strokeWidth="1.6"
         strokeLinecap="round"
         strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ApproveConfirmIcon() {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="8.8" stroke="currentColor" strokeWidth="1.8" />
+      <path
+        d="M8 12.2L10.8 15L16.2 9.5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ApproveCheckIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M5 12.5L9.5 17L19 7.5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function RejectWarningIcon() {
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M12 3.5L21 19.5H3L12 3.5Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 9V13.5M12 17H12.01"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function RejectIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M7 7L17 17M17 7L7 17"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function InfoIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.7" />
+      <path
+        d="M12 10.5V16"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+      <path
+        d="M12 7.5H12.01"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
       />
     </svg>
   );
