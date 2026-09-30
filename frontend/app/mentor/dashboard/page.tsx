@@ -214,19 +214,19 @@ function statusText(status?: string | null) {
 function statusClass(status?: string | null) {
   switch (String(status ?? "").toLowerCase()) {
     case "pending":
-      return "bg-[#FFF2D7] text-[#AA6C1C]";
+      return "bg-[#E6F4EA] text-[#1B5E20]";
 
     case "approved":
-      return "bg-[#E8F0E7] text-[#56765A]";
+      return "bg-[#E6F4EA] text-[#1B5E20]";
 
     case "completed":
-      return "bg-[#E9F1FA] text-[#4B73A4]";
+      return "bg-[#E6F4EA] text-[#1B5E20]";
 
     case "rejected":
-      return "bg-[#F9E8E4] text-[#B55B51]";
+      return "bg-[#E6F4EA] text-[#1B5E20]";
 
     default:
-      return "bg-[#F0EBE6] text-[#786F68]";
+      return "bg-[#E8F5E8] text-[#786F68]";
   }
 }
 
@@ -560,22 +560,22 @@ export default function MentorDashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-72px)] bg-[#FFFDFC] p-6 lg:p-8">
+      <div className="min-h-[calc(100vh-72px)] bg-[#FAFEFA] p-6 lg:p-8">
         <div className="mx-auto max-w-[1400px] animate-pulse">
-          <div className="h-10 w-64 rounded-xl bg-[#ECE7E1]" />
+          <div className="h-10 w-64 rounded-xl bg-[#DDEEDD]" />
 
           <div className="mt-6 grid gap-4 xl:grid-cols-[1.62fr_.78fr]">
-            <div className="h-[318px] rounded-[28px] bg-[#E3ECE4]" />
+            <div className="h-[318px] rounded-[28px] bg-[#E6F4EA]" />
 
-            <div className="h-[318px] rounded-[28px] bg-[#F0EBE5]" />
+            <div className="h-[318px] rounded-[28px] bg-[#EAF6EA]" />
           </div>
 
-          <div className="mt-4 h-[96px] rounded-[24px] bg-[#F0EBE5]" />
+          <div className="mt-4 h-[96px] rounded-[24px] bg-[#EAF6EA]" />
 
           <div className="mt-4 grid gap-4 xl:grid-cols-[1.62fr_.78fr]">
-            <div className="h-[350px] rounded-[26px] bg-[#F0EBE5]" />
+            <div className="h-[350px] rounded-[26px] bg-[#EAF6EA]" />
 
-            <div className="h-[350px] rounded-[26px] bg-[#F0EBE5]" />
+            <div className="h-[350px] rounded-[26px] bg-[#EAF6EA]" />
           </div>
         </div>
       </div>
@@ -587,7 +587,7 @@ export default function MentorDashboardPage() {
   ======================================================== */
 
   return (
-    <div className="min-h-[calc(100vh-72px)] bg-[#FFFDFC] px-5 pb-14 pt-7 sm:px-7 lg:px-9 xl:px-10">
+    <div className="min-h-[calc(100vh-72px)] bg-[#FAFEFA] px-5 pb-14 pt-7 sm:px-7 lg:px-9 xl:px-10">
       <div className="mx-auto max-w-[1400px]">
         {/* ==================================================
             HEADER
@@ -611,13 +611,13 @@ export default function MentorDashboardPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="rounded-xl border border-[#E8E1DA] bg-white px-4 py-2.5 text-[9px] font-black text-[#746A62] shadow-sm">
+            <span className="rounded-xl border border-[#D8ECD8] bg-white px-4 py-2.5 text-[9px] font-black text-[#746A62] shadow-sm">
               {monthName}
             </span>
 
             <Link
               href="/mentor/requests"
-              className="rounded-xl bg-[#607E64] px-4 py-2.5 text-[9px] font-black text-white shadow-[0_10px_24px_rgba(96,126,100,.14)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#547259]"
+              className="rounded-xl bg-[#4CAF50] px-4 py-2.5 text-[9px] font-black text-white shadow-[0_10px_24px_rgba(96,126,100,.14)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#4CAF50]"
             >
               Review requests
             </Link>
@@ -633,61 +633,66 @@ export default function MentorDashboardPage() {
               FEATURED MENTOR
           =================================================== */}
 
-          <div className="mentor-reveal mentor-delay-1 relative min-h-[318px] overflow-hidden rounded-[28px] bg-[#668269] shadow-[0_22px_48px_rgba(71,98,76,.14)]">
-            {/* BASE GRADIENT */}
+          <div className="mentor-reveal mentor-delay-1 relative min-h-[318px] overflow-hidden rounded-[28px] border border-[#DDE9D7] bg-[#F6F2E9] shadow-[0_22px_48px_rgba(71,98,76,.10)]">
+            {/* SOFT CREAM + SAGE GRADIENT */}
 
-            <div className="absolute inset-0 bg-[linear-gradient(135deg,#58755D_0%,#668269_42%,#7F967F_72%,#91A493_100%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(135deg,#F6F2E9_0%,#F5F5EA_34%,#E6F4EA_66%,#CBE6C8_100%)]" />
 
             {/* BACKGROUND SHAPES */}
 
-            <div className="pointer-events-none absolute -left-28 -top-28 h-[320px] w-[320px] rounded-full border-[45px] border-white/[0.03]" />
+            <div className="pointer-events-none absolute -left-24 -top-24 h-[300px] w-[300px] rounded-full bg-[#E6F4EA]/75 blur-3xl" />
 
-            <div className="pointer-events-none absolute -bottom-36 left-[25%] h-[320px] w-[320px] rounded-full bg-white/[0.035] blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-36 left-[22%] h-[310px] w-[310px] rounded-full bg-[#CBE6C8]/55 blur-3xl" />
 
-            <div className="pointer-events-none absolute right-[22%] top-[-30%] h-[280px] w-[280px] rounded-full bg-white/[0.025] blur-3xl" />
+            <div className="pointer-events-none absolute right-[15%] top-[-25%] h-[280px] w-[280px] rounded-full bg-white/55 blur-3xl" />
 
             {/* ==================================================
                 MENTOR PHOTO
             =================================================== */}
 
-            <div className="pointer-events-none absolute inset-0 z-[1]">
+            {/* CURVED GREEN PHOTO ACCENT */}
+            <div className="pointer-events-none absolute right-[-72px] top-1/2 z-[1] h-[360px] w-[430px] -translate-y-1/2 rounded-[58%_42%_50%_50%/58%_42%_58%_42%] bg-[linear-gradient(135deg,#E6F4EA_4%,#A8DCA8_42%,#81C784_72%,#4CAF50_100%)] opacity-80 shadow-[0_18px_55px_rgba(76,175,80,0.12)]" />
+
+            <div className="pointer-events-none absolute right-[18px] top-1/2 z-[1] h-[300px] w-[350px] -translate-y-1/2 rounded-[55%_45%_48%_52%/56%_44%_56%_44%] border-[26px] border-[#81C784]/28" />
+
+            <div className="pointer-events-none absolute inset-0 z-[2]">
               {hasMentorPhoto ? (
                 <img
                   src={profileImage}
                   alt={mentorName}
-                  className="absolute inset-y-0 right-0 h-full w-[66%] object-cover object-[center_28%] transition-transform duration-[1000ms] ease-out hover:scale-[1.018]"
+                  className="absolute inset-y-0 right-0 h-full w-[62%] object-cover object-[center_28%] transition-transform duration-[1000ms] ease-out hover:scale-[1.018]"
                   onError={() => {
                     setImageFailed(true);
                   }}
                 />
               ) : (
-                <div className="absolute inset-0 flex items-center justify-end bg-[#6C886F] pr-[12%]">
-                  <span className="text-6xl font-black text-white/75">
+                <div className="absolute inset-y-0 right-0 flex w-[62%] items-center justify-center bg-[#CBE6C8]">
+                  <span className="text-6xl font-black text-[#4C6B50]/45">
                     {getInitial(mentorName)}
                   </span>
                 </div>
               )}
             </div>
 
-            {/* GLOBAL PHOTO BLEND */}
+            {/* PHOTO BLEND */}
 
-            <div className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(to_right,#58755D_0%,#58755D_26%,rgba(88,117,93,0.97)_36%,rgba(88,117,93,0.86)_45%,rgba(88,117,93,0.65)_53%,rgba(88,117,93,0.38)_61%,rgba(88,117,93,0.14)_69%,rgba(88,117,93,0)_79%)]" />
+            <div className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(to_right,#F6F2E9_0%,#F6F2E9_25%,rgba(246,242,233,0.98)_34%,rgba(230,244,234,0.86)_46%,rgba(230,244,234,0.58)_56%,rgba(230,244,234,0.28)_65%,rgba(203,230,200,0.08)_73%,rgba(203,230,200,0)_82%)]" />
 
-            {/* SOFT CENTER HAZE */}
+            {/* SOFT PHOTO HAZE */}
 
-            <div className="pointer-events-none absolute inset-y-0 left-[38%] z-[11] w-[31%] bg-[radial-gradient(ellipse_at_center,rgba(173,195,174,0.16)_0%,rgba(173,195,174,0.07)_32%,rgba(173,195,174,0)_72%)] blur-[18px]" />
+            <div className="pointer-events-none absolute inset-y-0 left-[36%] z-[11] w-[28%] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.48)_0%,rgba(230,244,234,0.18)_42%,rgba(230,244,234,0)_76%)] blur-[20px]" />
 
             {/* TOP BLEND */}
 
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-[12] h-24 bg-gradient-to-b from-[#58755D]/52 via-[#58755D]/12 to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-[12] h-24 bg-gradient-to-b from-white/55 via-white/15 to-transparent" />
 
             {/* BOTTOM BLEND */}
 
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[12] h-32 bg-gradient-to-t from-[#405A45]/75 via-[#405A45]/18 to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[12] h-28 bg-gradient-to-t from-[#B8D8B6]/48 via-[#DDEDDD]/10 to-transparent" />
 
             {/* WHOLE CARD SOFT LIGHT */}
 
-            <div className="pointer-events-none absolute inset-0 z-[13] bg-[linear-gradient(108deg,rgba(255,255,255,0)_20%,rgba(255,255,255,0.012)_60%,rgba(255,255,255,0.025)_100%)]" />
+            <div className="pointer-events-none absolute inset-0 z-[13] bg-[linear-gradient(108deg,rgba(255,255,255,0.14)_15%,rgba(255,255,255,0.04)_55%,rgba(255,255,255,0)_100%)]" />
 
             {/* ==================================================
                 CONTENT
@@ -696,58 +701,58 @@ export default function MentorDashboardPage() {
             <div className="relative z-30 flex min-h-[318px] w-full flex-col justify-between p-7 sm:p-8 lg:p-9">
               <div className="max-w-[57%]">
                 <div className="flex items-center gap-2">
-                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/65">
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#55765B]">
                     Featured mentor
                   </span>
 
-                  <span className="h-1 w-1 rounded-full bg-white/40" />
+                  <span className="h-1 w-1 rounded-full bg-[#81C784]" />
 
-                  <span className="text-[8px] font-bold text-white/45">
+                  <span className="text-[8px] font-bold text-[#729276]">
                     Career Cafe
                   </span>
                 </div>
 
-                <h2 className="mt-3 text-[31px] font-black tracking-[-0.055em] text-white sm:text-[38px]">
+                <h2 className="mt-3 text-[31px] font-black tracking-[-0.055em] text-[#1B5E20] sm:text-[38px]">
                   {mentorName}
                 </h2>
 
-                <p className="mt-1.5 text-sm font-semibold text-white/80">
+                <p className="mt-1.5 text-sm font-semibold text-[#47684B]">
                   {profile?.job_title || "Career Mentor"}
 
                   {profile?.company ? ` · ${profile.company}` : ""}
                 </p>
 
-                <p className="mt-5 max-w-[500px] text-xs font-medium leading-5 text-white/67">
+                <p className="mt-5 max-w-[500px] text-xs font-medium leading-5 text-[#617064]">
                   {profile?.bio ||
                     "Guide mentees with practical career insight, meaningful sessions, and experience from your professional journey."}
                 </p>
               </div>
 
-              <div className="mt-6 flex flex-wrap items-center gap-2">
-                <Link
-                  href="/mentor/profile"
-                  className="rounded-xl bg-[#D5A253] px-4 py-2.5 text-[9px] font-black text-white shadow-[0_9px_22px_rgba(0,0,0,.08)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#C79449]"
-                >
-                  View profile
-                </Link>
+              <div className="mt-6 flex flex-wrap items-start gap-2">
+                <div className="flex flex-col items-start gap-2">
+                  <Link
+                    href="/mentor/profile"
+                    className="rounded-xl bg-[#4CAF50] px-4 py-2.5 text-[9px] font-black text-white shadow-[0_9px_22px_rgba(76,175,80,.16)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#38BE3C]"
+                  >
+                    View profile
+                  </Link>
+
+                  <div className="inline-flex items-center gap-2 rounded-full border border-[#B9E0BA] bg-white/90 px-3.5 py-2 shadow-[0_8px_20px_rgba(76,175,80,.10)] backdrop-blur-md">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#4CAF50]" />
+
+                    <span className="text-[8px] font-black text-[#1B5E20]">
+                      Active mentor
+                    </span>
+                  </div>
+                </div>
 
                 <Link
                   href="/mentor/availability"
-                  className="rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-[9px] font-black text-white/90 backdrop-blur-md transition duration-300 hover:bg-white/15"
+                  className="rounded-xl border border-[#A8DCA8] bg-white/72 px-4 py-2.5 text-[9px] font-black text-[#1B5E20] backdrop-blur-sm transition duration-300 hover:-translate-y-0.5 hover:bg-white"
                 >
                   Availability
                 </Link>
               </div>
-            </div>
-
-            {/* ACTIVE BADGE */}
-
-            <div className="absolute bottom-5 right-5 z-40 flex items-center gap-2 rounded-full border border-white/20 bg-[#46634C]/80 px-3.5 py-2 shadow-[0_10px_24px_rgba(0,0,0,.12)] backdrop-blur-md">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#D8C77F]" />
-
-              <span className="text-[8px] font-black text-white">
-                Active mentor
-              </span>
             </div>
           </div>
 
@@ -755,7 +760,7 @@ export default function MentorDashboardPage() {
               ACTIVITY GROWTH
           =================================================== */}
 
-          <div className="mentor-reveal mentor-delay-2 rounded-[28px] border border-[#ECE7E1] bg-white p-6 shadow-[0_16px_38px_rgba(53,39,29,.045)]">
+          <div className="mentor-reveal mentor-delay-2 rounded-[28px] border border-[#DDEEDD] bg-white p-6 shadow-[0_16px_38px_rgba(53,39,29,.045)]">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#AAA097]">
@@ -767,7 +772,7 @@ export default function MentorDashboardPage() {
                 </h2>
 
                 <div className="mt-1 flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#6D8A70]" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#4CAF50]" />
 
                   <span className="text-[9px] font-semibold text-[#91877F]">
                     completed sessions
@@ -775,12 +780,12 @@ export default function MentorDashboardPage() {
                 </div>
               </div>
 
-              <span className="rounded-lg bg-[#F7F3EE] px-2.5 py-1.5 text-[8px] font-black text-[#827870]">
+              <span className="rounded-lg bg-[#F2FAF2] px-2.5 py-1.5 text-[8px] font-black text-[#827870]">
                 Last 7 days
               </span>
             </div>
 
-            <div className="mt-6 rounded-[22px] bg-[#FBFAF7] px-2.5 py-3">
+            <div className="mt-6 rounded-[22px] bg-[#F5FAF5] px-2.5 py-3">
               <svg
                 viewBox="0 0 620 205"
                 className="h-[195px] w-full"
@@ -797,7 +802,7 @@ export default function MentorDashboardPage() {
                       y1={y}
                       x2="600"
                       y2={y}
-                      stroke="#EBE5DE"
+                      stroke="#D9EED9"
                       strokeWidth="1"
                       strokeDasharray="4 7"
                     />
@@ -814,7 +819,7 @@ export default function MentorDashboardPage() {
                     })
                     .join(" ")}
                   fill="none"
-                  stroke="#6F8C73"
+                  stroke="#4CAF50"
                   strokeWidth="4"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -832,7 +837,7 @@ export default function MentorDashboardPage() {
                         cy={y}
                         r="5.5"
                         fill="#FFFFFF"
-                        stroke="#6F8C73"
+                        stroke="#4CAF50"
                         strokeWidth="3"
                       />
 
@@ -857,7 +862,7 @@ export default function MentorDashboardPage() {
             STATISTICS
         =================================================== */}
 
-        <section className="mentor-reveal mentor-delay-2 mt-4 grid grid-cols-2 overflow-visible rounded-[24px] border border-[#ECE7E1] bg-white shadow-[0_14px_34px_rgba(53,39,29,.04)] sm:grid-cols-4">
+        <section className="mentor-reveal mentor-delay-2 mt-4 grid grid-cols-2 overflow-visible rounded-[24px] border border-[#DDEEDD] bg-white shadow-[0_14px_34px_rgba(53,39,29,.04)] sm:grid-cols-4">
           <DashboardStat
             label="Total mentees"
             value={statistics.totalMentees.toString()}
@@ -897,7 +902,7 @@ export default function MentorDashboardPage() {
           <div className="space-y-4">
             {/* RECENT MENTORING */}
 
-            <div className="mentor-reveal mentor-delay-3 rounded-[26px] border border-[#ECE7E1] bg-white p-6 shadow-[0_16px_36px_rgba(53,39,29,.045)]">
+            <div className="mentor-reveal mentor-delay-3 rounded-[26px] border border-[#DDEEDD] bg-white p-6 shadow-[0_16px_36px_rgba(53,39,29,.045)]">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#AAA097]">
@@ -911,14 +916,14 @@ export default function MentorDashboardPage() {
 
                 <Link
                   href="/mentor/sessions"
-                  className="text-[9px] font-black text-[#877D75] transition hover:text-[#55765B]"
+                  className="text-[9px] font-black text-[#877D75] transition hover:text-[#38BE3C]"
                 >
                   View all →
                 </Link>
               </div>
 
-              <div className="mt-5 overflow-hidden rounded-[18px] border border-[#EEE9E3]">
-                <div className="hidden grid-cols-[1.25fr_1fr_.65fr_.55fr] border-b border-[#EEE9E3] bg-[#FBF9F6] px-4 py-3 text-[8px] font-black uppercase tracking-[0.12em] text-[#AAA097] sm:grid">
+              <div className="mt-5 overflow-hidden rounded-[18px] border border-[#E2F0E2]">
+                <div className="hidden grid-cols-[1.25fr_1fr_.65fr_.55fr] border-b border-[#E2F0E2] bg-[#F5FAF5] px-4 py-3 text-[8px] font-black uppercase tracking-[0.12em] text-[#AAA097] sm:grid">
                   <span>Mentee</span>
                   <span>Session</span>
                   <span>Status</span>
@@ -933,10 +938,10 @@ export default function MentorDashboardPage() {
                   recentMentees.map(({ user, session }) => (
                     <div
                       key={user.id}
-                      className="grid grid-cols-1 gap-3 border-b border-[#F1ECE7] px-4 py-3 last:border-b-0 sm:grid-cols-[1.25fr_1fr_.65fr_.55fr] sm:items-center"
+                      className="grid grid-cols-1 gap-3 border-b border-[#E8F5E8] px-4 py-3 last:border-b-0 sm:grid-cols-[1.25fr_1fr_.65fr_.55fr] sm:items-center"
                     >
                       <div className="flex min-w-0 items-center gap-2.5">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#EDF2EC] text-[9px] font-black text-[#55765B]">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E6F4EA] text-[9px] font-black text-[#38BE3C]">
                           {getInitial(user.name)}
                         </div>
 
@@ -981,7 +986,7 @@ export default function MentorDashboardPage() {
 
             {/* UPCOMING */}
 
-            <div className="mentor-reveal mentor-delay-4 rounded-[26px] border border-[#ECE7E1] bg-white p-6 shadow-[0_16px_36px_rgba(53,39,29,.045)]">
+            <div className="mentor-reveal mentor-delay-4 rounded-[26px] border border-[#DDEEDD] bg-white p-6 shadow-[0_16px_36px_rgba(53,39,29,.045)]">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#AAA097]">
@@ -995,7 +1000,7 @@ export default function MentorDashboardPage() {
 
                 <Link
                   href="/mentor/schedule"
-                  className="rounded-xl bg-[#F4F0EA] px-3 py-2 text-[8px] font-black text-[#756B63] transition hover:bg-[#EDE7DF] hover:text-[#55765B]"
+                  className="rounded-xl bg-[#EAF6EA] px-3 py-2 text-[8px] font-black text-[#756B63] transition hover:bg-[#E6F4EA] hover:text-[#38BE3C]"
                 >
                   Open schedule
                 </Link>
@@ -1003,7 +1008,7 @@ export default function MentorDashboardPage() {
 
               <div className="mt-5 grid gap-2.5">
                 {upcomingSessions.length === 0 ? (
-                  <div className="rounded-[18px] border border-dashed border-[#DDD6CE] bg-[#FCFAF8] px-4 py-9 text-center">
+                  <div className="rounded-[18px] border border-dashed border-[#CBE6C8] bg-[#F7FBF7] px-4 py-9 text-center">
                     <p className="text-xs font-black text-[#746A62]">
                       No upcoming sessions
                     </p>
@@ -1020,9 +1025,9 @@ export default function MentorDashboardPage() {
                       <Link
                         key={session.id}
                         href="/mentor/sessions"
-                        className="group grid grid-cols-[76px_1fr_auto] items-center gap-3 rounded-[18px] border border-[#EEE9E3] bg-[#FFFEFC] p-3 transition duration-300 hover:-translate-y-0.5 hover:border-[#DCD2C8] hover:shadow-sm"
+                        className="group grid grid-cols-[76px_1fr_auto] items-center gap-3 rounded-[18px] border border-[#E2F0E2] bg-[#FBFEFB] p-3 transition duration-300 hover:-translate-y-0.5 hover:border-[#CBE6C8] hover:shadow-sm"
                       >
-                        <div className="rounded-xl bg-[#F3EFE8] px-2 py-2 text-center">
+                        <div className="rounded-xl bg-[#EEF8EE] px-2 py-2 text-center">
                           <p className="text-[7px] font-black uppercase tracking-[0.12em] text-[#9D9289]">
                             {formatMonth(slot?.starts_at)}
                           </p>
@@ -1044,7 +1049,7 @@ export default function MentorDashboardPage() {
                           </p>
                         </div>
 
-                        <span className="text-lg text-[#B5ACA5] transition group-hover:translate-x-1 group-hover:text-[#55765B]">
+                        <span className="text-lg text-[#B5ACA5] transition group-hover:translate-x-1 group-hover:text-[#38BE3C]">
                           →
                         </span>
                       </Link>
@@ -1060,7 +1065,7 @@ export default function MentorDashboardPage() {
           <div className="space-y-4">
             {/* MENTOR IMPACT */}
 
-            <div className="mentor-reveal mentor-delay-3 rounded-[26px] border border-[#ECE7E1] bg-white p-6 shadow-[0_16px_36px_rgba(53,39,29,.045)]">
+            <div className="mentor-reveal mentor-delay-3 rounded-[26px] border border-[#DDEEDD] bg-white p-6 shadow-[0_16px_36px_rgba(53,39,29,.045)]">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#AAA097]">
@@ -1076,12 +1081,12 @@ export default function MentorDashboardPage() {
                   </p>
                 </div>
 
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EAF0E8] text-[#55765B]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E6F4EA] text-[#38BE3C]">
                   <ImpactIcon />
                 </div>
               </div>
 
-              <div className="mt-5 rounded-[20px] bg-[#F9F6F2] p-4">
+              <div className="mt-5 rounded-[20px] bg-[#F4FBF4] p-4">
                 <div className="flex items-end gap-2">
                   <span className="text-3xl font-black tracking-[-0.05em] text-[#302923]">
                     {statistics.totalMentees}
@@ -1102,15 +1107,15 @@ export default function MentorDashboardPage() {
                         "h-8 rounded-lg transition-all duration-300",
                         "hover:-translate-y-1",
                         index < Math.min(8, statistics.completed + 2)
-                          ? "bg-[#7A927D]"
-                          : "bg-[#E4DFD8]",
+                          ? "bg-[#81C784]"
+                          : "bg-[#CBE6C8]",
                       ].join(" ")}
                     />
                   ))}
                 </div>
               </div>
 
-              <div className="mt-5 border-t border-[#EFEAE4] pt-5">
+              <div className="mt-5 border-t border-[#E3F1E3] pt-5">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-[8px] font-black uppercase tracking-[0.14em] text-[#AAA097]">
@@ -1124,15 +1129,15 @@ export default function MentorDashboardPage() {
 
                   <Link
                     href="/mentor/profile"
-                    className="rounded-xl bg-[#F5F1EB] px-3 py-2 text-[8px] font-black text-[#71675F] transition hover:bg-[#ECE5DC] hover:text-[#55765B]"
+                    className="rounded-xl bg-[#EFF9EF] px-3 py-2 text-[8px] font-black text-[#71675F] transition hover:bg-[#DDF0DD] hover:text-[#38BE3C]"
                   >
                     Edit
                   </Link>
                 </div>
 
-                <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#EAE4DD]">
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#DCEEDC]">
                   <div
-                    className="h-full rounded-full bg-[#66836B] transition-all duration-700"
+                    className="h-full rounded-full bg-[#38BE3C] transition-all duration-700"
                     style={{
                       width: `${Math.max(8, profileCompletion)}%`,
                     }}
@@ -1143,7 +1148,7 @@ export default function MentorDashboardPage() {
 
             {/* LATEST CONNECTION */}
 
-            <div className="mentor-reveal mentor-delay-4 rounded-[26px] border border-[#ECE7E1] bg-white p-6 shadow-[0_16px_36px_rgba(53,39,29,.045)]">
+            <div className="mentor-reveal mentor-delay-4 rounded-[26px] border border-[#DDEEDD] bg-white p-6 shadow-[0_16px_36px_rgba(53,39,29,.045)]">
               <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#AAA097]">
                 Latest connection
               </p>
@@ -1153,9 +1158,9 @@ export default function MentorDashboardPage() {
               </h2>
 
               {featuredSession ? (
-                <div className="mt-5 rounded-[20px] bg-[#F7F3EE] p-4">
+                <div className="mt-5 rounded-[20px] bg-[#F2FAF2] p-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#EDF2EC] text-xs font-black text-[#55765B]">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#E6F4EA] text-xs font-black text-[#38BE3C]">
                       {getInitial(featuredSession.mentee?.name)}
                     </div>
 
@@ -1198,7 +1203,7 @@ export default function MentorDashboardPage() {
                   </div>
                 </div>
               ) : (
-                <div className="mt-5 rounded-[20px] border border-dashed border-[#DDD6CE] bg-[#FCFAF8] px-4 py-10 text-center text-[9px] font-semibold text-[#A09890]">
+                <div className="mt-5 rounded-[20px] border border-dashed border-[#CBE6C8] bg-[#F7FBF7] px-4 py-10 text-center text-[9px] font-semibold text-[#A09890]">
                   Your latest mentee connection will appear here.
                 </div>
               )}
@@ -1210,7 +1215,7 @@ export default function MentorDashboardPage() {
             QUICK ACTIONS
         =================================================== */}
 
-        <section className="mentor-reveal mentor-delay-4 mt-4 rounded-[26px] border border-[#E8E2DC] bg-[#F6F2ED] p-4">
+        <section className="mentor-reveal mentor-delay-4 mt-4 rounded-[26px] border border-[#D9EDD9] bg-[#EFF9EF] p-4">
           <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
             <QuickAction
               href="/mentor/requests"
@@ -1274,13 +1279,13 @@ function QuickAction({
   icon: ReactNode;
 }) {
   const tones = {
-    amber: "bg-[#FFF0D5] text-[#B76C19]",
+    amber: "bg-[#E6F4EA] text-[#1B5E20]",
 
-    blue: "bg-[#EAF2FC] text-[#4577B8]",
+    blue: "bg-[#CBE6C8] text-[#4CAF50]",
 
-    lavender: "bg-[#F0E9F8] text-[#7A5CA7]",
+    lavender: "bg-[#E6F4EA] text-[#1B5E20]",
 
-    coral: "bg-[#F9E7E3] text-[#BE5D52]",
+    coral: "bg-[#E6F4EA] text-[#1B5E20]",
   };
 
   return (
@@ -1308,7 +1313,7 @@ function QuickAction({
         </span>
       </span>
 
-      <span className="text-base text-[#B4ABA3] transition group-hover:translate-x-1 group-hover:text-[#55765B]">
+      <span className="text-base text-[#B4ABA3] transition group-hover:translate-x-1 group-hover:text-[#38BE3C]">
         →
       </span>
     </Link>
@@ -1332,27 +1337,27 @@ function DashboardStat({
 }) {
   const accent = {
     green: {
-      glow: "hover:border-[#D7E4D8]",
-      value: "group-hover:text-[#55765B]",
-      dot: "bg-[#6D8A70]",
+      glow: "hover:border-[#CBE6C8]",
+      value: "group-hover:text-[#38BE3C]",
+      dot: "bg-[#4CAF50]",
     },
 
     blue: {
-      glow: "hover:border-[#D8E4F2]",
-      value: "group-hover:text-[#4B73A4]",
-      dot: "bg-[#7093C0]",
+      glow: "hover:border-[#CBE6C8]",
+      value: "group-hover:text-[#1B5E20]",
+      dot: "bg-[#81C784]",
     },
 
     amber: {
-      glow: "hover:border-[#F0DFBF]",
-      value: "group-hover:text-[#AA6C1C]",
-      dot: "bg-[#C99045]",
+      glow: "hover:border-[#CBE6C8]",
+      value: "group-hover:text-[#1B5E20]",
+      dot: "bg-[#4CAF50]",
     },
 
     gold: {
-      glow: "hover:border-[#E9DCC7]",
-      value: "group-hover:text-[#A87834]",
-      dot: "bg-[#C49A56]",
+      glow: "hover:border-[#CBE6C8]",
+      value: "group-hover:text-[#38BE3C]",
+      dot: "bg-[#81C784]",
     },
   };
 
@@ -1361,7 +1366,7 @@ function DashboardStat({
   return (
     <div
       className={[
-        "group relative min-h-[94px] overflow-visible border-b border-[#EFE9E3] px-5 py-4",
+        "group relative min-h-[94px] overflow-visible border-b border-[#E5F2E5] px-5 py-4",
         "transform-gpu will-change-transform",
         "transition-all duration-300 ease-out",
         "hover:z-20 hover:-translate-y-1.5 hover:scale-[1.025]",
@@ -1401,7 +1406,7 @@ function DashboardStat({
         </span>
       </div>
 
-      <span className="absolute bottom-0 left-5 h-[2px] w-0 rounded-full bg-[#66836B] transition-all duration-300 group-hover:w-10" />
+      <span className="absolute bottom-0 left-5 h-[2px] w-0 rounded-full bg-[#38BE3C] transition-all duration-300 group-hover:w-10" />
     </div>
   );
 }
