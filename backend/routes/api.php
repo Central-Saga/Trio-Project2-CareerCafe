@@ -14,12 +14,15 @@ use App\Http\Controllers\JobController;
 use App\Http\Controllers\JobApplicationController;
 use App\Http\Controllers\MentorApplicationController;
 use App\Http\Controllers\AdminMenteeController;
+use App\Http\Controllers\AdminSessionController;
+use App\Http\Controllers\AdminReportController;
 
 /*
 |--------------------------------------------------------------------------
 | API Routes - Career Café (PRD Revisi v1.1)
 |--------------------------------------------------------------------------
 */
+
 
 // =========================================================
 // Public Options
@@ -35,12 +38,14 @@ Route::get(
     [IndustrySkillController::class, 'skills']
 );
 
+
 // =========================================================
 // Authentication
 // Rate limited 5 req/min per IP
 // =========================================================
 
 Route::middleware('throttle:5,1')->group(function () {
+
     Route::post(
         '/register',
         [AuthController::class, 'register']
@@ -51,6 +56,7 @@ Route::middleware('throttle:5,1')->group(function () {
         [AuthController::class, 'login']
     );
 });
+
 
 // =========================================================
 // Jobs - Public Discovery
@@ -65,6 +71,7 @@ Route::get(
     '/jobs/{id}',
     [JobController::class, 'show']
 );
+
 
 // =========================================================
 // Mentors - Public Discovery
@@ -95,6 +102,7 @@ Route::get(
     [FeedbackController::class, 'mentorFeedbacks']
 );
 
+
 // =========================================================
 // Career Feed - Public Read
 // =========================================================
@@ -108,6 +116,7 @@ Route::get(
     '/posts/{id}',
     [PostController::class, 'show']
 );
+
 
 // =========================================================
 // Authenticated Routes - Sanctum Bearer Token
@@ -159,6 +168,7 @@ Route::middleware('auth:sanctum')->group(function () {
         [ProfileController::class, 'deleteCover']
     );
 
+
     // =====================================================
     // Job Applications
     // =====================================================
@@ -173,6 +183,7 @@ Route::middleware('auth:sanctum')->group(function () {
         [JobApplicationController::class, 'index']
     );
 
+
     // =====================================================
     // Mentor Applications - Mentee
     // =====================================================
@@ -186,6 +197,7 @@ Route::middleware('auth:sanctum')->group(function () {
         '/mentor-applications',
         [MentorApplicationController::class, 'store']
     );
+
 
     // =====================================================
     // Mentor Applications - Admin
@@ -221,6 +233,7 @@ Route::middleware('auth:sanctum')->group(function () {
         [MentorApplicationController::class, 'viewDocument']
     );
 
+
     // =====================================================
     // Admin - Mentees
     // =====================================================
@@ -235,6 +248,37 @@ Route::middleware('auth:sanctum')->group(function () {
         [AdminMenteeController::class, 'show']
     );
 
+
+    // =====================================================
+    // Admin - Sessions
+    // =====================================================
+
+    Route::get(
+        '/admin/sessions',
+        [AdminSessionController::class, 'index']
+    );
+
+    Route::get(
+        '/admin/sessions/{id}',
+        [AdminSessionController::class, 'show']
+    );
+
+    Route::patch(
+        '/admin/sessions/{id}/complete',
+        [AdminSessionController::class, 'complete']
+    );
+
+
+    // =====================================================
+    // Admin - Reports
+    // =====================================================
+
+    Route::get(
+        '/admin/reports',
+        [AdminReportController::class, 'index']
+    );
+
+
     // =====================================================
     // Mentor Availability Management
     // =====================================================
@@ -243,6 +287,7 @@ Route::middleware('auth:sanctum')->group(function () {
         '/availability',
         [SlotController::class, 'setAvailability']
     );
+
 
     // =====================================================
     // Mentoring Sessions
@@ -283,6 +328,7 @@ Route::middleware('auth:sanctum')->group(function () {
         [SessionController::class, 'complete']
     );
 
+
     // =====================================================
     // Feedback & Rating
     // =====================================================
@@ -291,6 +337,7 @@ Route::middleware('auth:sanctum')->group(function () {
         '/sessions/{id}/feedback',
         [FeedbackController::class, 'store']
     );
+
 
     // =====================================================
     // Posts
@@ -310,4 +357,5 @@ Route::middleware('auth:sanctum')->group(function () {
         '/posts/{id}',
         [PostController::class, 'destroy']
     );
+
 });

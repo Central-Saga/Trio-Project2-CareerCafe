@@ -128,11 +128,11 @@ export default function JobApplyPage() {
         const jobData = await jobResponse.json();
 
         if (!jobResponse.ok || !jobData?.success) {
-          throw new Error(jobData?.message ?? "Data pekerjaan gagal dimuat.");
+          throw new Error(jobData?.message ?? "Failed to load job data.");
         }
 
         if (!jobData?.data) {
-          throw new Error("Data pekerjaan tidak tersedia.");
+          throw new Error("Job data is unavailable.");
         }
 
         if (!cancelled) {
@@ -184,7 +184,7 @@ export default function JobApplyPage() {
         setError(
           loadError instanceof Error
             ? loadError.message
-            : "Terjadi kesalahan saat memuat halaman.",
+            : "An error occurred while loading the page.",
         );
       } finally {
         if (!cancelled) {
@@ -234,14 +234,14 @@ export default function JobApplyPage() {
     if (!isPdf) {
       event.target.value = "";
       setCvFile(null);
-      setError("CV harus berupa file PDF.");
+      setError("Your resume must be a PDF file.");
       return;
     }
 
     if (file.size > MAX_CV_SIZE) {
       event.target.value = "";
       setCvFile(null);
-      setError("Ukuran CV maksimal 5 MB.");
+      setError("The maximum resume size is 5 MB.");
       return;
     }
 
@@ -293,7 +293,7 @@ export default function JobApplyPage() {
     }
 
     if (!cvFile) {
-      setError("Silakan upload CV terlebih dahulu.");
+      setError("Please upload your resume first.");
       return;
     }
 
@@ -370,12 +370,12 @@ export default function JobApplyPage() {
               .join(" ");
 
             throw new Error(
-              messages || data?.message || "Data lamaran tidak valid.",
+              messages || data?.message || "The application data is invalid.",
             );
           }
         }
 
-        throw new Error(data?.message ?? "Lamaran gagal dikirim.");
+        throw new Error(data?.message ?? "Failed to submit the application.");
       }
 
       /* =================================================
@@ -389,7 +389,7 @@ export default function JobApplyPage() {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "Terjadi kesalahan saat mengirim lamaran.",
+          : "An error occurred while submitting the application.",
       );
     } finally {
       setSubmitting(false);
@@ -443,11 +443,11 @@ export default function JobApplyPage() {
             </div>
 
             <h1 className="mt-5 text-2xl font-extrabold">
-              Lowongan Tidak Ditemukan
+              Job Not Found
             </h1>
 
             <p className="mt-3 text-sm leading-6 text-gray-500">
-              {error || "Data lowongan yang kamu pilih tidak tersedia."}
+              {error || "The job you selected is unavailable."}
             </p>
 
             <button
@@ -455,7 +455,7 @@ export default function JobApplyPage() {
               onClick={() => router.push("/jobs")}
               className="mt-6 rounded-xl bg-[#1E3F20] px-6 py-3 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-[#152e17] hover:shadow-lg"
             >
-              Kembali ke Lowongan
+              Back to Jobs
             </button>
           </div>
         </main>
@@ -537,7 +537,7 @@ export default function JobApplyPage() {
               }}
               className="cursor-pointer border-none bg-transparent px-3 text-xs font-bold text-red-600 transition-colors hover:text-red-700"
             >
-              Keluar
+              Log Out
             </button>
           </div>
         </div>
@@ -555,7 +555,7 @@ export default function JobApplyPage() {
             onClick={() => router.push(`/jobs/${job.id}`)}
             className="cursor-pointer border-none bg-transparent text-sm font-bold text-gray-500 transition-colors hover:text-[#1E3F20]"
           >
-            ← Kembali ke Detail Lowongan
+            ← Back to Job Details
           </button>
         </Reveal>
 
@@ -569,7 +569,7 @@ export default function JobApplyPage() {
                 </span>
 
                 <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-[#2C1E16] sm:text-4xl">
-                  Lamar Pekerjaan
+                  Apply for This Job
                 </h1>
 
                 <p className="mt-2 text-xl font-extrabold text-[#1E3F20]">
@@ -584,10 +584,10 @@ export default function JobApplyPage() {
               </div>
 
               <div className="rounded-2xl border border-[#E8E1D8] bg-[#FCFBF8] px-5 py-4 sm:min-w-[170px]">
-                <p className="text-xs text-gray-500">Perkiraan Gaji</p>
+                <p className="text-xs text-gray-500">Estimated Salary</p>
 
                 <p className="mt-1 font-extrabold text-[#1E3F20]">
-                  {job.salary || "Negosiasi"}
+                  {job.salary || "Negotiable"}
                 </p>
               </div>
             </div>
@@ -603,12 +603,12 @@ export default function JobApplyPage() {
               </p>
 
               <h2 className="mt-2 text-2xl font-extrabold text-[#2C1E16]">
-                Lengkapi Data Lamaran
+                Complete Your Application
               </h2>
 
               <p className="mt-2 text-sm leading-relaxed text-gray-500">
-                Isi data dengan benar dan upload CV terbaru kamu sebelum
-                mengirim lamaran.
+                Enter your information and upload your latest resume before
+                submitting your application.
               </p>
             </div>
 
@@ -626,7 +626,7 @@ export default function JobApplyPage() {
                   htmlFor="full_name"
                   className="mb-2 block text-sm font-bold text-[#2C1E16]"
                 >
-                  Nama Lengkap
+                  Full Name
                   <span className="ml-1 text-red-500">*</span>
                 </label>
 
@@ -637,7 +637,7 @@ export default function JobApplyPage() {
                   onChange={(event) =>
                     handleChange("full_name", event.target.value)
                   }
-                  placeholder="Masukkan nama lengkap"
+                  placeholder="Enter your full name"
                   required
                   className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-sm outline-none transition-all placeholder:text-gray-400 focus:border-[#1E3F20]/40 focus:ring-2 focus:ring-[#1E3F20]/10"
                 />
@@ -660,7 +660,7 @@ export default function JobApplyPage() {
                   onChange={(event) =>
                     handleChange("email", event.target.value)
                   }
-                  placeholder="contoh@email.com"
+                  placeholder="name@example.com"
                   required
                   className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-sm outline-none transition-all placeholder:text-gray-400 focus:border-[#1E3F20]/40 focus:ring-2 focus:ring-[#1E3F20]/10"
                 />
@@ -672,7 +672,7 @@ export default function JobApplyPage() {
                   htmlFor="phone"
                   className="mb-2 block text-sm font-bold text-[#2C1E16]"
                 >
-                  Nomor HP
+                  Phone Number
                 </label>
 
                 <input
@@ -707,15 +707,15 @@ export default function JobApplyPage() {
                     </div>
 
                     <p className="mt-4 text-sm font-extrabold text-[#2C1E16]">
-                      Upload CV kamu
+                      Upload Your Resume
                     </p>
 
                     <p className="mt-1 text-xs text-gray-500">
-                      Klik untuk memilih file PDF
+                      Click to select a PDF file
                     </p>
 
                     <p className="mt-3 text-[10px] font-semibold text-gray-400">
-                      PDF • maksimal 5 MB
+                      PDF • max 5 MB
                     </p>
 
                     <input
@@ -749,15 +749,15 @@ export default function JobApplyPage() {
                         onClick={removeCv}
                         className="cursor-pointer rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-bold text-red-600 transition-all hover:bg-red-50"
                       >
-                        Hapus
+                        Remove
                       </button>
                     </div>
                   </div>
                 )}
 
                 <p className="mt-2 text-[10px] leading-5 text-gray-400">
-                  CV akan disimpan bersama data lamaran kamu dan digunakan untuk
-                  proses seleksi.
+                  Your resume will be saved with your application and used
+                  during the selection process.
                 </p>
               </div>
 
@@ -769,7 +769,7 @@ export default function JobApplyPage() {
                 >
                   Portfolio
                   <span className="ml-1 font-normal text-gray-400">
-                    (opsional)
+                    (optional)
                   </span>
                 </label>
 
@@ -793,7 +793,7 @@ export default function JobApplyPage() {
                 >
                   Cover Letter
                   <span className="ml-1 font-normal text-gray-400">
-                    (opsional)
+                    (optional)
                   </span>
                 </label>
 
@@ -803,7 +803,7 @@ export default function JobApplyPage() {
                   onChange={(event) =>
                     handleChange("cover_letter", event.target.value)
                   }
-                  placeholder="Ceritakan secara singkat mengapa kamu tertarik dengan posisi ini..."
+                  placeholder="Briefly explain why you are interested in this role..."
                   rows={7}
                   className="w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-sm leading-relaxed outline-none transition-all placeholder:text-gray-400 focus:border-[#1E3F20]/40 focus:ring-2 focus:ring-[#1E3F20]/10"
                 />
@@ -818,12 +818,12 @@ export default function JobApplyPage() {
 
                   <div>
                     <p className="text-sm font-bold text-[#1E3F20]">
-                      Yang perlu diperhatikan
+                      Please Note
                     </p>
 
                     <p className="mt-1 text-xs leading-relaxed text-gray-600">
-                      CV wajib berupa PDF dengan ukuran maksimal 5 MB. Pastikan
-                      CV yang diupload merupakan CV terbaru kamu.
+                      Your resume must be a PDF no larger than 5 MB. Make sure
+                      you upload your most recent resume.
                     </p>
                   </div>
                 </div>
@@ -837,7 +837,7 @@ export default function JobApplyPage() {
                   disabled={submitting}
                   className="order-2 w-full cursor-pointer rounded-xl border border-gray-200 bg-white px-6 py-3.5 text-sm font-bold text-[#2C1E16] transition-all hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 sm:order-1 sm:w-auto"
                 >
-                  Batal
+                  Cancel
                 </button>
 
                 <button
@@ -846,10 +846,10 @@ export default function JobApplyPage() {
                   className="order-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#1E3F20] px-7 py-3.5 text-sm font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#152e17] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60 sm:order-2 sm:ml-auto sm:w-auto"
                 >
                   {submitting
-                    ? "Mengirim Lamaran..."
+                    ? "Submitting Application..."
                     : success
-                      ? "Lamaran Terkirim ✓"
-                      : "Kirim Lamaran →"}
+                      ? "Application Submitted ✓"
+                      : "Submit Application →"}
                 </button>
               </div>
             </form>
@@ -873,15 +873,15 @@ export default function JobApplyPage() {
 
             {/* TITLE */}
             <h2 className="mt-6 text-2xl font-extrabold tracking-tight text-[#2C1E16]">
-              Lamaran Berhasil!
+              Application Submitted!
             </h2>
 
             {/* DESCRIPTION */}
             <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-gray-500">
-              Lamaran kamu untuk posisi{" "}
+              Your application for the role{" "}
               <span className="font-bold text-[#2C1E16]">{job.title}</span> di{" "}
               <span className="font-bold text-[#1E3F20]">{job.company}</span>{" "}
-              sudah berhasil dikirim.
+              has been submitted successfully.
             </p>
 
             {/* STATUS */}
@@ -892,8 +892,8 @@ export default function JobApplyPage() {
 
             {/* INFO */}
             <p className="mt-4 text-xs leading-5 text-gray-400">
-              Lamaran kamu sedang menunggu proses selanjutnya. Kamu bisa melihat
-              perkembangan lamaran melalui halaman Lamaran Saya.
+              Your application is awaiting the next step. You can track its
+              progress on the My Applications page.
             </p>
 
             {/* BUTTON */}
@@ -902,7 +902,7 @@ export default function JobApplyPage() {
               onClick={handleCloseSuccess}
               className="mt-7 w-full cursor-pointer rounded-xl bg-[#1E3F20] px-6 py-3.5 text-sm font-bold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#152e17] hover:shadow-lg"
             >
-              Kembali ke Lowongan →
+              Back to Jobs →
             </button>
           </div>
         </div>

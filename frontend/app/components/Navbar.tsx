@@ -8,7 +8,7 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const [userName, setUserName] = useState("Pengguna");
+  const [userName, setUserName] = useState("User");
   const [userRole, setUserRole] = useState("mentee");
   const [profileImage, setProfileImage] = useState("");
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -18,7 +18,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const loadUserData = () => {
-      const storedName = localStorage.getItem("user_name") || "Pengguna";
+      const storedName = localStorage.getItem("user_name") || "User";
       const storedRole = localStorage.getItem("user_role") || "mentee";
       const storedProfileImage = localStorage.getItem("profile_image") || "";
 
@@ -214,13 +214,13 @@ export default function Navbar() {
                   "focus:ring-2 focus:ring-[#1E3F20]/30",
                   isProfileOpen ? "scale-105 ring-2 ring-[#1E3F20]/20" : "",
                 ].join(" ")}
-                aria-label="Buka menu profil"
+                aria-label="Open profile menu"
                 aria-expanded={isProfileOpen}
               >
                 {profileImage ? (
                   <img
                     src={profileImage}
-                    alt="Foto profil"
+                    alt="Profile photo"
                     className="h-full w-full object-cover"
                   />
                 ) : (
@@ -251,7 +251,7 @@ export default function Navbar() {
                       {profileImage ? (
                         <img
                           src={profileImage}
-                          alt="Foto profil"
+                          alt="Profile photo"
                           className="h-full w-full object-cover"
                         />
                       ) : (
@@ -284,7 +284,7 @@ export default function Navbar() {
                     }}
                     className="flex w-full items-center rounded-xl px-3 py-2.5 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-[#F4F2ED] hover:text-[#1E3F20]"
                   >
-                    Profil Saya
+                    My Profile
                   </button>
 
                   {/* My Applications */}
@@ -324,7 +324,7 @@ export default function Navbar() {
                       }}
                       className="flex w-full items-center rounded-xl px-3 py-2.5 text-left text-sm font-medium text-gray-700 transition-colors hover:bg-[#F4F2ED] hover:text-[#1E3F20]"
                     >
-                      Dashboard Mentor
+                      Mentor Dashboard
                     </button>
                   )}
 
@@ -355,7 +355,7 @@ export default function Navbar() {
                     }}
                     className="flex w-full items-center rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
                   >
-                    Keluar
+                    Log Out
                   </button>
                 </div>
               </div>
@@ -395,6 +395,14 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
+
+      {/* Keep the viewport width stable when moving between pages with
+          different document heights, so the navbar does not shift sideways. */}
+      <style jsx global>{`
+        html {
+          scrollbar-gutter: stable;
+        }
+      `}</style>
 
       {/* =====================================================
           LOGOUT MODAL
@@ -437,12 +445,12 @@ export default function Navbar() {
               </div>
 
               <h2 className="text-xl font-extrabold text-[#2C1E16]">
-                Keluar dari akun?
+                Log out of your account?
               </h2>
 
               <p className="mt-2 text-sm leading-6 text-gray-500">
-                Kamu akan keluar dari akun Career Cafe dan perlu login kembali
-                untuk mengakses akunmu.
+                You will be logged out of your Career Cafe account and will need
+                to log in again to access it.
               </p>
             </div>
 
@@ -452,7 +460,7 @@ export default function Navbar() {
                 onClick={() => setIsLogoutModalOpen(false)}
                 className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-gray-700 transition-all duration-300 hover:bg-gray-50"
               >
-                Batal
+                Cancel
               </button>
 
               <button
@@ -460,7 +468,7 @@ export default function Navbar() {
                 onClick={handleLogout}
                 className="flex-1 rounded-xl bg-[#1E3F20] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#152e17]"
               >
-                Ya, Keluar
+                Yes, Log Out
               </button>
             </div>
           </div>

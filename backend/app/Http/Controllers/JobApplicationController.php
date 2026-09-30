@@ -10,12 +10,17 @@ use Illuminate\Support\Facades\Validator;
 
 class JobApplicationController extends Controller
 {
-    /**
-     * Mengambil semua lamaran milik user yang sedang login.
-     */
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
+
+        if ($user->role !== 'mentee') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya mentee yang dapat melihat daftar lamaran pekerjaan.',
+                'data' => null,
+            ], 403);
+        }
 
         $applications = JobApplication::query()
             ->with([
@@ -33,12 +38,18 @@ class JobApplicationController extends Controller
         ]);
     }
 
-    /**
-     * Mengirim lamaran pekerjaan.
-     */
     public function store(Request $request, int $jobId): JsonResponse
     {
-        // Pastikan pekerjaan tersedia dan masih aktif.
+        $user = $request->user();
+
+        if ($user->role !== 'mentee') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya mentee yang dapat melamar pekerjaan.',
+                'data' => null,
+            ], 403);
+        }
+
         $job = Job::query()
             ->where('is_active', true)
             ->find($jobId);
@@ -51,10 +62,6 @@ class JobApplicationController extends Controller
             ], 404);
         }
 
-        // User yang sedang login.
-        $user = $request->user();
-
-        // Cek apakah user sudah pernah melamar pekerjaan ini.
         $alreadyApplied = JobApplication::query()
             ->where('job_id', $job->id)
             ->where('user_id', $user->id)
@@ -68,59 +75,38 @@ class JobApplicationController extends Controller
             ], 422);
         }
 
-        // Validasi data lamaran.
         $validator = Validator::make(
             $request->all(),
             [
                 'full_name' => ['required', 'string', 'max:255'],
                 'email' => ['required', 'email', 'max:255'],
                 'phone' => ['nullable', 'string', 'max:50'],
-                'cv' => [
-                    'required',
-                    'file',
-                    'mimes:pdf',
-                    'max:5120',
-                ],
+                'cv' => ['required', 'file', 'mimes:pdf', 'max:5120'],
                 'cover_letter' => ['nullable', 'string'],
                 'portfolio_url' => ['nullable', 'url', 'max:255'],
             ],
             [
                 'full_name.required' => 'Nama lengkap wajib diisi.',
-
                 'email.required' => 'Email wajib diisi.',
                 'email.email' => 'Format email tidak valid.',
-
                 'cv.required' => 'CV wajib diunggah.',
-                'cv.file' => 'CV harus berupa file yang valid.',
-                'cv.mimes' => 'Format CV harus PDF.',
+                'cv.file' => 'CV harus berupa file.',
+                'cv.mimes' => 'CV harus dalam format PDF.',
                 'cv.max' => 'Ukuran CV maksimal 5 MB.',
-
-                'portfolio_url.url' => 'Format URL portfolio tidak valid.',
-            ],
+            ]
         );
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Data lamaran tidak valid.',
+                'message' => 'Validasi gagal.',
                 'errors' => $validator->errors(),
+                'data' => null,
             ], 422);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Upload CV
-        |--------------------------------------------------------------------------
-        |
-        | CV disimpan pada storage Laravel:
-        |
-        | storage/app/applications/cv
-        |
-        */
-
         $cvPath = $request->file('cv')->store('applications/cv');
 
-        // Simpan lamaran.
         $application = JobApplication::create([
             'job_id' => $job->id,
             'user_id' => $user->id,

@@ -389,17 +389,17 @@ function EmptyCalendarIcon() {
 function getStatusLabel(status: SessionStatus) {
   switch (status) {
     case "pending":
-      return "Menunggu Persetujuan";
+      return "Awaiting Approval";
     case "approved":
-      return "Disetujui";
+      return "Approved";
     case "completed":
-      return "Selesai";
+      return "Completed";
     case "cancelled":
-      return "Dibatalkan";
+      return "Cancelled";
     case "rejected":
-      return "Ditolak";
+      return "Rejected";
     case "expired":
-      return "Kadaluarsa";
+      return "Expired";
     default:
       return status;
   }
@@ -446,7 +446,7 @@ function formatDate(value?: string | null) {
     return value;
   }
 
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -508,23 +508,23 @@ function hasRating(session?: Session | null) {
 const TABS = [
   {
     key: "all",
-    label: "Semua",
+    label: "All",
   },
   {
     key: "pending",
-    label: "Menunggu",
+    label: "Pending",
   },
   {
     key: "upcoming",
-    label: "Disetujui",
+    label: "Approved",
   },
   {
     key: "completed",
-    label: "Selesai",
+    label: "Completed",
   },
   {
     key: "cancelled",
-    label: "Dibatalkan",
+    label: "Cancelled",
   },
 ] as const;
 
@@ -609,7 +609,7 @@ export default function ScheduleHistoryPage() {
       const result: ApiResponse = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.message ?? "Gagal mengambil data jadwal.");
+        throw new Error(result.message ?? "Failed to retrieve the schedule.");
       }
 
       setSessions(result.data ?? []);
@@ -617,7 +617,7 @@ export default function ScheduleHistoryPage() {
       setError(
         err instanceof Error
           ? err.message
-          : "Terjadi kesalahan saat mengambil data jadwal.",
+          : "An error occurred while retrieving the schedule.",
       );
     } finally {
       setLoading(false);
@@ -655,13 +655,13 @@ export default function ScheduleHistoryPage() {
       const result: DetailResponse = await response.json();
 
       if (!response.ok || !result.success || !result.data) {
-        throw new Error(result.message ?? "Detail sesi tidak dapat diambil.");
+        throw new Error(result.message ?? "Session details could not be retrieved.");
       }
 
       setSelectedSession(result.data);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Gagal mengambil detail sesi.",
+        err instanceof Error ? err.message : "Failed to retrieve session details.",
       );
     } finally {
       setDetailLoading(false);
@@ -703,7 +703,7 @@ export default function ScheduleHistoryPage() {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.message ?? "Gagal membatalkan sesi.");
+        throw new Error(result.message ?? "Failed to cancel the session.");
       }
 
       setCancelTarget(null);
@@ -724,7 +724,7 @@ export default function ScheduleHistoryPage() {
       setError(
         err instanceof Error
           ? err.message
-          : "Terjadi kesalahan saat membatalkan sesi.",
+          : "An error occurred while cancelling the session.",
       );
     } finally {
       setCancelling(false);
@@ -786,13 +786,13 @@ export default function ScheduleHistoryPage() {
 
     if (ratingTarget.status !== "completed") {
       setRatingError(
-        "Rating hanya bisa diberikan untuk sesi yang sudah selesai.",
+        "A rating can only be submitted for a completed session.",
       );
       return;
     }
 
     if (ratingValue < 1 || ratingValue > 5) {
-      setRatingError("Silakan pilih rating antara 1 sampai 5 bintang.");
+      setRatingError("Please select a rating from 1 to 5 stars.");
       return;
     }
 
@@ -842,7 +842,7 @@ export default function ScheduleHistoryPage() {
       const result: RatingResponse = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.message ?? "Gagal menyimpan rating.");
+        throw new Error(result.message ?? "Failed to save the rating.");
       }
 
       let savedFeedback: Feedback = {
@@ -873,7 +873,7 @@ export default function ScheduleHistoryPage() {
       setRatingError(
         err instanceof Error
           ? err.message
-          : "Terjadi kesalahan saat menyimpan rating.",
+          : "An error occurred while saving the rating.",
       );
     } finally {
       setRatingSubmitting(false);
@@ -893,37 +893,37 @@ export default function ScheduleHistoryPage() {
     switch (selectedTab) {
       case "pending":
         return {
-          title: "Belum ada jadwal yang menunggu",
+          title: "No pending sessions yet",
           description:
-            "Permintaan konsultasi yang masih menunggu persetujuan mentor akan muncul di sini.",
+            "Consultation requests awaiting mentor approval will appear here.",
         };
 
       case "upcoming":
         return {
-          title: "Belum ada jadwal yang disetujui",
+          title: "No approved sessions yet",
           description:
-            "Jadwal konsultasi yang sudah disetujui mentor akan muncul di sini.",
+            "Consultations approved by your mentor will appear here.",
         };
 
       case "completed":
         return {
-          title: "Belum ada sesi yang selesai",
+          title: "No completed sessions yet",
           description:
-            "Riwayat konsultasi yang sudah selesai akan tersimpan di sini.",
+            "Your completed consultations will appear here.",
         };
 
       case "cancelled":
         return {
-          title: "Belum ada jadwal yang dibatalkan",
+          title: "No cancelled sessions yet",
           description:
-            "Sesi yang dibatalkan, ditolak, atau kadaluarsa akan muncul di sini.",
+            "Cancelled, rejected, or expired sessions will appear here.",
         };
 
       default:
         return {
-          title: "Belum ada jadwal",
+          title: "No sessions yet",
           description:
-            "Saat kamu mengajukan konsultasi kepada mentor, jadwalnya akan muncul di halaman ini.",
+            "When you request a consultation with a mentor, it will appear here.",
         };
     }
   }, [selectedTab]);
@@ -949,12 +949,12 @@ export default function ScheduleHistoryPage() {
                 </span>
 
                 <h1 className="mt-5 text-4xl font-black tracking-tight text-[#2C1E16] md:text-5xl">
-                  Jadwal Saya
+                  My Schedule
                 </h1>
 
                 <p className="mt-4 max-w-2xl text-sm leading-7 text-[#6D655E] md:text-base">
-                  Lihat semua permintaan konsultasi, jadwal yang sudah
-                  disetujui, hingga riwayat sesi bersama mentor di satu tempat.
+                  View all consultation requests, approved bookings, and your
+                  session history with mentors in one place.
                 </p>
               </div>
             </Reveal>
@@ -969,17 +969,17 @@ export default function ScheduleHistoryPage() {
                   delay: 80,
                 },
                 {
-                  label: "Menunggu",
+                  label: "Pending",
                   value: summary.pending,
                   delay: 160,
                 },
                 {
-                  label: "Disetujui",
+                  label: "Approved",
                   value: summary.approved,
                   delay: 240,
                 },
                 {
-                  label: "Selesai",
+                  label: "Completed",
                   value: summary.completed,
                   delay: 320,
                 },
@@ -1058,7 +1058,7 @@ export default function ScheduleHistoryPage() {
                     />
                   </svg>
 
-                  {refreshing ? "Memuat..." : "Refresh"}
+                  {refreshing ? "Loading..." : "Refresh"}
                 </button>
               </div>
             </div>
@@ -1070,7 +1070,7 @@ export default function ScheduleHistoryPage() {
             <Reveal className="mt-6">
               <div className="rounded-2xl border border-[#EBCFCF] bg-[#FFF7F7] p-5">
                 <p className="text-sm font-extrabold text-[#984F4F]">
-                  Terjadi kesalahan
+                  Something went wrong
                 </p>
 
                 <p className="mt-1 text-sm leading-6 text-[#8A6868]">{error}</p>
@@ -1080,7 +1080,7 @@ export default function ScheduleHistoryPage() {
                   onClick={() => void fetchSessions(selectedTab)}
                   className="mt-4 cursor-pointer rounded-xl bg-[#1E3F20] px-4 py-2.5 text-xs font-extrabold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#173219]"
                 >
-                  Coba Lagi
+                  Try Again
                 </button>
               </div>
             </Reveal>
@@ -1276,7 +1276,7 @@ export default function ScheduleHistoryPage() {
                                   <ClockIcon size={16} />
 
                                   <span className="text-[9px] font-extrabold uppercase tracking-[0.12em]">
-                                    Durasi
+                                    Duration
                                   </span>
                                 </div>
 
@@ -1300,11 +1300,11 @@ export default function ScheduleHistoryPage() {
 
                                     <div>
                                       <p className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-[#A85A52]">
-                                        Alasan dari Mentor
+                                        Reason from Mentor
                                       </p>
 
                                       <p className="mt-1 text-xs font-semibold text-[#7F514C]">
-                                        Permintaan kamu ditolak oleh mentor.
+                                        Your request was rejected by the mentor.
                                       </p>
                                     </div>
                                   </div>
@@ -1324,7 +1324,7 @@ export default function ScheduleHistoryPage() {
                                 <div className="mt-5 rounded-2xl border border-[#E6DDC7] bg-[#FCF8EE] p-4">
                                   <div className="flex flex-wrap items-center gap-3">
                                     <span className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-[#9A7B5F]">
-                                      Rating Kamu
+                                      Your Rating
                                     </span>
 
                                     <div className="flex items-center gap-1 text-[#D59A2A]">
@@ -1359,7 +1359,7 @@ export default function ScheduleHistoryPage() {
                           <div className="w-full lg:max-w-[220px]">
                             <div className="rounded-2xl border border-[#ECE7E0] bg-[#FCFBF8] p-4">
                               <p className="text-[9px] font-extrabold uppercase tracking-[0.15em] text-[#9A7B5F]">
-                                Status Sesi
+                                Session Status
                               </p>
 
                               <p className="mt-2 text-sm font-black text-[#2C1E16]">
@@ -1368,35 +1368,35 @@ export default function ScheduleHistoryPage() {
 
                               {session.status === "pending" && (
                                 <p className="mt-2 text-xs leading-5 text-[#7B746E]">
-                                  Permintaanmu sedang menunggu konfirmasi dari
-                                  mentor.
+                                  Your request is awaiting confirmation from
+                                  the mentor.
                                 </p>
                               )}
 
                               {session.status === "approved" &&
                                 isUpcoming(session) && (
                                   <p className="mt-2 text-xs leading-5 text-[#7B746E]">
-                                    Jadwalmu sudah dikonfirmasi. Pastikan hadir
-                                    sesuai waktu yang dipilih.
+                                    Your session is confirmed. Please be there
+                                    at the selected time.
                                   </p>
                                 )}
 
                               {session.status === "completed" && (
                                 <p className="mt-2 text-xs leading-5 text-[#7B746E]">
-                                  Sesi ini sudah selesai.
+                                  This session is complete.
                                 </p>
                               )}
 
                               {session.status === "cancelled" && (
                                 <p className="mt-2 text-xs leading-5 text-[#7B746E]">
-                                  Sesi ini sudah dibatalkan.
+                                  This session has been cancelled.
                                 </p>
                               )}
 
                               {session.status === "rejected" && (
                                 <>
                                   <p className="mt-2 text-xs leading-5 text-[#7B746E]">
-                                    Permintaan ini tidak disetujui oleh mentor.
+                                    This request was not approved by the mentor.
                                   </p>
 
                                   {session.rejection_reason && (
@@ -1885,7 +1885,7 @@ export default function ScheduleHistoryPage() {
                         type="button"
                         onClick={() => setRatingValue(star)}
                         disabled={ratingSubmitting}
-                        aria-label={`Beri ${star} dari 5 bintang`}
+                        aria-label={`Give ${star} out of 5 stars`}
                         className={[
                           "flex h-12 w-12 cursor-pointer items-center justify-center rounded-2xl transition-all duration-300",
                           active
@@ -1903,12 +1903,12 @@ export default function ScheduleHistoryPage() {
                 </div>
 
                 <p className="mt-4 text-sm font-extrabold text-[#8A682E]">
-                  {ratingValue === 0 && "Pilih rating"}
-                  {ratingValue === 1 && "Sangat kurang"}
-                  {ratingValue === 2 && "Kurang"}
-                  {ratingValue === 3 && "Cukup"}
-                  {ratingValue === 4 && "Bagus"}
-                  {ratingValue === 5 && "Sangat bagus"}
+                  {ratingValue === 0 && "Select a rating"}
+                  {ratingValue === 1 && "Very poor"}
+                  {ratingValue === 2 && "Poor"}
+                  {ratingValue === 3 && "Average"}
+                  {ratingValue === 4 && "Good"}
+                  {ratingValue === 5 && "Excellent"}
                 </p>
               </div>
 
@@ -1919,9 +1919,9 @@ export default function ScheduleHistoryPage() {
                   htmlFor="rating-comment"
                   className="text-xs font-extrabold text-[#2C1E16]"
                 >
-                  Komentar
+                  Comment
                   <span className="ml-1 font-normal text-[#8B837C]">
-                    (opsional)
+                    (optional)
                   </span>
                 </label>
 
@@ -1930,7 +1930,7 @@ export default function ScheduleHistoryPage() {
                   value={ratingComment}
                   onChange={(event) => setRatingComment(event.target.value)}
                   disabled={ratingSubmitting}
-                  placeholder="Ceritakan pengalamanmu bersama mentor..."
+                  placeholder="Share your experience with the mentor..."
                   rows={4}
                   maxLength={500}
                   className="mt-2 w-full resize-none rounded-2xl border border-[#E5DED6] bg-white px-4 py-3 text-sm leading-6 text-[#2C1E16] outline-none transition-all duration-300 placeholder:text-[#A29A92] focus:border-[#AEBFA9] focus:ring-4 focus:ring-[#DDE9DD] disabled:cursor-not-allowed disabled:bg-[#F5F2ED]"
@@ -1969,7 +1969,7 @@ export default function ScheduleHistoryPage() {
                   disabled={ratingSubmitting || ratingValue === 0}
                   className="cursor-pointer rounded-xl bg-[#1E3F20] px-5 py-3 text-xs font-extrabold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#173219] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {ratingSubmitting ? "Menyimpan..." : "Kirim Rating"}
+                  {ratingSubmitting ? "Saving..." : "Submit Rating"}
                 </button>
               </div>
             </div>
@@ -1994,11 +1994,11 @@ export default function ScheduleHistoryPage() {
             </div>
 
             <h2 className="mt-5 text-xl font-black text-[#2C1E16]">
-              Rating berhasil disimpan
+              Rating saved successfully
             </h2>
 
             <p className="mt-2 text-sm leading-6 text-[#746C65]">
-              Terima kasih sudah memberikan feedback untuk mentor.
+              Thank you for providing feedback to your mentor.
             </p>
 
             <button
@@ -2006,7 +2006,7 @@ export default function ScheduleHistoryPage() {
               onClick={() => setRatingSuccess(false)}
               className="mt-6 w-full cursor-pointer rounded-xl bg-[#1E3F20] px-5 py-3 text-xs font-extrabold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#173219]"
             >
-              Oke, Tutup
+              Okay, Close
             </button>
           </div>
         </div>
@@ -2033,15 +2033,15 @@ export default function ScheduleHistoryPage() {
             </div>
 
             <h2 className="mt-5 text-xl font-black text-[#2C1E16]">
-              Batalkan Jadwal?
+              Cancel this session?
             </h2>
 
             <p className="mt-3 text-sm leading-7 text-[#726B65]">
-              Kamu akan membatalkan sesi konsultasi bersama{" "}
+              You are about to cancel your consultation with{" "}
               <span className="font-extrabold text-[#2C1E16]">
                 {cancelTarget.mentor?.name ?? "mentor"}
               </span>
-              . Tindakan ini akan mengubah status jadwal menjadi dibatalkan.
+              . This will change the session status to cancelled.
             </p>
 
             <div className="mt-5 rounded-2xl bg-[#F8F5F0] p-4">
@@ -2068,7 +2068,7 @@ export default function ScheduleHistoryPage() {
                 disabled={cancelling}
                 className="cursor-pointer rounded-xl border border-[#E5DED6] bg-white px-5 py-3 text-xs font-extrabold text-[#645D57] transition-all duration-300 hover:bg-[#F6F2ED] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Jangan Batalkan
+                Keep Session
               </button>
 
               <button
@@ -2077,7 +2077,7 @@ export default function ScheduleHistoryPage() {
                 disabled={cancelling}
                 className="cursor-pointer rounded-xl bg-[#9A5A50] px-5 py-3 text-xs font-extrabold text-white transition-all duration-300 hover:bg-[#874D45] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {cancelling ? "Membatalkan..." : "Ya, Batalkan"}
+                {cancelling ? "Cancelling..." : "Yes, Cancel"}
               </button>
             </div>
           </div>

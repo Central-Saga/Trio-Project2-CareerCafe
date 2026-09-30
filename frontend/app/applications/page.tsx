@@ -50,7 +50,7 @@ const getStatusConfig = (status: string): StatusConfig => {
     case "accepted":
     case "diterima":
       return {
-        label: "Diterima",
+        label: "Accepted",
         className: "border-emerald-100 bg-emerald-50 text-emerald-700",
         dotClassName: "bg-emerald-500",
       };
@@ -58,7 +58,7 @@ const getStatusConfig = (status: string): StatusConfig => {
     case "rejected":
     case "ditolak":
       return {
-        label: "Ditolak",
+        label: "Rejected",
         className: "border-red-100 bg-red-50 text-red-700",
         dotClassName: "bg-red-500",
       };
@@ -67,7 +67,7 @@ const getStatusConfig = (status: string): StatusConfig => {
     case "diproses":
     case "review":
       return {
-        label: "Sedang Ditinjau",
+        label: "Under Review",
         className: "border-sky-100 bg-sky-50 text-sky-700",
         dotClassName: "bg-sky-500",
       };
@@ -93,7 +93,7 @@ const formatAppliedDate = (value: string | null): string => {
     return "-";
   }
 
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-US", {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -178,7 +178,7 @@ export default function ApplicationsPage() {
         }
 
         if (!response.ok || !result?.success) {
-          throw new Error(result?.message ?? "Daftar lamaran gagal dimuat.");
+          throw new Error(result?.message ?? "Failed to load applications.");
         }
 
         if (!cancelled) {
@@ -194,7 +194,7 @@ export default function ApplicationsPage() {
         setError(
           fetchError instanceof Error
             ? fetchError.message
-            : "Terjadi kesalahan saat mengambil daftar lamaran.",
+            : "An error occurred while retrieving applications.",
         );
       } finally {
         if (!cancelled) {
@@ -237,7 +237,7 @@ export default function ApplicationsPage() {
               <span className="transition-transform duration-300 group-hover:-translate-x-0.5">
                 ←
               </span>
-              Kembali ke Lowongan
+              Back to Jobs
             </button>
           </Reveal>
 
@@ -248,12 +248,12 @@ export default function ApplicationsPage() {
               </p>
 
               <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-[#2C1E16] sm:text-4xl">
-                Lamaran Saya
+                My Applications
               </h1>
 
               <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-500 sm:text-base">
-                Pantau semua pekerjaan yang sudah kamu lamar dan lihat status
-                proses lamaranmu dalam satu tempat.
+                Track the jobs you have applied for and check your application
+                status in one place.
               </p>
             </div>
           </Reveal>
@@ -264,7 +264,7 @@ export default function ApplicationsPage() {
               <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
                   <p className="text-xs font-semibold text-gray-400">
-                    Total Lamaran
+                    Total Applications
                   </p>
 
                   <p className="mt-2 text-3xl font-extrabold text-[#1E3F20]">
@@ -274,7 +274,7 @@ export default function ApplicationsPage() {
 
                 <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
                   <p className="text-xs font-semibold text-gray-400">
-                    Sedang Diproses
+                    In Progress
                   </p>
 
                   <p className="mt-2 text-3xl font-extrabold text-amber-600">
@@ -289,7 +289,7 @@ export default function ApplicationsPage() {
 
                 <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
                   <p className="text-xs font-semibold text-gray-400">
-                    CV Terlampir
+                    Resumes Attached
                   </p>
 
                   <p className="mt-2 text-3xl font-extrabold text-[#2C1E16]">
@@ -351,7 +351,7 @@ export default function ApplicationsPage() {
               </div>
 
               <h2 className="mt-5 text-2xl font-extrabold text-[#2C1E16]">
-                Gagal Memuat Lamaran
+                Failed to Load Applications
               </h2>
 
               <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-500">
@@ -363,7 +363,7 @@ export default function ApplicationsPage() {
                 onClick={() => window.location.reload()}
                 className="mt-6 rounded-xl bg-[#1E3F20] px-6 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#152e17] hover:shadow-lg"
               >
-                Coba Lagi
+                Try Again
               </button>
             </div>
           </Reveal>
@@ -378,12 +378,12 @@ export default function ApplicationsPage() {
               </div>
 
               <h2 className="mt-6 text-2xl font-extrabold text-[#2C1E16]">
-                Belum Ada Lamaran
+                No Applications Yet
               </h2>
 
               <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-gray-500">
-                Kamu belum melamar pekerjaan apa pun. Temukan lowongan yang
-                cocok dan mulai perjalanan kariermu.
+                You haven't applied for any jobs yet. Find a role that suits you
+                and start your career journey.
               </p>
 
               <button
@@ -391,7 +391,7 @@ export default function ApplicationsPage() {
                 onClick={() => router.push("/jobs")}
                 className="mt-7 rounded-xl bg-[#1E3F20] px-7 py-3.5 text-sm font-bold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#152e17] hover:shadow-lg"
               >
-                Cari Lowongan →
+                Find Jobs →
               </button>
             </div>
           </Reveal>

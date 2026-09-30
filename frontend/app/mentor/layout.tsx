@@ -731,9 +731,9 @@ export default function MentorLayout({
 
   if (checkingAuth) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#FFFDFC]">
+      <main className="flex min-h-screen items-center justify-center bg-[#F8FCF8]">
         <div className="text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-[#1E3F20] text-white shadow-lg">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-[#1B5E20] text-white shadow-lg">
             {profileImage ? (
               <img
                 src={profileImage}
@@ -747,11 +747,11 @@ export default function MentorLayout({
             )}
           </div>
 
-          <div className="mx-auto mt-5 h-1.5 w-24 overflow-hidden rounded-full bg-[#EAE5DF]">
-            <div className="h-full w-1/2 animate-pulse rounded-full bg-[#D8953C]" />
+          <div className="mx-auto mt-5 h-1.5 w-24 overflow-hidden rounded-full bg-[#E6EFE6]">
+            <div className="h-full w-1/2 animate-pulse rounded-full bg-[#4CAF50]" />
           </div>
 
-          <p className="mt-4 text-xs font-bold text-[#8B8178]">
+          <p className="mt-4 text-xs font-bold text-[#66806A]">
             Preparing mentor workspace...
           </p>
         </div>
@@ -760,7 +760,7 @@ export default function MentorLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#FFFDFC] text-[#2F2722]">
+    <div className="min-h-screen bg-[#F8FCF8] text-[#243B27]">
       {mobileOpen && (
         <button
           type="button"
@@ -772,7 +772,7 @@ export default function MentorLayout({
 
       <aside
         className={[
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-[#E9E1D8] bg-[#F3EAE0]",
+          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-[#DCEBDD] bg-[#E6F4EA]",
           "transition-[width,transform] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
           collapsed ? "w-[78px]" : "w-[238px]",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
@@ -780,7 +780,7 @@ export default function MentorLayout({
       >
         <div
           className={[
-            "relative shrink-0 border-b border-[#E4D9CE]",
+            "relative shrink-0 border-b border-[#CBE6C8]",
             collapsed ? "px-3 pb-5 pt-5" : "px-4 pb-5 pt-5",
           ].join(" ")}
         >
@@ -794,7 +794,7 @@ export default function MentorLayout({
               type="button"
               onClick={toggleCollapsed}
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[#DFD3C7] bg-white text-[#746A62] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#FEFCFA] hover:text-[#1E3F20] hover:shadow-md"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[#B9D8B6] bg-white text-[#5C6F5F] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#F8FCF8] hover:text-[#1B5E20] hover:shadow-md"
             >
               <ChevronIcon direction={collapsed ? "right" : "left"} />
             </button>
@@ -808,8 +808,8 @@ export default function MentorLayout({
             >
               <div
                 className={[
-                  "overflow-hidden rounded-full border-[3px] border-white bg-[#1E3F20] text-white shadow-[0_10px_24px_rgba(30,63,32,.17)] transition-all duration-300",
-                  "group-hover:scale-105 group-hover:shadow-[0_14px_30px_rgba(30,63,32,.22)]",
+                  "overflow-hidden rounded-full border-[3px] border-white bg-[#1B5E20] text-white shadow-[0_10px_24px_rgba(27,94,32,.17)] transition-all duration-300",
+                  "group-hover:scale-105 group-hover:shadow-[0_14px_30px_rgba(27,94,32,.22)]",
                   collapsed ? "h-12 w-12" : "h-[68px] w-[68px]",
                 ].join(" ")}
               >
@@ -828,16 +828,16 @@ export default function MentorLayout({
 
               {!collapsed && (
                 <div className="mt-3 w-full px-1">
-                  <p className="truncate text-xs font-black text-[#382E28]">
+                  <p className="truncate text-xs font-black text-[#243A27]">
                     {mentorName}
                   </p>
 
-                  <p className="mt-1 truncate text-[9px] font-semibold text-[#968A80]">
+                  <p className="mt-1 truncate text-[9px] font-semibold text-[#7D9580]">
                     {profile?.job_title || "Mentor Professional"}
                   </p>
 
                   {profile?.company && (
-                    <p className="mt-0.5 truncate text-[8px] font-medium text-[#ADA096]">
+                    <p className="mt-0.5 truncate text-[8px] font-medium text-[#9AB19D]">
                       {profile.company}
                     </p>
                   )}
@@ -854,7 +854,7 @@ export default function MentorLayout({
           ].join(" ")}
         >
           {!collapsed && (
-            <div className="mb-2 px-2 text-[8px] font-black uppercase tracking-[0.2em] text-[#A3988E]">
+            <div className="mb-2 px-2 text-[8px] font-black uppercase tracking-[0.2em] text-[#91A794]">
               Workspace
             </div>
           )}
@@ -876,7 +876,7 @@ export default function MentorLayout({
 
         <div
           className={[
-            "shrink-0 border-t border-[#E4D9CE]",
+            "shrink-0 border-t border-[#CBE6C8]",
             collapsed ? "p-3" : "p-4",
           ].join(" ")}
         >
@@ -885,11 +885,11 @@ export default function MentorLayout({
             onClick={handleLogout}
             title={collapsed ? "Sign out" : undefined}
             className={[
-              "group flex w-full items-center rounded-xl text-[#8E8379] transition-all duration-300 hover:bg-white/80 hover:text-[#B95349]",
+              "group flex w-full items-center rounded-xl text-[#708873] transition-all duration-300 hover:bg-white/80 hover:text-[#3E7A46]",
               collapsed ? "justify-center p-2" : "gap-3 px-2.5 py-2.5",
             ].join(" ")}
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#F8F0E8] transition group-hover:bg-[#FBECE8]">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#EAF3E9] transition group-hover:bg-[#E6F4EA]">
               <LogoutIcon />
             </span>
 
@@ -904,23 +904,23 @@ export default function MentorLayout({
           collapsed ? "lg:pl-[78px]" : "lg:pl-[238px]",
         ].join(" ")}
       >
-        <header className="sticky top-0 z-30 flex h-[72px] items-center border-b border-[#EEE8E2] bg-white/90 px-5 backdrop-blur-xl sm:px-7 lg:px-9">
+        <header className="sticky top-0 z-30 flex h-[72px] items-center border-b border-[#E2ECE3] bg-white/90 px-5 backdrop-blur-xl sm:px-7 lg:px-9">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#E7E0D9] bg-white text-[#5D554E] shadow-sm transition-all duration-300 hover:bg-[#F8F5F1] hover:text-[#1E3F20] lg:hidden"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#DCE7DD] bg-white text-[#536857] shadow-sm transition-all duration-300 hover:bg-[#EFF7EF] hover:text-[#1B5E20] lg:hidden"
               aria-label="Open navigation"
             >
               <MenuIcon />
             </button>
 
             <div>
-              <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#AAA097]">
+              <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#8FA194]">
                 Career Cafe
               </p>
 
-              <p className="mt-0.5 text-sm font-black text-[#302823]">
+              <p className="mt-0.5 text-sm font-black text-[#263B29]">
                 Mentor Workspace
               </p>
             </div>
@@ -939,16 +939,16 @@ export default function MentorLayout({
               }
               aria-expanded={notificationOpen}
               className={[
-                "group relative flex h-10 w-10 items-center justify-center rounded-full text-[#6C645D] transition-all duration-300",
+                "group relative flex h-10 w-10 items-center justify-center rounded-full text-[#617564] transition-all duration-300",
                 notificationOpen
-                  ? "bg-[#EAF2E8] text-[#1E3F20]"
-                  : "hover:bg-[#F4F7F2] hover:text-[#1E3F20]",
+                  ? "bg-[#E6F4EA] text-[#1B5E20]"
+                  : "hover:bg-[#F0F7F0] hover:text-[#1B5E20]",
               ].join(" ")}
             >
               <BellIcon className="h-5 w-5 transition-transform duration-300 group-hover:scale-105" />
 
               {unreadNotifications.length > 0 && (
-                <span className="absolute right-0 top-0 flex min-h-[17px] min-w-[17px] items-center justify-center rounded-full border-2 border-white bg-[#D26C61] px-1 text-[7px] font-black leading-none text-white shadow-sm">
+                <span className="absolute right-0 top-0 flex min-h-[17px] min-w-[17px] items-center justify-center rounded-full border-2 border-white bg-[#4CAF50] px-1 text-[7px] font-black leading-none text-white shadow-sm">
                   {unreadNotifications.length > 9
                     ? "9+"
                     : unreadNotifications.length}
@@ -1048,7 +1048,7 @@ export default function MentorLayout({
         }
 
         ::selection {
-          background: rgba(216, 149, 60, 0.22);
+          background: rgba(76, 175, 80, 0.22);
         }
       `}</style>
     </div>
@@ -1083,50 +1083,45 @@ function SidebarLink({
     }
   > = {
     green: {
-      icon: active ? "bg-[#1E3F20] text-white" : "bg-[#E6EFE5] text-[#1E3F20]",
-      active: "bg-white text-[#1E3F20] shadow-[0_7px_20px_rgba(30,63,32,.08)]",
-      inactive: "text-[#766D65] hover:bg-white/70 hover:text-[#302923]",
+      icon: active ? "bg-[#1B5E20] text-white" : "bg-[#DCEBDD] text-[#1B5E20]",
+      active: "bg-white text-[#1B5E20] shadow-[0_7px_20px_rgba(27,94,32,.08)]",
+      inactive: "text-[#607363] hover:bg-white/70 hover:text-[#263B28]",
     },
 
     amber: {
-      icon: active ? "bg-[#D8953C] text-white" : "bg-[#FFF0D4] text-[#B76C19]",
-      active:
-        "bg-white text-[#9A621B] shadow-[0_7px_20px_rgba(216,149,60,.08)]",
-      inactive: "text-[#766D65] hover:bg-white/70 hover:text-[#302923]",
+      icon: active ? "bg-[#4CAF50] text-white" : "bg-[#E6F4EA] text-[#3F7A45]",
+      active: "bg-white text-[#356C3B] shadow-[0_7px_20px_rgba(76,175,80,.08)]",
+      inactive: "text-[#607363] hover:bg-white/70 hover:text-[#263B28]",
     },
 
     blue: {
-      icon: active ? "bg-[#4577B8] text-white" : "bg-[#E8F1FB] text-[#4577B8]",
-      active:
-        "bg-white text-[#35679F] shadow-[0_7px_20px_rgba(69,119,184,.08)]",
-      inactive: "text-[#766D65] hover:bg-white/70 hover:text-[#302923]",
+      icon: active ? "bg-[#4B8D52] text-white" : "bg-[#E6F4EA] text-[#4B8D52]",
+      active: "bg-white text-[#3F7747] shadow-[0_7px_20px_rgba(75,141,82,.08)]",
+      inactive: "text-[#607363] hover:bg-white/70 hover:text-[#263B28]",
     },
 
     lavender: {
-      icon: active ? "bg-[#8B6FB5] text-white" : "bg-[#F0E9F8] text-[#7A5CA7]",
-      active:
-        "bg-white text-[#704E9A] shadow-[0_7px_20px_rgba(139,111,181,.08)]",
-      inactive: "text-[#766D65] hover:bg-white/70 hover:text-[#302923]",
+      icon: active ? "bg-[#5D8B61] text-white" : "bg-[#EAF4EA] text-[#527A58]",
+      active: "bg-white text-[#3D6842] shadow-[0_7px_20px_rgba(93,139,97,.08)]",
+      inactive: "text-[#607363] hover:bg-white/70 hover:text-[#263B28]",
     },
 
     teal: {
-      icon: active ? "bg-[#3E8D8B] text-white" : "bg-[#E3F2F1] text-[#377E7D]",
-      active:
-        "bg-white text-[#327775] shadow-[0_7px_20px_rgba(62,141,139,.08)]",
-      inactive: "text-[#766D65] hover:bg-white/70 hover:text-[#302923]",
+      icon: active ? "bg-[#4E8F58] text-white" : "bg-[#E4F1E5] text-[#467C4E]",
+      active: "bg-white text-[#3D7045] shadow-[0_7px_20px_rgba(78,143,88,.08)]",
+      inactive: "text-[#607363] hover:bg-white/70 hover:text-[#263B28]",
     },
 
     coral: {
-      icon: active ? "bg-[#D26C61] text-white" : "bg-[#F9E8E4] text-[#BE5D52]",
-      active:
-        "bg-white text-[#B95349] shadow-[0_7px_20px_rgba(210,108,97,.08)]",
-      inactive: "text-[#766D65] hover:bg-white/70 hover:text-[#302923]",
+      icon: active ? "bg-[#4CAF50] text-white" : "bg-[#EAF4EA] text-[#3E7A46]",
+      active: "bg-white text-[#3E7A46] shadow-[0_7px_20px_rgba(76,175,80,.08)]",
+      inactive: "text-[#607363] hover:bg-white/70 hover:text-[#263B28]",
     },
 
     cream: {
-      icon: "bg-[#F6EFE7] text-[#6D675D]",
-      active: "bg-white text-[#48443E] shadow-[0_7px_20px_rgba(44,30,22,.05)]",
-      inactive: "text-[#766D65] hover:bg-white/70 hover:text-[#302923]",
+      icon: "bg-[#EEF6EE] text-[#657667]",
+      active: "bg-white text-[#3B4F3D] shadow-[0_7px_20px_rgba(39,69,42,.05)]",
+      inactive: "text-[#607363] hover:bg-white/70 hover:text-[#263B28]",
     },
   };
 
@@ -1187,19 +1182,19 @@ function NotificationPanel({
   formatTime: (value?: string | null) => string;
 }) {
   return (
-    <div className="mentor-scale absolute right-0 top-[50px] z-50 w-[min(390px,calc(100vw-24px))] origin-top-right overflow-hidden rounded-[22px] border border-[#E7E0D9] bg-white shadow-[0_24px_70px_rgba(44,30,22,.14)]">
-      <div className="border-b border-[#EEE8E2] bg-[#FFFEFC] px-4 py-4 sm:px-5">
+    <div className="mentor-scale absolute right-0 top-[50px] z-50 w-[min(390px,calc(100vw-24px))] origin-top-right overflow-hidden rounded-[22px] border border-[#DCE7DD] bg-white shadow-[0_24px_70px_rgba(39,69,42,.14)]">
+      <div className="border-b border-[#E2ECE3] bg-[#FAFEFA] px-4 py-4 sm:px-5">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#A19890]">
+            <p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#849687]">
               Mentor Workspace
             </p>
 
             <div className="mt-1 flex items-center gap-2">
-              <h3 className="text-sm font-black text-[#302823]">Notifikasi</h3>
+              <h3 className="text-sm font-black text-[#263B29]">Notifikasi</h3>
 
               {unreadCount > 0 && (
-                <span className="rounded-full bg-[#F9E8E4] px-2 py-1 text-[8px] font-black text-[#B95349]">
+                <span className="rounded-full bg-[#EAF4EA] px-2 py-1 text-[8px] font-black text-[#3E7A46]">
                   {unreadCount} baru
                 </span>
               )}
@@ -1210,7 +1205,7 @@ function NotificationPanel({
             <button
               type="button"
               onClick={onMarkAllRead}
-              className="cursor-pointer whitespace-nowrap rounded-lg px-2 py-1.5 text-[9px] font-extrabold text-[#648066] transition hover:bg-[#F2F6F0] hover:text-[#1E3F20]"
+              className="cursor-pointer whitespace-nowrap rounded-lg px-2 py-1.5 text-[9px] font-extrabold text-[#5D8061] transition hover:bg-[#EAF4EA] hover:text-[#1B5E20]"
             >
               Tandai semua dibaca
             </button>
@@ -1221,15 +1216,15 @@ function NotificationPanel({
       <div className="max-h-[430px] overflow-y-auto p-2">
         {notifications.length === 0 ? (
           <div className="px-5 py-10 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F5F1EC] text-[#8B8178]">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#EDF6ED] text-[#66806A]">
               <BellIcon />
             </div>
 
-            <p className="mt-4 text-xs font-black text-[#3A302A]">
+            <p className="mt-4 text-xs font-black text-[#293B2B]">
               Belum ada notifikasi
             </p>
 
-            <p className="mx-auto mt-2 max-w-[250px] text-[10px] leading-5 text-[#948980]">
+            <p className="mx-auto mt-2 max-w-[250px] text-[10px] leading-5 text-[#849985]">
               Permintaan baru dan perubahan sesi akan muncul di sini.
             </p>
           </div>
@@ -1244,20 +1239,20 @@ function NotificationPanel({
                   type="button"
                   onClick={() => onRead(notification)}
                   className={[
-                    "group flex w-full cursor-pointer items-start gap-3 rounded-2xl px-3 py-3 text-left transition-all duration-200 hover:bg-[#F8F5F0]",
-                    isUnread ? "bg-[#FCFAF6]" : "",
+                    "group flex w-full cursor-pointer items-start gap-3 rounded-2xl px-3 py-3 text-left transition-all duration-200 hover:bg-[#EEF6EE]",
+                    isUnread ? "bg-[#F5FAF5]" : "",
                   ].join(" ")}
                 >
                   <span
                     className={[
                       "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[10px] font-black",
                       notification.kind === "pending"
-                        ? "bg-[#FFF0D4] text-[#B76C19]"
+                        ? "bg-[#E6F4EA] text-[#3F7A45]"
                         : notification.kind === "approved"
-                          ? "bg-[#E6EFE5] text-[#1E3F20]"
+                          ? "bg-[#DCEBDD] text-[#1B5E20]"
                           : notification.kind === "cancelled"
-                            ? "bg-[#F9E8E4] text-[#B95349]"
-                            : "bg-[#E8F1FB] text-[#35679F]",
+                            ? "bg-[#EAF4EA] text-[#3E7A46]"
+                            : "bg-[#E6F4EA] text-[#3F7747]",
                     ].join(" ")}
                   >
                     {notification.kind === "pending" ? (
@@ -1273,20 +1268,20 @@ function NotificationPanel({
 
                   <span className="min-w-0 flex-1">
                     <span className="flex items-start justify-between gap-3">
-                      <span className="text-[11px] font-black text-[#3A302A]">
+                      <span className="text-[11px] font-black text-[#293B2B]">
                         {notification.title}
                       </span>
 
                       {isUnread && (
-                        <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#D26C61]" />
+                        <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#4CAF50]" />
                       )}
                     </span>
 
-                    <span className="mt-1 block text-[10px] leading-5 text-[#80766E]">
+                    <span className="mt-1 block text-[10px] leading-5 text-[#718773]">
                       {notification.description}
                     </span>
 
-                    <span className="mt-1.5 block text-[8px] font-bold uppercase tracking-[0.08em] text-[#A59B93]">
+                    <span className="mt-1.5 block text-[8px] font-bold uppercase tracking-[0.08em] text-[#96A999]">
                       {formatTime(notification.timestamp)}
                     </span>
                   </span>
@@ -1314,7 +1309,7 @@ function LogoutConfirmModal({
   onConfirm: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#241D18]/35 p-4 backdrop-blur-md">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#1D2B1F]/35 p-4 backdrop-blur-md">
       <button
         type="button"
         aria-label="Close logout confirmation"
@@ -1326,31 +1321,31 @@ function LogoutConfirmModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="logout-title"
-        className="mentor-scale relative z-10 w-full max-w-[420px] overflow-hidden rounded-[28px] border border-[#E8E0D8] bg-[#FFFDFC] shadow-[0_35px_100px_rgba(44,30,22,.22)]"
+        className="mentor-scale relative z-10 w-full max-w-[420px] overflow-hidden rounded-[28px] border border-[#DDEADD] bg-[#F8FCF8] shadow-[0_35px_100px_rgba(39,69,42,.22)]"
       >
-        <div className="h-1.5 w-full bg-[#B65A51]" />
+        <div className="h-1.5 w-full bg-[#2E7D32]" />
 
         <div className="p-6 sm:p-7">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#FDF0EE] text-[#B65A51]">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E7F3E8] text-[#2E7D32]">
               <LogoutIcon />
             </div>
 
             <div className="min-w-0 flex-1">
-              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#AAA097]">
+              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#8FA194]">
                 Mentor Workspace
               </p>
 
               <h2
                 id="logout-title"
-                className="mt-1.5 text-xl font-black tracking-[-0.04em] text-[#342B25]"
+                className="mt-1.5 text-xl font-black tracking-[-0.04em] text-[#263A28]"
               >
                 Yakin ingin keluar?
               </h2>
 
-              <p className="mt-2 text-xs font-medium leading-6 text-[#7D736B]">
+              <p className="mt-2 text-xs font-medium leading-6 text-[#6D8170]">
                 Kamu sedang login sebagai{" "}
-                <span className="font-black text-[#493D35]">{mentorName}</span>
+                <span className="font-black text-[#3A513D]">{mentorName}</span>
                 .
                 <br />
                 Setelah keluar, kamu perlu login kembali untuk membuka Mentor
@@ -1359,11 +1354,11 @@ function LogoutConfirmModal({
             </div>
           </div>
 
-          <div className="mt-5 rounded-2xl border border-[#EEE7E1] bg-[#FBF8F4] px-4 py-3">
+          <div className="mt-5 rounded-2xl border border-[#E2ECE2] bg-[#F0F8F0] px-4 py-3">
             <div className="flex items-center gap-2.5">
-              <span className="h-2 w-2 rounded-full bg-[#D8953C]" />
+              <span className="h-2 w-2 rounded-full bg-[#4CAF50]" />
 
-              <p className="text-[10px] font-bold text-[#776D65]">
+              <p className="text-[10px] font-bold text-[#6D816F]">
                 Sesi login kamu akan diakhiri di perangkat ini.
               </p>
             </div>
@@ -1373,7 +1368,7 @@ function LogoutConfirmModal({
             <button
               type="button"
               onClick={onCancel}
-              className="cursor-pointer rounded-xl border border-[#E5DED6] bg-white px-5 py-3 text-[10px] font-black text-[#766C64] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#F7F3EE] hover:text-[#4E7060]"
+              className="cursor-pointer rounded-xl border border-[#DCEADD] bg-white px-5 py-3 text-[10px] font-black text-[#607565] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#EDF6EE] hover:text-[#4A7852]"
             >
               Batal
             </button>
@@ -1381,7 +1376,7 @@ function LogoutConfirmModal({
             <button
               type="button"
               onClick={onConfirm}
-              className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#B65A51] px-5 py-3 text-[10px] font-black text-white shadow-[0_10px_24px_rgba(182,90,81,.16)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#A84D45]"
+              className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#2E7D32] px-5 py-3 text-[10px] font-black text-white shadow-[0_10px_24px_rgba(76,175,80,.16)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#2B6E32]"
             >
               <LogoutIcon />
               Ya, Sign out

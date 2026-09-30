@@ -8,13 +8,13 @@ export default function Footer() {
 
         <div className="flex flex-wrap gap-5">
           <span className="cursor-pointer hover:text-[#1E3F20]">
-            Tentang Kami
+            About Us
           </span>
 
-          <span className="cursor-pointer hover:text-[#1E3F20]">Bantuan</span>
+          <span className="cursor-pointer hover:text-[#1E3F20]">Help</span>
 
           <span className="cursor-pointer hover:text-[#1E3F20]">
-            Kebijakan Privasi
+            Privacy Policy
           </span>
         </div>
       </div>

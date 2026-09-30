@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 const API_URL = (
   process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api"
@@ -46,34 +47,67 @@ type Mentor = {
   } | null;
 };
 
+type BookedSlot = {
+  id?: number;
+  mentor_id?: number;
+  date?: string | null;
+  start_time?: string | null;
+  end_time?: string | null;
+  status?: string | null;
+};
+
 type SessionItem = {
   id: number;
+  mentor_id?: number;
+  mentee_id?: number;
+  booked_slot_id?: number;
+
   status?: string | null;
+
+  topic?: string | null;
+  title?: string | null;
+  message?: string | null;
+
+  duration?: number | null;
+  meeting_type?: string | null;
+  meeting_link?: string | null;
+  meeting_location?: string | null;
+
   scheduled_at?: string | null;
   start_at?: string | null;
   end_at?: string | null;
   date?: string | null;
   created_at?: string | null;
-  topic?: string | null;
-  title?: string | null;
+
+  rejection_reason?: string | null;
+
   mentor?: {
     id?: number;
-    name?: string;
+    name?: string | null;
+    email?: string | null;
   } | null;
+
   mentee?: {
     id?: number;
-    name?: string;
+    name?: string | null;
+    email?: string | null;
+  } | null;
+
+  booked_slot?: BookedSlot | null;
+  bookedSlot?: BookedSlot | null;
+
+  feedback?: {
+    id?: number;
+    rating?: number | null;
+    comment?: string | null;
+    created_at?: string | null;
   } | null;
 };
 
 type ApiResponse<T> = {
   success?: boolean;
   message?: string;
-  data?:
-    | T
-    | {
-        data?: T;
-      };
+  data?: T | { data?: T };
 };
 
 type DashboardStatProps = {
@@ -91,6 +125,7 @@ function IconUsers({ className = "h-6 w-6" }: { className?: string }) {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
     >
       <path
         d="M16 21V19C16 16.7909 14.2091 15 12 15H6C3.79086 15 2 16.7909 2 19V21"
@@ -116,6 +151,7 @@ function IconClock({ className = "h-6 w-6" }: { className?: string }) {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
     >
       <circle
         cx="12"
@@ -142,6 +178,7 @@ function IconCalendar({ className = "h-6 w-6" }: { className?: string }) {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
     >
       <rect
         x="3"
@@ -175,6 +212,7 @@ function IconCheck({ className = "h-6 w-6" }: { className?: string }) {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
     >
       <path
         d="M5 12.5L9.5 17L19 7.5"
@@ -194,13 +232,13 @@ function IconArrowUpRight({ className = "h-5 w-5" }: { className?: string }) {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
     >
       <path
         d="M7 17L17 7M9 7H17V15"
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinecap="round"
-        strokeLinejoin="round"
       />
     </svg>
   );
@@ -213,6 +251,7 @@ function IconDocument({ className = "h-5 w-5" }: { className?: string }) {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
     >
       <path
         d="M7 3.75H14.5L19 8.25V19.25C19 20.35 18.1 21.25 17 21.25H7C5.9 21.25 5 20.35 5 19.25V5.75C5 4.65 5.9 3.75 7 3.75Z"
@@ -243,6 +282,7 @@ function IconTrend({ className = "h-5 w-5" }: { className?: string }) {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
     >
       <path
         d="M4 18L9 13L13 16L20 8"
@@ -269,6 +309,7 @@ function IconRefresh({ className = "h-4 w-4" }: { className?: string }) {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
     >
       <path
         d="M20 11C19.5 6.5 15.7 3 11 3C6.03 3 2 7.03 2 12C2 16.97 6.03 21 11 21C14.33 21 17.24 19.19 18.5 16.5"
@@ -284,51 +325,6 @@ function IconRefresh({ className = "h-4 w-4" }: { className?: string }) {
         strokeLinejoin="round"
       />
     </svg>
-  );
-}
-
-function formatDate(value?: string | null) {
-  if (!value) {
-    return "—";
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "—";
-  }
-
-  return date.toLocaleDateString("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function formatDateTime(value?: string | null) {
-  if (!value) {
-    return "—";
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "—";
-  }
-
-  return date.toLocaleDateString("id-ID", {
-    day: "2-digit",
-    month: "short",
-  });
-}
-
-function getSessionDate(session: SessionItem) {
-  return (
-    session.scheduled_at ||
-    session.start_at ||
-    session.date ||
-    session.created_at ||
-    null
   );
 }
 
@@ -392,12 +388,24 @@ function StatusBadge({ status }: { status?: string | null }) {
       label: "Upcoming",
       className: "bg-blue-50 text-blue-700",
     },
+    ongoing: {
+      label: "Ongoing",
+      className: "bg-cyan-50 text-cyan-700",
+    },
+    confirmed: {
+      label: "Confirmed",
+      className: "bg-indigo-50 text-indigo-700",
+    },
     cancelled: {
       label: "Cancelled",
       className: "bg-gray-100 text-gray-600",
     },
     canceled: {
       label: "Cancelled",
+      className: "bg-gray-100 text-gray-600",
+    },
+    expired: {
+      label: "Expired",
       className: "bg-gray-100 text-gray-600",
     },
   };
@@ -462,7 +470,99 @@ function DashboardStat({
   );
 }
 
+function getBookedSlot(session: SessionItem) {
+  return session.booked_slot ?? session.bookedSlot ?? null;
+}
+
+function getSessionDate(session: SessionItem): Date | null {
+  const slot = getBookedSlot(session);
+
+  if (slot?.date) {
+    const time = slot.start_time || "00:00";
+    const date = new Date(`${slot.date}T${time}`);
+
+    if (!Number.isNaN(date.getTime())) {
+      return date;
+    }
+  }
+
+  const fallback =
+    session.scheduled_at ||
+    session.start_at ||
+    session.date ||
+    session.created_at ||
+    null;
+
+  if (!fallback) {
+    return null;
+  }
+
+  const date = new Date(fallback);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function getSessionDateKey(session: SessionItem) {
+  const date = getBookedSlot(session)?.date;
+
+  if (date) {
+    return date;
+  }
+
+  const parsed = getSessionDate(session);
+
+  if (!parsed) {
+    return null;
+  }
+
+  const year = parsed.getFullYear();
+  const month = String(parsed.getMonth() + 1).padStart(2, "0");
+  const day = String(parsed.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function formatDate(value?: string | null) {
+  if (!value) {
+    return "—";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "—";
+  }
+
+  return date.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function formatDateTime(session: SessionItem) {
+  const date = getSessionDate(session);
+
+  if (!date) {
+    return "—";
+  }
+
+  const formattedDate = date.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+  });
+
+  const formattedTime = date.toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  return `${formattedDate} • ${formattedTime}`;
+}
+
 export default function AdminDashboardPage() {
+  const router = useRouter();
+
   const [applications, setApplications] = useState<MentorApplication[]>([]);
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [sessions, setSessions] = useState<SessionItem[]>([]);
@@ -471,99 +571,141 @@ export default function AdminDashboardPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
 
-  const loadDashboard = useCallback(async (manual = false) => {
-    const token = localStorage.getItem("auth_token");
+  const loadDashboard = useCallback(
+    async (manual = false) => {
+      const token = localStorage.getItem("auth_token");
 
-    if (!token) {
-      return;
-    }
-
-    if (manual) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-
-    setError("");
-
-    try {
-      const headers = {
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      };
-
-      const [mentorsResponse, applicationsResponse, sessionsResponse] =
-        await Promise.all([
-          fetch(`${API_URL}/mentors?per_page=100`, {
-            headers,
-            cache: "no-store",
-          }),
-          fetch(`${API_URL}/admin/mentor-applications`, {
-            headers,
-            cache: "no-store",
-          }),
-          fetch(`${API_URL}/sessions?per_page=100`, {
-            headers,
-            cache: "no-store",
-          }),
-        ]);
-
-      const mentorsData = await mentorsResponse.json().catch(() => null);
-
-      const applicationsData = await applicationsResponse
-        .json()
-        .catch(() => null);
-
-      const sessionsData = await sessionsResponse.json().catch(() => null);
-
-      if (mentorsResponse.ok) {
-        setMentors(normalizeArray<Mentor>(mentorsData?.data ?? mentorsData));
+      if (!token) {
+        router.replace("/login");
+        return;
       }
 
-      if (applicationsResponse.ok) {
-        setApplications(
-          normalizeArray<MentorApplication>(
-            applicationsData?.data ?? applicationsData,
-          ),
-        );
+      const role = localStorage.getItem("user_role");
+
+      if (role && role !== "admin") {
+        router.replace("/");
+        return;
       }
 
-      /*
-       * Endpoint sessions bisa saja belum menyediakan response
-       * khusus untuk admin. Karena itu kegagalan endpoint ini
-       * tidak membuat seluruh dashboard gagal.
-       */
-      if (sessionsResponse.ok) {
-        setSessions(
-          normalizeArray<SessionItem>(sessionsData?.data ?? sessionsData),
-        );
+      if (manual) {
+        setRefreshing(true);
       } else {
-        setSessions([]);
+        setLoading(true);
       }
 
-      const failedRequests = [
-        !mentorsResponse.ok,
-        !applicationsResponse.ok,
-      ].filter(Boolean).length;
+      setError("");
 
-      if (failedRequests > 0) {
+      try {
+        const headers = {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        };
+
+        const [mentorsResponse, applicationsResponse, sessionsResponse] =
+          await Promise.all([
+            fetch(`${API_URL}/mentors?per_page=100`, {
+              headers,
+              cache: "no-store",
+            }),
+
+            fetch(`${API_URL}/admin/mentor-applications?per_page=100`, {
+              headers,
+              cache: "no-store",
+            }),
+
+            fetch(`${API_URL}/admin/sessions?per_page=100`, {
+              headers,
+              cache: "no-store",
+            }),
+          ]);
+
+        if (
+          mentorsResponse.status === 401 ||
+          applicationsResponse.status === 401 ||
+          sessionsResponse.status === 401
+        ) {
+          localStorage.removeItem("auth_token");
+          localStorage.removeItem("user_name");
+          localStorage.removeItem("user_role");
+
+          router.replace("/login");
+          return;
+        }
+
+        const mentorsData = (await mentorsResponse
+          .json()
+          .catch(() => null)) as ApiResponse<Mentor[]> | null;
+
+        const applicationsData = (await applicationsResponse
+          .json()
+          .catch(() => null)) as ApiResponse<MentorApplication[]> | null;
+
+        const sessionsData = (await sessionsResponse
+          .json()
+          .catch(() => null)) as ApiResponse<SessionItem[]> | null;
+
+        if (mentorsResponse.ok) {
+          setMentors(
+            normalizeArray<Mentor>(mentorsData?.data ?? mentorsData ?? []),
+          );
+        } else {
+          setMentors([]);
+        }
+
+        if (applicationsResponse.ok) {
+          setApplications(
+            normalizeArray<MentorApplication>(
+              applicationsData?.data ?? applicationsData ?? [],
+            ),
+          );
+        } else {
+          setApplications([]);
+        }
+
+        if (sessionsResponse.ok) {
+          setSessions(
+            normalizeArray<SessionItem>(
+              sessionsData?.data ?? sessionsData ?? [],
+            ),
+          );
+        } else {
+          setSessions([]);
+        }
+
+        const failedRequests = [
+          !mentorsResponse.ok,
+          !applicationsResponse.ok,
+          !sessionsResponse.ok,
+        ].filter(Boolean).length;
+
+        if (failedRequests > 0) {
+          setError(
+            "Sebagian data dashboard belum dapat dimuat. Periksa koneksi backend Laravel.",
+          );
+        }
+      } catch {
         setError(
-          "Sebagian data dashboard belum dapat dimuat. Periksa koneksi backend Laravel.",
+          "Tidak dapat terhubung ke server. Pastikan backend Laravel sedang berjalan.",
         );
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
-    } catch {
-      setError(
-        "Tidak dapat terhubung ke server. Pastikan backend Laravel sedang berjalan.",
-      );
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+    },
+    [router],
+  );
 
   useEffect(() => {
-    loadDashboard();
+    void loadDashboard();
   }, [loadDashboard]);
+
+  const activeMentors = useMemo(
+    () =>
+      mentors.filter(
+        (mentor) => String(mentor.status || "").toLowerCase() === "active",
+      ),
+    [mentors],
+  );
 
   const pendingApplications = useMemo(
     () =>
@@ -601,35 +743,6 @@ export default function AdminDashboardPage() {
     [sessions],
   );
 
-  const upcomingSessions = useMemo(() => {
-    const now = new Date();
-
-    return sessions
-      .filter((session) => {
-        const dateValue = getSessionDate(session);
-
-        if (!dateValue) {
-          return ["scheduled", "approved", "upcoming"].includes(
-            String(session.status || "").toLowerCase(),
-          );
-        }
-
-        const date = new Date(dateValue);
-
-        if (Number.isNaN(date.getTime())) {
-          return false;
-        }
-
-        return date >= now;
-      })
-      .sort((a, b) => {
-        const aTime = new Date(getSessionDate(a) || 0).getTime();
-        const bTime = new Date(getSessionDate(b) || 0).getTime();
-
-        return aTime - bTime;
-      });
-  }, [sessions]);
-
   const activeSessions = useMemo(
     () =>
       sessions.filter((session) =>
@@ -639,6 +752,41 @@ export default function AdminDashboardPage() {
       ),
     [sessions],
   );
+
+  const upcomingSessions = useMemo(() => {
+    const now = new Date();
+
+    return sessions
+      .filter((session) => {
+        const normalizedStatus = String(session.status || "").toLowerCase();
+
+        if (
+          ![
+            "approved",
+            "scheduled",
+            "upcoming",
+            "confirmed",
+            "ongoing",
+          ].includes(normalizedStatus)
+        ) {
+          return false;
+        }
+
+        const date = getSessionDate(session);
+
+        if (!date) {
+          return false;
+        }
+
+        return date.getTime() >= now.getTime();
+      })
+      .sort((a, b) => {
+        const aTime = getSessionDate(a)?.getTime() ?? 0;
+        const bTime = getSessionDate(b)?.getTime() ?? 0;
+
+        return aTime - bTime;
+      });
+  }, [sessions]);
 
   const recentApplications = useMemo(
     () =>
@@ -656,8 +804,8 @@ export default function AdminDashboardPage() {
       [...sessions]
         .sort(
           (a, b) =>
-            new Date(getSessionDate(b) || 0).getTime() -
-            new Date(getSessionDate(a) || 0).getTime(),
+            (getSessionDate(b)?.getTime() ?? 0) -
+            (getSessionDate(a)?.getTime() ?? 0),
         )
         .slice(0, 5),
     [sessions],
@@ -678,22 +826,16 @@ export default function AdminDashboardPage() {
       date.setHours(0, 0, 0, 0);
       date.setDate(today.getDate() - i);
 
-      const dateKey = date.toISOString().slice(0, 10);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+
+      const dateKey = `${year}-${month}-${day}`;
 
       const count = sessions.filter((session) => {
-        const value = getSessionDate(session);
+        const sessionDateKey = getSessionDateKey(session);
 
-        if (!value) {
-          return false;
-        }
-
-        const sessionDate = new Date(value);
-
-        if (Number.isNaN(sessionDate.getTime())) {
-          return false;
-        }
-
-        return sessionDate.toISOString().slice(0, 10) === dateKey;
+        return sessionDateKey === dateKey;
       }).length;
 
       days.push({
@@ -710,7 +852,7 @@ export default function AdminDashboardPage() {
 
   const activityMax = Math.max(1, ...activityData.map((item) => item.value));
 
-  const mentorCount = mentors.length;
+  const mentorCount = activeMentors.length;
   const pendingCount = pendingApplications.length;
   const activeSessionCount = activeSessions.length;
   const completedCount = completedSessions.length;
@@ -765,9 +907,8 @@ export default function AdminDashboardPage() {
 
       <main className="min-h-screen bg-[#FCFBF8] px-5 py-8 sm:px-7 lg:px-10">
         <div className="mx-auto max-w-7xl">
-          {/* =====================================================
-              PAGE HEADER
-          ====================================================== */}
+          {/* PAGE HEADER */}
+
           <section
             className="overflow-hidden rounded-[30px] bg-[#1E3F20] px-6 py-7 text-white shadow-xl sm:px-8 sm:py-9 lg:px-10"
             style={{
@@ -777,6 +918,7 @@ export default function AdminDashboardPage() {
           >
             <div className="relative">
               <div className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-white/5 blur-3xl" />
+
               <div className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-[#D8E4D8]/10 blur-3xl" />
 
               <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -797,7 +939,7 @@ export default function AdminDashboardPage() {
 
                 <button
                   type="button"
-                  onClick={() => loadDashboard(true)}
+                  onClick={() => void loadDashboard(true)}
                   disabled={refreshing}
                   className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-2xl bg-white/10 px-4 py-3 text-sm font-extrabold text-white backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60"
                 >
@@ -811,9 +953,8 @@ export default function AdminDashboardPage() {
             </div>
           </section>
 
-          {/* =====================================================
-              ERROR
-          ====================================================== */}
+          {/* ERROR */}
+
           {error && (
             <div
               className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm font-semibold leading-6 text-amber-800"
@@ -826,14 +967,13 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
-          {/* =====================================================
-              STATS
-          ====================================================== */}
+          {/* STATS */}
+
           <section className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <DashboardStat
               label="Active Mentors"
               value={loading ? "—" : mentorCount}
-              helper="Mentor yang tersedia di platform"
+              helper="Mentor aktif yang tersedia di platform"
               accent="bg-[#1E3F20]"
               icon={<IconUsers />}
             />
@@ -849,7 +989,7 @@ export default function AdminDashboardPage() {
             <DashboardStat
               label="Active Sessions"
               value={loading ? "—" : activeSessionCount}
-              helper="Sesi yang sedang dijadwalkan"
+              helper="Sesi yang sudah disetujui atau sedang berjalan"
               accent="bg-[#4B8D84]"
               icon={<IconCalendar />}
             />
@@ -863,11 +1003,11 @@ export default function AdminDashboardPage() {
             />
           </section>
 
-          {/* =====================================================
-              ANALYTICS + PIPELINE
-          ====================================================== */}
+          {/* ANALYTICS + PIPELINE */}
+
           <section className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(340px,0.9fr)]">
             {/* ACTIVITY CHART */}
+
             <div
               className="rounded-3xl border border-[#E7E0D5] bg-white p-6 shadow-sm sm:p-7"
               style={{
@@ -948,6 +1088,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* MENTOR PIPELINE */}
+
             <div
               className="rounded-3xl border border-[#E7E0D5] bg-white p-6 shadow-sm sm:p-7"
               style={{
@@ -1004,11 +1145,11 @@ export default function AdminDashboardPage() {
             </div>
           </section>
 
-          {/* =====================================================
-              RECENT APPLICATIONS + UPCOMING SESSIONS
-          ====================================================== */}
+          {/* RECENT APPLICATIONS + UPCOMING SESSIONS */}
+
           <section className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(340px,0.85fr)]">
             {/* APPLICATIONS */}
+
             <div
               className="overflow-hidden rounded-3xl border border-[#E7E0D5] bg-white shadow-sm"
               style={{
@@ -1111,7 +1252,8 @@ export default function AdminDashboardPage() {
               )}
             </div>
 
-            {/* UPCOMING */}
+            {/* UPCOMING SESSIONS */}
+
             <div
               className="overflow-hidden rounded-3xl border border-[#E7E0D5] bg-white shadow-sm"
               style={{
@@ -1166,14 +1308,14 @@ export default function AdminDashboardPage() {
                             <StatusBadge status={session.status} />
                           </div>
 
-                          <p className="mt-1 text-xs font-bold text-gray-400">
+                          <p className="mt-1 truncate text-xs font-bold text-gray-400">
                             {session.mentor?.name || "Mentor"}
                             {" • "}
                             {session.mentee?.name || "Mentee"}
                           </p>
 
                           <p className="mt-2 text-xs font-bold text-[#24766D]">
-                            {formatDateTime(getSessionDate(session))}
+                            {formatDateTime(session)}
                           </p>
                         </div>
                       </div>
@@ -1184,21 +1326,100 @@ export default function AdminDashboardPage() {
             </div>
           </section>
 
-          {/* =====================================================
-              SUMMARY
-          ====================================================== */}
+          {/* PLATFORM RECENT SESSIONS */}
+
+          <section
+            className="mt-6 overflow-hidden rounded-3xl border border-[#E7E0D5] bg-white shadow-sm"
+            style={{
+              animation:
+                "adminDashboardFadeUp 650ms 360ms cubic-bezier(0.22, 1, 0.36, 1) both",
+            }}
+          >
+            <div className="flex flex-col gap-4 border-b border-[#F0ECE4] px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#4B8D84]">
+                  Platform Sessions
+                </p>
+
+                <h2 className="mt-1 text-xl font-extrabold text-[#2C1E16]">
+                  Recent session activity
+                </h2>
+              </div>
+
+              <Link
+                href="/admin/sessions"
+                className="inline-flex items-center gap-1 text-sm font-extrabold text-[#24766D] transition-all duration-300 hover:translate-x-0.5"
+              >
+                View all
+                <IconArrowUpRight className="h-4 w-4" />
+              </Link>
+            </div>
+
+            {loading ? (
+              <div className="flex min-h-[180px] items-center justify-center">
+                <div className="h-9 w-9 animate-spin rounded-full border-4 border-[#E7E0D3] border-t-[#24766D]" />
+              </div>
+            ) : recentSessions.length === 0 ? (
+              <EmptyState
+                title="No sessions yet"
+                text="Belum ada aktivitas sesi pada platform."
+              />
+            ) : (
+              <div className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-5">
+                {recentSessions.map((session, index) => (
+                  <Link
+                    key={session.id}
+                    href="/admin/sessions"
+                    className="group rounded-2xl border border-[#ECE7DE] bg-[#FCFBF8] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#D6CEC2] hover:bg-white hover:shadow-md"
+                    style={{
+                      animation: `adminDashboardFadeUp 400ms ${
+                        400 + index * 60
+                      }ms cubic-bezier(0.22, 1, 0.36, 1) both`,
+                    }}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E7F6F3] text-[#24766D]">
+                        <IconClock className="h-4 w-4" />
+                      </span>
+
+                      <StatusBadge status={session.status} />
+                    </div>
+
+                    <p className="mt-4 line-clamp-2 text-sm font-extrabold text-[#2C1E16]">
+                      {session.title || session.topic || "Consultation Session"}
+                    </p>
+
+                    <p className="mt-2 truncate text-xs font-bold text-[#24766D]">
+                      {session.mentor?.name || "Mentor"}
+                    </p>
+
+                    <p className="mt-1 truncate text-[10px] font-semibold text-gray-400">
+                      {session.mentee?.name || "Mentee"}
+                    </p>
+
+                    <p className="mt-3 text-[10px] font-bold text-gray-400">
+                      {formatDateTime(session)}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* SUMMARY */}
+
           <section
             className="mt-6 grid gap-6 lg:grid-cols-3"
             style={{
               animation:
-                "adminDashboardFadeUp 650ms 400ms cubic-bezier(0.22, 1, 0.36, 1) both",
+                "adminDashboardFadeUp 650ms 420ms cubic-bezier(0.22, 1, 0.36, 1) both",
             }}
           >
             <SummaryCard
               eyebrow="Mentors"
               title="Mentor ecosystem"
               value={mentorCount}
-              description="Total mentor yang saat ini terdeteksi melalui endpoint mentors."
+              description="Jumlah mentor aktif yang tersedia di platform."
               icon={<IconUsers />}
               tone="green"
             />
@@ -1222,9 +1443,8 @@ export default function AdminDashboardPage() {
             />
           </section>
 
-          {/* =====================================================
-              QUICK ACTIONS
-          ====================================================== */}
+          {/* QUICK ACTIONS */}
+
           <section
             className="mt-6 rounded-3xl border border-[#E7E0D5] bg-white p-6 shadow-sm sm:p-7"
             style={{
@@ -1262,7 +1482,7 @@ export default function AdminDashboardPage() {
               <QuickAction
                 href="/admin/sessions"
                 title="Monitor Sessions"
-                description="Pantau aktivitas sesi konsultasi."
+                description="Pantau aktivitas seluruh sesi konsultasi."
                 icon={<IconCalendar />}
                 tone="teal"
               />
@@ -1277,9 +1497,8 @@ export default function AdminDashboardPage() {
             </div>
           </section>
 
-          {/* =====================================================
-              FOOTER NOTE
-          ====================================================== */}
+          {/* FOOTER NOTE */}
+
           <div className="pb-8 pt-6 text-center">
             <p className="text-xs font-semibold text-gray-400">
               Career Cafe Admin Workspace
@@ -1437,9 +1656,7 @@ function QuickAction({
       className="group flex items-center gap-4 rounded-2xl border border-[#ECE7DE] bg-[#FCFBF8] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-[#D9D1C3] hover:bg-white hover:shadow-md"
     >
       <div
-        className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110 ${
-          toneMap[tone].icon
-        }`}
+        className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-110 ${toneMap[tone].icon}`}
       >
         {icon}
       </div>

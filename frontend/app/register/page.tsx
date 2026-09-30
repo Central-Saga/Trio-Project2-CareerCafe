@@ -22,37 +22,41 @@ export default function RegisterPage() {
   const handleRegister = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    setLoading(true);
     setError("");
 
     if (!name.trim()) {
-      setError("Nama lengkap wajib diisi.");
+      setError("Full name is required.");
+      setLoading(false);
       return;
     }
 
     if (!email.trim()) {
-      setError("Email wajib diisi.");
+      setError("Email is required.");
+      setLoading(false);
       return;
     }
 
     if (password.length < 8) {
-      setError("Password minimal 8 karakter.");
+      setError("Password must be at least 8 characters.");
+      setLoading(false);
       return;
     }
 
     if (password !== passwordConfirmation) {
-      setError("Konfirmasi password tidak sama.");
+      setError("Passwords do not match.");
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
-
     try {
       /*
-       * Register biasa TIDAK mengirim role.
+       * Register biasa tidak mengirim role.
        *
-       * Backend harus menentukan bahwa akun baru
-       * selalu dibuat sebagai mentee.
+       * Backend harus menentukan role akun baru
+       * sebagai mentee.
        */
+
       const response = await fetch(`${API_URL}/register`, {
         method: "POST",
         headers: {
@@ -79,50 +83,59 @@ export default function RegisterPage() {
         throw new Error(
           validationMessage ||
             data.message ||
-            "Pendaftaran gagal. Silakan coba lagi.",
+            "Registration failed. Please try again.",
         );
       }
 
       /*
-       * Struktur backend yang digunakan:
+       * Struktur backend:
        *
        * data.data.user
        * data.data.token
        */
+
       const userData = data.data?.user || data.user || {};
       const token = data.data?.token || data.access_token;
 
-      /*
-       * REGISTER BIASA = MENTEE
-       *
-       * Backend tetap wajib memaksa role = mentee.
-       * Di frontend kita juga simpan role mentee.
-       */
       const userName = userData.name || name.trim();
+
+      /*
+       * Simpan token autentikasi
+       */
 
       if (token) {
         localStorage.setItem("auth_token", token);
       }
 
+      /*
+       * Simpan informasi user
+       */
+
       localStorage.setItem("user_name", userName);
+
+      /*
+       * Register biasa selalu mentee.
+       */
+
       localStorage.setItem("user_role", "mentee");
 
       /*
-       * Berikan sedikit waktu agar animasi
-       * loading selesai dengan halus.
+       * Beri sedikit waktu agar transisi terasa halus.
        */
-      await new Promise((resolve) => setTimeout(resolve, 550));
+
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       /*
-       * Samakan dengan alur login:
-       * mentee -> halaman utama Career Cafe.
+       * Setelah register berhasil,
+       * masuk ke halaman utama Career Cafe.
        */
+
       router.push("/");
     } catch (err: unknown) {
       setError(
         err instanceof Error
           ? err.message
-          : "Terjadi kesalahan saat proses pendaftaran.",
+          : "An error occurred during registration.",
       );
     } finally {
       setLoading(false);
@@ -135,8 +148,9 @@ export default function RegisterPage() {
         @keyframes register-left-enter {
           0% {
             opacity: 0;
-            transform: translateX(-28px);
+            transform: translateX(-24px);
           }
+
           100% {
             opacity: 1;
             transform: translateX(0);
@@ -146,8 +160,9 @@ export default function RegisterPage() {
         @keyframes register-right-enter {
           0% {
             opacity: 0;
-            transform: translateX(28px);
+            transform: translateX(24px);
           }
+
           100% {
             opacity: 1;
             transform: translateX(0);
@@ -157,8 +172,9 @@ export default function RegisterPage() {
         @keyframes register-fade-up {
           0% {
             opacity: 0;
-            transform: translateY(18px);
+            transform: translateY(12px);
           }
+
           100% {
             opacity: 1;
             transform: translateY(0);
@@ -168,12 +184,14 @@ export default function RegisterPage() {
         @keyframes register-logo-enter {
           0% {
             opacity: 0;
-            transform: translateY(18px) scale(0.96);
+            transform: translateY(14px) scale(0.97);
           }
+
           70% {
             opacity: 1;
-            transform: translateY(-2px) scale(1.01);
+            transform: translateY(-1px) scale(1.01);
           }
+
           100% {
             opacity: 1;
             transform: translateY(0) scale(1);
@@ -183,8 +201,9 @@ export default function RegisterPage() {
         @keyframes register-feature-enter {
           0% {
             opacity: 0;
-            transform: translateY(14px) scale(0.97);
+            transform: translateY(10px) scale(0.98);
           }
+
           100% {
             opacity: 1;
             transform: translateY(0) scale(1);
@@ -193,37 +212,37 @@ export default function RegisterPage() {
 
         @keyframes register-bg-zoom {
           0% {
-            transform: scale(1.03);
+            transform: scale(1.025);
           }
+
           50% {
-            transform: scale(1.055);
+            transform: scale(1.045);
           }
+
           100% {
-            transform: scale(1.03);
+            transform: scale(1.025);
           }
         }
 
         @keyframes register-soft-pulse {
           0%,
           100% {
-            opacity: 0.55;
+            opacity: 0.5;
             transform: scale(1);
           }
+
           50% {
-            opacity: 0.8;
-            transform: scale(1.05);
+            opacity: 0.72;
+            transform: scale(1.04);
           }
         }
 
         @keyframes register-error-enter {
           0% {
             opacity: 0;
-            transform: translateY(-6px) scale(0.98);
+            transform: translateY(-4px) scale(0.99);
           }
-          60% {
-            opacity: 1;
-            transform: translateY(1px) scale(1.01);
-          }
+
           100% {
             opacity: 1;
             transform: translateY(0) scale(1);
@@ -255,6 +274,7 @@ export default function RegisterPage() {
 
         <div className="relative hidden min-h-screen w-1/2 overflow-hidden lg:flex">
           {/* BACKGROUND IMAGE */}
+
           <div
             className="absolute inset-[-2%] bg-cover bg-center"
             style={{
@@ -263,171 +283,158 @@ export default function RegisterPage() {
             }}
           />
 
-          {/* SOFT WHITE OVERLAY */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#FCFBF8] via-[#FCFBF8]/82 to-transparent" />
+          {/* BASE OVERLAY */}
 
-          <div className="absolute inset-y-0 right-0 w-[18%] bg-gradient-to-l from-white/10 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#FCFBF8]/95 via-[#FCFBF8]/50 to-transparent" />
+
+          {/* ==================================================
+              LARGE SOFT CENTER GRADIENT BLEND
+          =================================================== */}
+
+          <div className="pointer-events-none absolute inset-y-0 right-[-10px] z-20 w-80 bg-gradient-to-r from-transparent via-white/10 via-35% via-white/30 via-58% via-white/65 to-white" />
+
+          {/* SECOND FEATHER */}
+
+          <div className="pointer-events-none absolute inset-y-[-8%] right-[-55px] z-[21] w-72 bg-gradient-to-r from-transparent via-white/15 to-white/90 blur-2xl" />
+
+          {/* THIRD SOFT HAZE */}
+
+          <div className="pointer-events-none absolute inset-y-0 right-[-25px] z-[22] w-52 bg-gradient-to-r from-transparent via-white/30 to-white blur-[10px]" />
+
+          {/* FINAL WHITE FADE */}
+
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-[23] w-28 bg-gradient-to-r from-transparent to-white/95" />
 
           {/* DECORATIVE LIGHT */}
+
           <div
-            className="pointer-events-none absolute left-[16%] top-[15%] h-36 w-36 rounded-full bg-white/25 blur-3xl"
+            className="pointer-events-none absolute left-[16%] top-[14%] h-28 w-28 rounded-full bg-white/20 blur-3xl"
             style={{
               animation: "register-soft-pulse 6s ease-in-out infinite",
             }}
           />
 
           <div
-            className="pointer-events-none absolute bottom-[15%] left-[33%] h-40 w-40 rounded-full bg-[#D8E4D8]/25 blur-3xl"
+            className="pointer-events-none absolute bottom-[14%] left-[32%] h-32 w-32 rounded-full bg-[#D8E4D8]/20 blur-3xl"
             style={{
               animation: "register-soft-pulse 7s ease-in-out infinite 1s",
             }}
           />
 
           {/* CONTENT */}
+
           <div
-            className="relative z-10 flex h-full w-full flex-col justify-center px-12 xl:px-20"
+            className="relative z-30 flex h-screen w-full flex-col justify-center px-10 xl:px-16"
             style={{
               animation:
-                "register-left-enter 850ms cubic-bezier(0.22, 1, 0.36, 1) both",
+                "register-left-enter 750ms cubic-bezier(0.22, 1, 0.36, 1) both",
             }}
           >
             {/* LOGO */}
+
             <div
-              className="-mb-6"
+              className="-mb-5"
               style={{
                 animation:
-                  "register-logo-enter 850ms cubic-bezier(0.22, 1, 0.36, 1) both",
+                  "register-logo-enter 750ms cubic-bezier(0.22, 1, 0.36, 1) both",
               }}
             >
               <img
                 src="/image/logo.png"
                 alt="Logo Career Cafe"
-                className="-ml-6 h-56 w-auto mix-blend-multiply transition-transform duration-500 hover:scale-[1.015]"
+                className="-ml-5 h-40 w-auto mix-blend-multiply transition-transform duration-500 hover:scale-[1.01] xl:h-44"
               />
             </div>
 
             {/* TITLE */}
+
             <h1
-              className="mb-6 text-5xl font-extrabold leading-tight text-[#2C1E16] xl:text-6xl"
+              className="mb-4 text-[38px] font-extrabold leading-[1.02] tracking-[-0.035em] text-[#2C1E16] xl:text-[46px]"
               style={{
                 animation:
-                  "register-fade-up 800ms 120ms cubic-bezier(0.22, 1, 0.36, 1) both",
+                  "register-fade-up 700ms 100ms cubic-bezier(0.22, 1, 0.36, 1) both",
               }}
             >
-              Mulai Perjalanan,
+              Start Your Journey,
               <br />
-              Bangun Karier,
+              Build Your Career,
               <br />
-              Raih Masa Depan
+              Shape Your Future
             </h1>
 
             {/* DESCRIPTION */}
+
             <p
-              className="mb-10 max-w-md text-lg leading-relaxed text-[#2C1E16] opacity-80"
+              className="mb-6 max-w-[430px] text-sm leading-6 text-[#2C1E16] opacity-75 xl:text-[15px]"
               style={{
                 animation:
-                  "register-fade-up 800ms 220ms cubic-bezier(0.22, 1, 0.36, 1) both",
+                  "register-fade-up 700ms 180ms cubic-bezier(0.22, 1, 0.36, 1) both",
               }}
             >
-              Career Cafe adalah platform konsultasi karier untuk membantu kamu
-              belajar, berdiskusi, dan tumbuh bersama mentor profesional.
+              Career Cafe is a career coaching platform that helps you learn,
+              connect, and grow with professional mentors.
             </p>
 
             {/* FEATURES */}
-            <div className="flex gap-6 xl:gap-10">
+
+            <div className="flex gap-5 xl:gap-7">
               {/* FEATURE 1 */}
+
               <div
-                className="group flex cursor-default flex-col gap-2"
+                className="group flex cursor-default flex-col gap-1.5"
                 style={{
                   animation:
-                    "register-feature-enter 700ms 320ms cubic-bezier(0.22, 1, 0.36, 1) both",
+                    "register-feature-enter 600ms 260ms cubic-bezier(0.22, 1, 0.36, 1) both",
                 }}
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E3F20]/10 text-[#1E3F20] shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:scale-110 group-hover:bg-[#1E3F20]/15">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="h-5 w-5 transition-transform duration-300 group-hover:scale-110"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v-.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
-                    />
-                  </svg>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1E3F20]/10 text-[#1E3F20] shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:scale-105 group-hover:bg-[#1E3F20]/15">
+                  <UsersIcon />
                 </div>
 
-                <span className="text-xs font-semibold text-[#2C1E16]">
+                <span className="text-[10px] font-semibold leading-4 text-[#2C1E16]">
                   Mentor
                   <br />
-                  Profesional
+                  Professional
                 </span>
               </div>
 
               {/* FEATURE 2 */}
+
               <div
-                className="group flex cursor-default flex-col gap-2"
+                className="group flex cursor-default flex-col gap-1.5"
                 style={{
                   animation:
-                    "register-feature-enter 700ms 410ms cubic-bezier(0.22, 1, 0.36, 1) both",
+                    "register-feature-enter 600ms 340ms cubic-bezier(0.22, 1, 0.36, 1) both",
                 }}
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E3F20]/10 text-[#1E3F20] shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:scale-110 group-hover:bg-[#1E3F20]/15">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="h-5 w-5 transition-transform duration-300 group-hover:scale-110"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"
-                    />
-                  </svg>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1E3F20]/10 text-[#1E3F20] shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:scale-105 group-hover:bg-[#1E3F20]/15">
+                  <SessionIcon />
                 </div>
 
-                <span className="text-xs font-semibold text-[#2C1E16]">
-                  Sesi Konsultasi
+                <span className="text-[10px] font-semibold leading-4 text-[#2C1E16]">
+                  Coaching Sessions
                   <br />
-                  Fleksibel
+                  Flexible
                 </span>
               </div>
 
               {/* FEATURE 3 */}
+
               <div
-                className="group flex cursor-default flex-col gap-2"
+                className="group flex cursor-default flex-col gap-1.5"
                 style={{
                   animation:
-                    "register-feature-enter 700ms 500ms cubic-bezier(0.22, 1, 0.36, 1) both",
+                    "register-feature-enter 600ms 420ms cubic-bezier(0.22, 1, 0.36, 1) both",
                 }}
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E3F20]/10 text-[#1E3F20] shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:scale-110 group-hover:bg-[#1E3F20]/15">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="h-5 w-5 transition-transform duration-300 group-hover:scale-110"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"
-                    />
-                  </svg>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1E3F20]/10 text-[#1E3F20] shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:scale-105 group-hover:bg-[#1E3F20]/15">
+                  <GrowthIcon />
                 </div>
 
-                <span className="text-xs font-semibold text-[#2C1E16]">
-                  Dukungan
+                <span className="text-[10px] font-semibold leading-4 text-[#2C1E16]">
+                  Community
                   <br />
-                  Komunitas
+                  Support
                 </span>
               </div>
             </div>
@@ -439,45 +446,42 @@ export default function RegisterPage() {
         ====================================================== */}
 
         <div
-          className="relative flex min-h-screen w-full flex-col justify-center overflow-hidden bg-white p-8 sm:p-12 xl:p-20 lg:w-1/2"
+          className="relative flex min-h-screen w-full flex-col justify-center overflow-hidden bg-white px-6 py-6 sm:px-10 lg:w-1/2 lg:px-12 xl:px-16"
           style={{
             animation:
-              "register-right-enter 850ms cubic-bezier(0.22, 1, 0.36, 1) both",
+              "register-right-enter 750ms cubic-bezier(0.22, 1, 0.36, 1) both",
           }}
         >
-          {/* BACK TO LOGIN */}
+          {/* LOGIN LINK */}
+
           <div
-            className="absolute right-6 top-6 z-10 text-xs sm:right-10 sm:top-10 sm:text-sm"
+            className="absolute right-5 top-5 z-10 text-[11px] sm:right-8 sm:top-7 sm:text-xs"
             style={{
               animation:
-                "register-fade-up 650ms 350ms cubic-bezier(0.22, 1, 0.36, 1) both",
+                "register-fade-up 600ms 250ms cubic-bezier(0.22, 1, 0.36, 1) both",
             }}
           >
-            <span className="text-gray-500">Sudah punya akun? </span>
+            <span className="text-gray-500">Already have an account? </span>
 
             <Link
               href="/login"
               className="font-bold text-[#1E3F20] transition-all duration-300 hover:translate-x-0.5 hover:underline"
             >
-              Masuk sekarang →
+              Log in now →
             </Link>
           </div>
 
           {/* FORM WRAPPER */}
-          <div
-            className="relative z-10 mx-auto w-full max-w-md"
-            style={{
-              animation:
-                "register-fade-up 800ms 180ms cubic-bezier(0.22, 1, 0.36, 1) both",
-            }}
-          >
+
+          <div className="relative z-10 mx-auto w-full max-w-[390px]">
             {/* ERROR */}
+
             {error && (
               <div
-                className="mb-6 rounded-xl border border-red-100 bg-red-50 p-3 text-center text-sm font-medium text-red-600 shadow-[0_8px_20px_rgba(185,28,28,0.05)]"
+                className="mb-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2.5 text-center text-xs font-medium text-red-600 shadow-[0_6px_16px_rgba(185,28,28,0.05)]"
                 style={{
                   animation:
-                    "register-error-enter 450ms cubic-bezier(0.22, 1, 0.36, 1) both",
+                    "register-error-enter 350ms cubic-bezier(0.22, 1, 0.36, 1) both",
                 }}
               >
                 {error}
@@ -485,80 +489,39 @@ export default function RegisterPage() {
             )}
 
             {/* TITLE */}
+
             <div
               style={{
                 animation:
-                  "register-fade-up 700ms 260ms cubic-bezier(0.22, 1, 0.36, 1) both",
+                  "register-fade-up 650ms 160ms cubic-bezier(0.22, 1, 0.36, 1) both",
               }}
             >
-              <h2 className="mb-2 text-3xl font-bold text-[#2C1E16]">
-                Buat Akun Baru
+              <h2 className="mb-1.5 text-[26px] font-bold tracking-[-0.025em] text-[#2C1E16] sm:text-[28px]">
+                Create a New Account
               </h2>
 
-              <p className="mb-6 text-sm leading-relaxed text-gray-500">
-                Daftar ke Career Cafe dan mulai perjalananmu untuk berkembang,
-                belajar, dan membangun karier.
+              <p className="mb-5 text-xs leading-5 text-gray-500 sm:text-sm">
+                Sign up for Career Cafe and start your journey of growth,
+                learning, and career development.
               </p>
             </div>
 
-            {/* ACCOUNT INFO */}
-            <div
-              className="mb-6 rounded-xl border border-[#DDE8DE] bg-[#F6FAF6] p-3.5 shadow-[0_6px_18px_rgba(30,63,32,0.03)]"
-              style={{
-                animation:
-                  "register-fade-up 650ms 300ms cubic-bezier(0.22, 1, 0.36, 1) both",
-              }}
-            >
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1E3F20]/10 text-[#1E3F20]">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.8}
-                    stroke="currentColor"
-                    className="h-4 w-4"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 9v3.75m0 3.75h.008v.008H12v-.008z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M10.34 3.94L2.58 17.25A2 2 0 004.31 20.25h15.38a2 2 0 001.73-3L13.66 3.94a2 2 0 00-3.32 0z"
-                    />
-                  </svg>
-                </div>
-
-                <div>
-                  <p className="text-xs font-bold text-[#1E3F20]">
-                    Akun baru dimulai sebagai mentee
-                  </p>
-
-                  <p className="mt-1 text-xs leading-relaxed text-gray-500">
-                    Kamu dapat menjelajahi mentor, sesi konsultasi, komunitas,
-                    dan lowongan pekerjaan setelah mendaftar.
-                  </p>
-                </div>
-              </div>
-            </div>
-
             {/* FORM */}
-            <form onSubmit={handleRegister} className="space-y-4">
+
+            <form onSubmit={handleRegister} className="space-y-2.5">
               {/* NAME */}
+
               <div
                 style={{
                   animation:
-                    "register-fade-up 650ms 360ms cubic-bezier(0.22, 1, 0.36, 1) both",
+                    "register-fade-up 600ms 270ms cubic-bezier(0.22, 1, 0.36, 1) both",
                 }}
               >
                 <label
                   htmlFor="name"
-                  className="mb-1 block text-sm font-bold text-[#2C1E16]"
+                  className="mb-1 block text-xs font-bold text-[#2C1E16]"
                 >
-                  Nama Lengkap
+                  Full Name
                 </label>
 
                 <input
@@ -568,21 +531,22 @@ export default function RegisterPage() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Trio Riawan"
                   autoComplete="name"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-[#2C1E16] shadow-[0_4px_14px_rgba(44,30,22,0.02)] outline-none transition-all duration-300 placeholder:text-gray-400 hover:border-gray-300 hover:shadow-[0_6px_18px_rgba(44,30,22,0.04)] focus:-translate-y-0.5 focus:border-[#1E3F20] focus:shadow-[0_10px_24px_rgba(30,63,32,0.08)] focus:ring-4 focus:ring-[#1E3F20]/10"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-xs text-[#2C1E16] shadow-[0_3px_10px_rgba(44,30,22,0.02)] outline-none transition-all duration-300 placeholder:text-gray-400 hover:border-gray-300 hover:shadow-[0_5px_14px_rgba(44,30,22,0.04)] focus:-translate-y-0.5 focus:border-[#1E3F20] focus:shadow-[0_8px_18px_rgba(30,63,32,0.08)] focus:ring-4 focus:ring-[#1E3F20]/10 sm:text-sm"
                   required
                 />
               </div>
 
               {/* EMAIL */}
+
               <div
                 style={{
                   animation:
-                    "register-fade-up 650ms 430ms cubic-bezier(0.22, 1, 0.36, 1) both",
+                    "register-fade-up 600ms 320ms cubic-bezier(0.22, 1, 0.36, 1) both",
                 }}
               >
                 <label
                   htmlFor="email"
-                  className="mb-1 block text-sm font-bold text-[#2C1E16]"
+                  className="mb-1 block text-xs font-bold text-[#2C1E16]"
                 >
                   Email
                 </label>
@@ -594,21 +558,22 @@ export default function RegisterPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="trioriawan@example.com"
                   autoComplete="email"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-[#2C1E16] shadow-[0_4px_14px_rgba(44,30,22,0.02)] outline-none transition-all duration-300 placeholder:text-gray-400 hover:border-gray-300 hover:shadow-[0_6px_18px_rgba(44,30,22,0.04)] focus:-translate-y-0.5 focus:border-[#1E3F20] focus:shadow-[0_10px_24px_rgba(30,63,32,0.08)] focus:ring-4 focus:ring-[#1E3F20]/10"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-xs text-[#2C1E16] shadow-[0_3px_10px_rgba(44,30,22,0.02)] outline-none transition-all duration-300 placeholder:text-gray-400 hover:border-gray-300 hover:shadow-[0_5px_14px_rgba(44,30,22,0.04)] focus:-translate-y-0.5 focus:border-[#1E3F20] focus:shadow-[0_8px_18px_rgba(30,63,32,0.08)] focus:ring-4 focus:ring-[#1E3F20]/10 sm:text-sm"
                   required
                 />
               </div>
 
               {/* PASSWORD */}
+
               <div
                 style={{
                   animation:
-                    "register-fade-up 650ms 500ms cubic-bezier(0.22, 1, 0.36, 1) both",
+                    "register-fade-up 600ms 370ms cubic-bezier(0.22, 1, 0.36, 1) both",
                 }}
               >
                 <label
                   htmlFor="password"
-                  className="mb-1 block text-sm font-bold text-[#2C1E16]"
+                  className="mb-1 block text-xs font-bold text-[#2C1E16]"
                 >
                   Password
                 </label>
@@ -620,28 +585,25 @@ export default function RegisterPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   autoComplete="new-password"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-[#2C1E16] shadow-[0_4px_14px_rgba(44,30,22,0.02)] outline-none transition-all duration-300 placeholder:text-gray-400 hover:border-gray-300 hover:shadow-[0_6px_18px_rgba(44,30,22,0.04)] focus:-translate-y-0.5 focus:border-[#1E3F20] focus:shadow-[0_10px_24px_rgba(30,63,32,0.08)] focus:ring-4 focus:ring-[#1E3F20]/10"
-                  required
                   minLength={8}
+                  className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-xs text-[#2C1E16] shadow-[0_3px_10px_rgba(44,30,22,0.02)] outline-none transition-all duration-300 placeholder:text-gray-400 hover:border-gray-300 hover:shadow-[0_5px_14px_rgba(44,30,22,0.04)] focus:-translate-y-0.5 focus:border-[#1E3F20] focus:shadow-[0_8px_18px_rgba(30,63,32,0.08)] focus:ring-4 focus:ring-[#1E3F20]/10 sm:text-sm"
+                  required
                 />
-
-                <p className="mt-1.5 text-xs text-gray-400">
-                  Minimal 8 karakter.
-                </p>
               </div>
 
               {/* CONFIRM PASSWORD */}
+
               <div
                 style={{
                   animation:
-                    "register-fade-up 650ms 570ms cubic-bezier(0.22, 1, 0.36, 1) both",
+                    "register-fade-up 600ms 420ms cubic-bezier(0.22, 1, 0.36, 1) both",
                 }}
               >
                 <label
                   htmlFor="password_confirmation"
-                  className="mb-1 block text-sm font-bold text-[#2C1E16]"
+                  className="mb-1 block text-xs font-bold text-[#2C1E16]"
                 >
-                  Konfirmasi Password
+                  Confirm Password
                 </label>
 
                 <input
@@ -651,52 +613,54 @@ export default function RegisterPage() {
                   onChange={(e) => setPasswordConfirmation(e.target.value)}
                   placeholder="••••••••"
                   autoComplete="new-password"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-[#2C1E16] shadow-[0_4px_14px_rgba(44,30,22,0.02)] outline-none transition-all duration-300 placeholder:text-gray-400 hover:border-gray-300 hover:shadow-[0_6px_18px_rgba(44,30,22,0.04)] focus:-translate-y-0.5 focus:border-[#1E3F20] focus:shadow-[0_10px_24px_rgba(30,63,32,0.08)] focus:ring-4 focus:ring-[#1E3F20]/10"
-                  required
                   minLength={8}
+                  className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-xs text-[#2C1E16] shadow-[0_3px_10px_rgba(44,30,22,0.02)] outline-none transition-all duration-300 placeholder:text-gray-400 hover:border-gray-300 hover:shadow-[0_5px_14px_rgba(44,30,22,0.04)] focus:-translate-y-0.5 focus:border-[#1E3F20] focus:shadow-[0_8px_18px_rgba(30,63,32,0.08)] focus:ring-4 focus:ring-[#1E3F20]/10 sm:text-sm"
+                  required
                 />
               </div>
 
               {/* TERMS */}
+
               <div
-                className="flex items-start gap-2 text-sm"
+                className="flex items-start gap-2 pt-0.5 text-[10px]"
                 style={{
                   animation:
-                    "register-fade-up 650ms 640ms cubic-bezier(0.22, 1, 0.36, 1) both",
+                    "register-fade-up 600ms 470ms cubic-bezier(0.22, 1, 0.36, 1) both",
                 }}
               >
                 <input
                   id="terms"
                   type="checkbox"
                   required
-                  className="mt-0.5 rounded border-gray-300 text-[#1E3F20] transition-all focus:ring-[#1E3F20]"
+                  className="mt-0.5 rounded border-gray-300 text-[#1E3F20] focus:ring-[#1E3F20]"
                 />
 
                 <label
                   htmlFor="terms"
-                  className="cursor-pointer leading-relaxed text-gray-600"
+                  className="cursor-pointer leading-4 text-gray-600"
                 >
-                  Saya setuju untuk menggunakan Career Cafe secara bertanggung
-                  jawab dan memberikan informasi yang benar.
+                  Saya setuju menggunakan Career Cafe secara bertanggung jawab
+                  dan memberikan informasi yang benar.
                 </label>
               </div>
 
               {/* REGISTER BUTTON */}
+
               <div
                 style={{
                   animation:
-                    "register-fade-up 650ms 710ms cubic-bezier(0.22, 1, 0.36, 1) both",
+                    "register-fade-up 600ms 520ms cubic-bezier(0.22, 1, 0.36, 1) both",
                 }}
               >
                 <button
                   type="submit"
                   disabled={loading}
-                  className="group mt-2 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#1E3F20] py-3.5 font-bold text-white shadow-[0_10px_22px_rgba(30,63,32,0.14)] transition-all duration-300 hover:-translate-y-1 hover:scale-[1.005] hover:bg-[#173119] hover:shadow-[0_15px_28px_rgba(30,63,32,0.2)] active:translate-y-0 active:scale-[0.995] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:scale-100"
+                  className="group mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#1E3F20] py-3 text-xs font-bold text-white shadow-[0_8px_18px_rgba(30,63,32,0.14)] transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.005] hover:bg-[#173119] hover:shadow-[0_12px_22px_rgba(30,63,32,0.2)] active:translate-y-0 active:scale-[0.995] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:scale-100 sm:text-sm"
                 >
                   {loading ? (
                     <>
                       <span
-                        className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white"
+                        className="h-3.5 w-3.5 rounded-full border-2 border-white/30 border-t-white"
                         style={{
                           animation: "register-spinner 700ms linear infinite",
                         }}
@@ -718,16 +682,17 @@ export default function RegisterPage() {
             </form>
 
             {/* DIVIDER */}
+
             <div
-              className="my-5 flex items-center justify-center gap-3"
+              className="my-3.5 flex items-center justify-center gap-2.5"
               style={{
                 animation:
-                  "register-fade-up 650ms 780ms cubic-bezier(0.22, 1, 0.36, 1) both",
+                  "register-fade-up 600ms 580ms cubic-bezier(0.22, 1, 0.36, 1) both",
               }}
             >
               <span className="h-px w-full bg-gray-200" />
 
-              <span className="text-xs font-medium uppercase tracking-wider text-gray-400">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-gray-400">
                 atau
               </span>
 
@@ -735,21 +700,22 @@ export default function RegisterPage() {
             </div>
 
             {/* GOOGLE */}
+
             <button
               type="button"
-              className="group flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3.5 text-sm font-bold text-[#2C1E16] shadow-[0_4px_14px_rgba(44,30,22,0.02)] transition-all duration-300 hover:-translate-y-0.5 hover:border-gray-300 hover:bg-gray-50 hover:shadow-[0_10px_22px_rgba(44,30,22,0.06)] active:translate-y-0"
+              className="group flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border border-gray-200 bg-white py-3 text-xs font-bold text-[#2C1E16] shadow-[0_3px_10px_rgba(44,30,22,0.02)] transition-all duration-300 hover:-translate-y-0.5 hover:border-gray-300 hover:bg-gray-50 hover:shadow-[0_8px_18px_rgba(44,30,22,0.06)] active:translate-y-0 sm:text-sm"
               style={{
                 animation:
-                  "register-fade-up 650ms 850ms cubic-bezier(0.22, 1, 0.36, 1) both",
+                  "register-fade-up 600ms 640ms cubic-bezier(0.22, 1, 0.36, 1) both",
               }}
             >
               <svg
-                width="18"
-                height="18"
+                width="17"
+                height="17"
                 viewBox="0 0 24 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
-                className="transition-transform duration-300 group-hover:scale-110"
+                className="transition-transform duration-300 group-hover:scale-105"
               >
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -767,7 +733,7 @@ export default function RegisterPage() {
                 />
 
                 <path
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87 0 3.3 0 6.16-4.53z"
                   fill="#EA4335"
                 />
               </svg>
@@ -778,5 +744,102 @@ export default function RegisterPage() {
         </div>
       </div>
     </>
+  );
+}
+
+/* =========================================================
+   ICONS
+========================================================= */
+
+function UsersIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle cx="9" cy="8" r="3" stroke="currentColor" strokeWidth="1.7" />
+
+      <path
+        d="M3.5 18C4.2 15.2 6 13.8 9 13.8C12 13.8 13.8 15.2 14.5 18"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+
+      <path
+        d="M16 8.2C16.3 6.6 17.45 5.5 18.8 5.5C20.3 5.5 21.5 6.8 21.5 8.3C21.5 9.8 20.3 11.1 18.8 11.1C18.45 11.1 18.12 11.05 17.8 10.9"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function SessionIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+
+      <path
+        d="M12.375 12a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+
+      <path
+        d="M16.125 12a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+
+      <path
+        d="M21 12c0 4.2-4.03 7.5-9 7.5a9.9 9.9 0 01-2.6-.34A6.2 6.2 0 014.8 20.8a4.6 4.6 0 001-2.1C3.9 17.35 3 14.85 3 12c0-4.2 4.03-7.5 9-7.5s9 3.3 9 7.5z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function GrowthIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      <path
+        d="M16 7.1l5.86 1.72-1.72 5.86"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

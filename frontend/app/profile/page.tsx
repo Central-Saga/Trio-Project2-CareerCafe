@@ -289,7 +289,7 @@ function compressImage(
         const ctx = canvas.getContext("2d");
 
         if (!ctx) {
-          reject(new Error("Canvas tidak tersedia."));
+          reject(new Error("Canvas is unavailable."));
           return;
         }
 
@@ -298,7 +298,7 @@ function compressImage(
         canvas.toBlob(
           (blob) => {
             if (!blob) {
-              reject(new Error("Gagal melakukan kompresi gambar."));
+              reject(new Error("Failed to compress the image."));
               return;
             }
 
@@ -319,14 +319,14 @@ function compressImage(
       };
 
       image.onerror = () => {
-        reject(new Error("Gagal membaca gambar."));
+        reject(new Error("Failed to read the image."));
       };
 
       image.src = event.target?.result as string;
     };
 
     reader.onerror = () => {
-      reject(new Error("Gagal membaca file."));
+      reject(new Error("Failed to read the file."));
     };
 
     reader.readAsDataURL(file);
@@ -377,12 +377,12 @@ export default function ProfilePage() {
         const result: ProfileApiResponse = await response.json();
 
         if (!response.ok || !result.success) {
-          throw new Error(result.message || "Gagal mengambil data profil.");
+          throw new Error(result.message || "Failed to retrieve profile data.");
         }
 
         const profile = result.data.profile;
 
-        const serverName = result.data.name || "Pengguna";
+        const serverName = result.data.name || "User";
         const serverEmail = result.data.email || "";
         const serverRole = result.data.role || "mentee";
 
@@ -421,7 +421,7 @@ export default function ProfilePage() {
         setMessage(
           error instanceof Error
             ? error.message
-            : "Gagal mengambil data profil.",
+            : "Failed to retrieve profile data.",
         );
       } finally {
         setLoadingProfile(false);
@@ -439,7 +439,7 @@ export default function ProfilePage() {
     };
   }, []);
 
-  const initial = name.trim().charAt(0).toUpperCase() || "P";
+  const initial = name.trim().charAt(0).toUpperCase() || "U";
 
   const showMessage = (text: string) => {
     if (messageTimerRef.current !== null) {
@@ -472,7 +472,7 @@ export default function ProfilePage() {
     const cleanedEmail = editEmail.trim();
 
     if (!cleanedName) {
-      setMessage("Nama tidak boleh kosong.");
+      setMessage("Name cannot be empty.");
       return;
     }
 
@@ -483,7 +483,7 @@ export default function ProfilePage() {
     setEmail(cleanedEmail);
     setIsEditing(false);
 
-    showMessage("Profil berhasil diperbarui.");
+    showMessage("Profile updated successfully.");
   };
 
   const handleProfileImageChange = async (
@@ -496,7 +496,7 @@ export default function ProfilePage() {
     }
 
     if (!file.type.startsWith("image/")) {
-      setMessage("File foto profil harus berupa gambar.");
+      setMessage("The profile photo must be an image file.");
       event.target.value = "";
       return;
     }
@@ -504,7 +504,7 @@ export default function ProfilePage() {
     const token = localStorage.getItem("auth_token");
 
     if (!token) {
-      setMessage("Sesi login tidak ditemukan. Silakan login kembali.");
+      setMessage("Login session not found. Please log in again.");
       event.target.value = "";
       return;
     }
@@ -530,7 +530,7 @@ export default function ProfilePage() {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.message || "Gagal mengunggah foto profil.");
+        throw new Error(result.message || "Failed to upload the profile photo.");
       }
 
       const imageUrl = result.data?.profile_photo || "";
@@ -541,14 +541,14 @@ export default function ProfilePage() {
         localStorage.setItem("profile_image", imageUrl);
       }
 
-      showMessage("Foto profil berhasil diperbarui dan disimpan.");
+      showMessage("Profile photo updated and saved successfully.");
     } catch (error) {
       console.error("Gagal upload foto profil:", error);
 
       setMessage(
         error instanceof Error
           ? error.message
-          : "Gagal mengunggah foto profil.",
+          : "Failed to upload the profile photo.",
       );
     } finally {
       setUploadingProfile(false);
@@ -566,7 +566,7 @@ export default function ProfilePage() {
     }
 
     if (!file.type.startsWith("image/")) {
-      setMessage("File background harus berupa gambar.");
+      setMessage("The cover photo must be an image file.");
       event.target.value = "";
       return;
     }
@@ -574,7 +574,7 @@ export default function ProfilePage() {
     const token = localStorage.getItem("auth_token");
 
     if (!token) {
-      setMessage("Sesi login tidak ditemukan. Silakan login kembali.");
+      setMessage("Login session not found. Please log in again.");
       event.target.value = "";
       return;
     }
@@ -601,7 +601,7 @@ export default function ProfilePage() {
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.message || "Gagal mengunggah background profil.",
+          result.message || "Failed to upload the profile cover photo.",
         );
       }
 
@@ -613,14 +613,14 @@ export default function ProfilePage() {
         localStorage.setItem("cover_image", imageUrl);
       }
 
-      showMessage("Background profil berhasil diperbarui dan disimpan.");
+      showMessage("Profile cover photo updated and saved successfully.");
     } catch (error) {
       console.error("Gagal upload background:", error);
 
       setMessage(
         error instanceof Error
           ? error.message
-          : "Gagal mengunggah background profil.",
+          : "Failed to upload the profile cover photo.",
       );
     } finally {
       setUploadingCover(false);
@@ -632,7 +632,7 @@ export default function ProfilePage() {
     const token = localStorage.getItem("auth_token");
 
     if (!token) {
-      setMessage("Sesi login tidak ditemukan.");
+      setMessage("Login session not found.");
       return;
     }
 
@@ -650,18 +650,18 @@ export default function ProfilePage() {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.message || "Gagal menghapus foto profil.");
+        throw new Error(result.message || "Failed to delete the profile photo.");
       }
 
       setProfileImage("");
       localStorage.removeItem("profile_image");
 
-      showMessage("Foto profil berhasil dihapus.");
+      showMessage("Profile photo deleted successfully.");
     } catch (error) {
       console.error("Gagal menghapus foto:", error);
 
       setMessage(
-        error instanceof Error ? error.message : "Gagal menghapus foto profil.",
+        error instanceof Error ? error.message : "Failed to delete the profile photo.",
       );
     } finally {
       setUploadingProfile(false);
@@ -672,7 +672,7 @@ export default function ProfilePage() {
     const token = localStorage.getItem("auth_token");
 
     if (!token) {
-      setMessage("Sesi login tidak ditemukan.");
+      setMessage("Login session not found.");
       return;
     }
 
@@ -690,20 +690,20 @@ export default function ProfilePage() {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.message || "Gagal menghapus background profil.");
+        throw new Error(result.message || "Failed to delete the profile cover photo.");
       }
 
       setCoverImage("");
       localStorage.removeItem("cover_image");
 
-      showMessage("Background profil berhasil dihapus.");
+      showMessage("Profile cover photo deleted successfully.");
     } catch (error) {
       console.error("Gagal menghapus background:", error);
 
       setMessage(
         error instanceof Error
           ? error.message
-          : "Gagal menghapus background profil.",
+          : "Failed to delete the profile cover photo.",
       );
     } finally {
       setUploadingCover(false);
@@ -796,11 +796,11 @@ export default function ProfilePage() {
               </p>
 
               <h1 className="text-3xl font-extrabold tracking-tight text-[#2C1E16] md:text-4xl">
-                Profil Saya
+                My Profile
               </h1>
 
               <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500 md:text-base">
-                Kelola informasi profil dan tampilan akun Anda di Career Cafe.
+                Manage your profile information and account appearance on Career Cafe.
               </p>
             </div>
           </Reveal>
@@ -829,7 +829,7 @@ export default function ProfilePage() {
                     {coverImage ? (
                       <img
                         src={coverImage}
-                        alt="Background profil"
+                        alt="Profile cover photo"
                         className="h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-[1.04]"
                       />
                     ) : (
@@ -848,8 +848,8 @@ export default function ProfilePage() {
                             onClick={() => coverInputRef.current?.click()}
                             disabled={uploadingCover}
                             className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white/95 text-[#1E3F20] shadow-md backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-white hover:shadow-lg active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
-                            aria-label="Ganti background"
-                            title="Ganti background"
+                            aria-label="Change cover photo"
+                            title="Change cover photo"
                           >
                             {uploadingCover ? (
                               <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#1E3F20]/20 border-t-[#1E3F20]" />
@@ -866,8 +866,8 @@ export default function ProfilePage() {
                               onClick={removeCoverImage}
                               disabled={uploadingCover}
                               className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white/95 text-[#6B6259] shadow-md backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-[#F8F6F1] hover:text-[#1E3F20] hover:shadow-lg active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
-                              aria-label="Hapus background"
-                              title="Hapus background"
+                              aria-label="Delete cover photo"
+                              title="Delete cover photo"
                             >
                               <TrashIcon size={18} />
                             </button>
@@ -897,7 +897,7 @@ export default function ProfilePage() {
                             {profileImage ? (
                               <img
                                 src={profileImage}
-                                alt="Foto profil"
+                                alt="Profile photo"
                                 className="h-28 w-28 rounded-full border-4 border-white bg-white object-cover shadow-lg transition-all duration-700 ease-out group-hover/avatar:scale-105 group-hover/avatar:shadow-[0_18px_40px_rgba(44,30,22,0.16)]"
                               />
                             ) : (
@@ -923,8 +923,8 @@ export default function ProfilePage() {
                                   }
                                   disabled={uploadingProfile}
                                   className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-4 border-white bg-[#1E3F20] text-white shadow-md transition-all duration-300 hover:scale-110 hover:bg-[#152e17] hover:shadow-lg active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
-                                  aria-label="Ganti foto profil"
-                                  title="Ganti foto profil"
+                                  aria-label="Change profile photo"
+                                  title="Change profile photo"
                                 >
                                   {uploadingProfile ? (
                                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -941,8 +941,8 @@ export default function ProfilePage() {
                                     onClick={removeProfileImage}
                                     disabled={uploadingProfile}
                                     className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border-4 border-white bg-white text-[#6B6259] shadow-md transition-all duration-300 hover:scale-110 hover:bg-[#F8F6F1] hover:text-[#1E3F20] hover:shadow-lg active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
-                                    aria-label="Hapus foto profil"
-                                    title="Hapus foto profil"
+                                    aria-label="Delete profile photo"
+                                    title="Delete profile photo"
                                   >
                                     <TrashIcon size={17} />
                                   </button>
@@ -975,7 +975,7 @@ export default function ProfilePage() {
                             </span>
 
                             <span className="text-sm text-gray-500">
-                              Anggota Career Cafe
+                              Career Cafe Member
                             </span>
                           </div>
                         </div>
@@ -992,17 +992,17 @@ export default function ProfilePage() {
                   <div
                     className={[
                       "flex items-start gap-3 rounded-2xl border px-5 py-4 text-sm font-semibold shadow-sm",
-                      message.includes("berhasil") ||
-                      message.includes("diperbarui") ||
-                      message.includes("dihapus")
+                      message.includes("successfully") ||
+                      message.includes("updated") ||
+                      message.includes("deleted")
                         ? "border-green-100 bg-green-50 text-green-700"
                         : "border-red-100 bg-red-50 text-red-700",
                     ].join(" ")}
                   >
                     <div className="mt-0.5">
-                      {message.includes("berhasil") ||
-                      message.includes("diperbarui") ||
-                      message.includes("dihapus") ? (
+                      {message.includes("successfully") ||
+                      message.includes("updated") ||
+                      message.includes("deleted") ? (
                         <CheckIcon size={17} />
                       ) : (
                         <span className="font-black">!</span>
@@ -1024,11 +1024,11 @@ export default function ProfilePage() {
                     <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <h3 className="text-xl font-extrabold text-[#2C1E16]">
-                          Informasi Pribadi
+                          Personal Information
                         </h3>
 
                         <p className="mt-1 text-sm text-gray-500">
-                          Informasi dasar akun Anda.
+                          Your basic account information.
                         </p>
                       </div>
 
@@ -1039,7 +1039,7 @@ export default function ProfilePage() {
                           className="flex cursor-pointer items-center gap-2 rounded-xl bg-[#1E3F20] px-5 py-3 text-sm font-bold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#152e17] hover:shadow-lg active:scale-[0.98]"
                         >
                           <EditIcon size={17} />
-                          Edit Profil
+                          Edit Profile
                         </button>
                       )}
                     </div>
@@ -1055,7 +1055,7 @@ export default function ProfilePage() {
 
                         <div className="group/field">
                           <p className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-400">
-                            Nama Lengkap
+                            Full Name
                           </p>
 
                           <div className="rounded-2xl bg-[#F8F6F1] px-4 py-4 text-sm font-semibold text-[#2C1E16] transition-all duration-300 group-hover/field:bg-[#F2EFE8] group-hover/field:translate-x-1">
@@ -1071,7 +1071,7 @@ export default function ProfilePage() {
                           </p>
 
                           <div className="rounded-2xl bg-[#F8F6F1] px-4 py-4 text-sm font-semibold text-[#2C1E16] transition-all duration-300 group-hover/field:bg-[#F2EFE8] group-hover/field:translate-x-1">
-                            {email || "Email belum tersimpan"}
+                            {email || "Email not saved"}
                           </div>
                         </div>
 
@@ -1079,7 +1079,7 @@ export default function ProfilePage() {
 
                         <div className="group/field">
                           <p className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-400">
-                            Peran
+                            Role
                           </p>
 
                           <div className="rounded-2xl bg-[#F8F6F1] px-4 py-4 text-sm font-semibold capitalize text-[#2C1E16] transition-all duration-300 group-hover/field:bg-[#F2EFE8] group-hover/field:translate-x-1">
@@ -1103,7 +1103,7 @@ export default function ProfilePage() {
                             htmlFor="profile-name"
                             className="mb-2 block text-xs font-bold uppercase tracking-wide text-gray-400"
                           >
-                            Nama Lengkap
+                            Full Name
                           </label>
 
                           <input
@@ -1113,7 +1113,7 @@ export default function ProfilePage() {
                             onChange={(event) =>
                               setEditName(event.target.value)
                             }
-                            placeholder="Masukkan nama lengkap"
+                            placeholder="Enter your full name"
                             className="w-full rounded-2xl border border-[#DDD7CA] bg-white px-4 py-4 text-sm text-[#2C1E16] outline-none transition-all duration-300 placeholder:text-[#A6A098] hover:border-[#C9C0B0] focus:-translate-y-0.5 focus:border-[#1E3F20] focus:ring-4 focus:ring-[#1E3F20]/10"
                           />
                         </div>
@@ -1135,7 +1135,7 @@ export default function ProfilePage() {
                             onChange={(event) =>
                               setEditEmail(event.target.value)
                             }
-                            placeholder="Masukkan email"
+                            placeholder="Enter your email"
                             className="w-full rounded-2xl border border-[#DDD7CA] bg-white px-4 py-4 text-sm text-[#2C1E16] outline-none transition-all duration-300 placeholder:text-[#A6A098] hover:border-[#C9C0B0] focus:-translate-y-0.5 focus:border-[#1E3F20] focus:ring-4 focus:ring-[#1E3F20]/10"
                           />
                         </div>
@@ -1144,7 +1144,7 @@ export default function ProfilePage() {
 
                         <div>
                           <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-gray-400">
-                            Peran
+                            Role
                           </label>
 
                           <div className="rounded-2xl bg-[#F8F6F1] px-4 py-4 text-sm font-semibold capitalize text-[#2C1E16]">
@@ -1152,7 +1152,7 @@ export default function ProfilePage() {
                           </div>
 
                           <p className="mt-2 text-xs text-gray-400">
-                            Peran akun diatur oleh sistem.
+                            Your account role is managed by the system.
                           </p>
                         </div>
 
@@ -1165,7 +1165,7 @@ export default function ProfilePage() {
                             className="group flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#1E3F20] px-5 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#152e17] hover:shadow-lg active:scale-[0.98]"
                           >
                             <CheckIcon size={17} />
-                            Simpan Perubahan
+                            Save Changes
                           </button>
 
                           <button
@@ -1173,7 +1173,7 @@ export default function ProfilePage() {
                             onClick={handleCancel}
                             className="cursor-pointer rounded-xl border border-[#DDD7CA] bg-white px-5 py-3 text-sm font-bold text-gray-600 transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#F8F6F1] hover:shadow-sm active:scale-[0.98]"
                           >
-                            Batal
+                            Cancel
                           </button>
                         </div>
                       </div>
@@ -1189,7 +1189,7 @@ export default function ProfilePage() {
                   <Reveal delay={180}>
                     <section className="rounded-3xl border border-[#E9E3D7] bg-white p-6 shadow-[0_18px_60px_rgba(44,30,22,0.045)] transition-all duration-700 hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(44,30,22,0.07)]">
                       <h3 className="text-xl font-extrabold text-[#2C1E16]">
-                        Aktivitas
+                        Activity
                       </h3>
 
                       <div className="mt-5 space-y-3">
@@ -1198,11 +1198,11 @@ export default function ProfilePage() {
                         <div className="group flex items-center justify-between rounded-2xl bg-[#F8F6F1] p-4 transition-all duration-400 hover:-translate-y-0.5 hover:bg-[#F1EEE7] hover:shadow-sm">
                           <div>
                             <p className="text-sm font-bold text-[#2C1E16]">
-                              Sesi Konsultasi
+                              Consultation Sessions
                             </p>
 
                             <p className="mt-1 text-xs text-gray-500">
-                              Total sesi mentor
+                              Total mentoring sessions
                             </p>
                           </div>
 
@@ -1216,11 +1216,11 @@ export default function ProfilePage() {
                         <div className="group flex items-center justify-between rounded-2xl bg-[#F8F6F1] p-4 transition-all duration-400 hover:-translate-y-0.5 hover:bg-[#F1EEE7] hover:shadow-sm">
                           <div>
                             <p className="text-sm font-bold text-[#2C1E16]">
-                              Jadwal
+                              Schedule
                             </p>
 
                             <p className="mt-1 text-xs text-gray-500">
-                              Sesi yang dijadwalkan
+                              Scheduled sessions
                             </p>
                           </div>
 
@@ -1234,11 +1234,11 @@ export default function ProfilePage() {
                         <div className="group flex items-center justify-between rounded-2xl bg-[#F8F6F1] p-4 transition-all duration-400 hover:-translate-y-0.5 hover:bg-[#F1EEE7] hover:shadow-sm">
                           <div>
                             <p className="text-sm font-bold text-[#2C1E16]">
-                              Lamaran
+                              Applications
                             </p>
 
                             <p className="mt-1 text-xs text-gray-500">
-                              Pekerjaan yang dilamar
+                              Jobs applied for
                             </p>
                           </div>
 
@@ -1262,12 +1262,12 @@ export default function ProfilePage() {
                         </div>
 
                         <h3 className="mt-5 text-lg font-extrabold">
-                          Bangun Kariermu Bersama Career Cafe
+                          Build Your Career with Career Cafe
                         </h3>
 
                         <p className="mt-2 text-sm leading-6 text-white/75">
-                          Temukan mentor, jadwalkan konsultasi, dan kembangkan
-                          kemampuanmu untuk mencapai tujuan karier.
+                          Find a mentor, schedule a consultation, and develop
+                          your skills to reach your career goals.
                         </p>
                       </div>
                     </section>
@@ -1286,15 +1286,15 @@ export default function ProfilePage() {
 
             <div className="flex gap-5">
               <span className="cursor-pointer transition-colors duration-300 hover:text-[#1E3F20]">
-                Tentang Kami
+                About Us
               </span>
 
               <span className="cursor-pointer transition-colors duration-300 hover:text-[#1E3F20]">
-                Bantuan
+                Help
               </span>
 
               <span className="cursor-pointer transition-colors duration-300 hover:text-[#1E3F20]">
-                Kebijakan Privasi
+                Privacy Policy
               </span>
             </div>
           </div>

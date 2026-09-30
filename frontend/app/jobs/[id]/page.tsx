@@ -150,7 +150,7 @@ export default function JobDetailPage() {
 
     const fetchJob = async () => {
       if (!jobId) {
-        setError("ID lowongan tidak valid.");
+        setError("Invalid job ID.");
         setLoading(false);
         return;
       }
@@ -172,12 +172,12 @@ export default function JobDetailPage() {
 
         if (!response.ok || !result?.success) {
           throw new Error(
-            result?.message ?? "Detail lowongan tidak ditemukan.",
+            result?.message ?? "Job details could not be found.",
           );
         }
 
         if (!result?.data) {
-          throw new Error("Data detail lowongan tidak tersedia.");
+          throw new Error("Job detail data is unavailable.");
         }
 
         if (!cancelled) {
@@ -193,7 +193,7 @@ export default function JobDetailPage() {
         setError(
           fetchError instanceof Error
             ? fetchError.message
-            : "Terjadi kesalahan saat mengambil detail lowongan.",
+            : "An error occurred while retrieving job details.",
         );
       } finally {
         if (!cancelled) {
@@ -284,11 +284,11 @@ export default function JobDetailPage() {
               </div>
 
               <h1 className="mt-5 text-2xl font-extrabold text-[#2C1E16]">
-                Lowongan tidak ditemukan
+                Job not found
               </h1>
 
               <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-500">
-                {error || "Data lowongan yang kamu cari tidak tersedia."}
+                {error || "The job you are looking for is unavailable."}
               </p>
 
               <button
@@ -296,7 +296,7 @@ export default function JobDetailPage() {
                 onClick={() => router.push("/jobs")}
                 className="mt-6 rounded-xl bg-[#1E3F20] px-6 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#152e17] hover:shadow-lg"
               >
-                Kembali ke Lowongan
+                Back to Jobs
               </button>
             </div>
           </Reveal>
@@ -336,7 +336,7 @@ export default function JobDetailPage() {
               <span className="transition-transform duration-300 group-hover:-translate-x-0.5">
                 ←
               </span>
-              Kembali ke Lowongan
+              Back to Jobs
             </button>
           </HeroReveal>
 
@@ -390,7 +390,7 @@ export default function JobDetailPage() {
                 <HeroReveal delay={150}>
                   <div className="w-full rounded-2xl border border-[#E8E1D8] bg-[#FCFBF8] px-5 py-4 md:w-auto md:min-w-[200px]">
                     <p className="text-xs font-medium text-gray-500">
-                      Perkiraan Gaji
+                      Estimated Salary
                     </p>
 
                     <p className="mt-1 text-lg font-extrabold text-[#1E3F20]">
@@ -398,7 +398,7 @@ export default function JobDetailPage() {
                     </p>
 
                     <p className="mt-1 text-[10px] text-gray-400">
-                      sesuai posisi & pengalaman
+                      depending on the role and experience
                     </p>
                   </div>
                 </HeroReveal>
@@ -427,7 +427,7 @@ export default function JobDetailPage() {
                 </p>
 
                 <h2 className="text-2xl font-extrabold text-[#2C1E16]">
-                  Tentang Posisi
+                  About the Role
                 </h2>
 
                 <div className="mt-4 h-px w-12 bg-[#1E3F20]/20" />
@@ -446,7 +446,7 @@ export default function JobDetailPage() {
                 </p>
 
                 <h2 className="text-2xl font-extrabold text-[#2C1E16]">
-                  Keahlian yang Dibutuhkan
+                  Required Skills
                 </h2>
 
                 <div className="mt-5 flex flex-wrap gap-2.5">
@@ -474,7 +474,7 @@ export default function JobDetailPage() {
                 </p>
 
                 <h3 className="mt-2 text-xl font-extrabold text-[#2C1E16]">
-                  Lamar posisi ini
+                  Apply for this job
                 </h3>
 
                 <p className="mt-2 text-sm leading-6 text-gray-500">
@@ -497,7 +497,7 @@ export default function JobDetailPage() {
                     className="group w-full cursor-pointer rounded-xl bg-[#1E3F20] px-5 py-3.5 text-sm font-bold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#152e17] hover:shadow-lg"
                   >
                     <span className="inline-flex items-center gap-2">
-                      Lamar Sekarang
+                      Apply Now
                       <span className="transition-transform duration-300 group-hover:translate-x-1">
                         →
                       </span>
@@ -510,20 +510,20 @@ export default function JobDetailPage() {
                     onClick={() => router.push("/jobs")}
                     className="w-full cursor-pointer rounded-xl border border-gray-200 bg-white px-5 py-3.5 text-sm font-bold text-[#2C1E16] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#1E3F20]/20 hover:bg-[#F8F7F4] hover:shadow-sm"
                   >
-                    Lihat Lowongan Lain
+                    View Other Jobs
                   </button>
                 </div>
 
                 {/* Small info */}
                 <div className="mt-5 border-t border-gray-100 pt-5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-400">Tipe pekerjaan</span>
+                    <span className="text-gray-400">Job Type</span>
 
                     <span className="font-bold text-[#2C1E16]">{job.type}</span>
                   </div>
 
                   <div className="mt-3 flex items-center justify-between text-xs">
-                    <span className="text-gray-400">Lokasi</span>
+                    <span className="text-gray-400">Location</span>
 
                     <span className="max-w-[150px] text-right font-bold text-[#2C1E16]">
                       {job.location}
@@ -531,7 +531,7 @@ export default function JobDetailPage() {
                   </div>
 
                   <div className="mt-3 flex items-center justify-between text-xs">
-                    <span className="text-gray-400">Perusahaan</span>
+                    <span className="text-gray-400">Company</span>
 
                     <span className="max-w-[150px] text-right font-bold text-[#2C1E16]">
                       {job.company}
@@ -540,7 +540,7 @@ export default function JobDetailPage() {
 
                   {job.category && (
                     <div className="mt-3 flex items-center justify-between text-xs">
-                      <span className="text-gray-400">Kategori</span>
+                      <span className="text-gray-400">Category</span>
 
                       <span className="max-w-[150px] text-right font-bold text-[#2C1E16]">
                         {job.category}

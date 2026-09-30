@@ -125,6 +125,14 @@ class SessionController extends Controller
     {
         $mentee = $request->user();
 
+        if ($mentee->role !== 'mentee') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya mentee yang dapat membuat permintaan sesi mentoring.',
+                'data' => null,
+            ], 403);
+        }
+
         $validator = Validator::make($request->all(), [
             'booked_slot_id' => ['required', 'exists:booked_slots,id'],
             'topic' => ['required', 'string', 'max:255'],

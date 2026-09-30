@@ -450,7 +450,7 @@ function DetailRow({
         </p>
 
         <p className="mt-1 text-xs font-black leading-5 text-[#42372F]">
-          {value || "Belum diisi"}
+          {value || "Not provided"}
         </p>
       </div>
     </div>
@@ -619,10 +619,10 @@ export default function MentorProfilePage() {
               )
             : "";
 
-        setError(message || "Profil mentor tidak dapat dimuat.");
+        setError(message || "Mentor profile could not be loaded.");
       }
     } catch {
-      setError("Tidak dapat terhubung ke Laravel backend.");
+      setError("Unable to connect to the Laravel backend.");
     } finally {
       setLoading(false);
     }
@@ -703,13 +703,13 @@ export default function MentorProfilePage() {
     }
 
     if (!file.type.startsWith("image/")) {
-      setError("File foto harus berupa gambar.");
+      setError("The photo must be an image file.");
       event.target.value = "";
       return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
-      setError("Ukuran foto maksimal 2 MB.");
+      setError("The maximum photo size is 2 MB.");
       event.target.value = "";
       return;
     }
@@ -745,7 +745,7 @@ export default function MentorProfilePage() {
     }
 
     if (skill.length > 50) {
-      setError("Nama skill maksimal 50 karakter.");
+      setError("Skill names must be 50 characters or fewer.");
       return;
     }
 
@@ -754,12 +754,12 @@ export default function MentorProfilePage() {
     );
 
     if (exists) {
-      setError("Skill tersebut sudah ditambahkan.");
+      setError("That skill has already been added.");
       return;
     }
 
     if (form.skills.length >= 20) {
-      setError("Maksimal 20 skill dapat ditambahkan.");
+      setError("You can add up to 20 skills.");
       return;
     }
 
@@ -798,7 +798,7 @@ export default function MentorProfilePage() {
     const name = form.name.trim();
 
     if (!name) {
-      setError("Nama lengkap wajib diisi.");
+      setError("Full name is required.");
       return;
     }
 
@@ -812,7 +812,7 @@ export default function MentorProfilePage() {
         experienceValue < 0 ||
         experienceValue > 60)
     ) {
-      setError("Pengalaman harus berupa angka antara 0 sampai 60 tahun.");
+      setError("Experience must be a number between 0 and 60 years.");
       return;
     }
 
@@ -849,7 +849,7 @@ export default function MentorProfilePage() {
       const profileResult = await profileResponse.json().catch(() => null);
 
       if (!profileResponse.ok) {
-        setError(profileResult?.message || "Profil gagal diperbarui.");
+        setError(profileResult?.message || "Failed to update the profile.");
         return;
       }
 
@@ -879,7 +879,7 @@ export default function MentorProfilePage() {
 
           setError(
             photoResult?.message ||
-              "Profil berhasil disimpan, tetapi foto profil gagal diunggah.",
+              "Profile saved, but the profile photo could not be uploaded.",
           );
 
           return;
@@ -905,7 +905,7 @@ export default function MentorProfilePage() {
 
           setError(
             deleteResult?.message ||
-              "Profil berhasil disimpan, tetapi foto gagal dihapus.",
+              "Profile saved, but the photo could not be deleted.",
           );
 
           return;
@@ -936,13 +936,13 @@ export default function MentorProfilePage() {
       setRemoveCurrentPhoto(false);
       setNewSkill("");
 
-      setSuccess("Profil mentor berhasil diperbarui.");
+      setSuccess("Mentor profile updated successfully.");
 
       window.setTimeout(() => {
         setSuccess("");
       }, 3500);
     } catch {
-      setError("Tidak dapat terhubung ke Laravel backend.");
+      setError("Unable to connect to the Laravel backend.");
     } finally {
       setSaving(false);
     }

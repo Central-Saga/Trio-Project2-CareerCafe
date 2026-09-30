@@ -372,7 +372,7 @@ function SchedulePageContent() {
 
   useEffect(() => {
     if (!mentorId) {
-      setError("Mentor belum dipilih.");
+      setError("No mentor has been selected.");
       setLoadingMentor(false);
       setLoadingSlots(false);
 
@@ -393,7 +393,9 @@ function SchedulePageContent() {
         const data = await response.json();
 
         if (!response.ok || !data.success) {
-          throw new Error(data.message || "Data mentor gagal ditemukan.");
+          throw new Error(
+            data.message || "Mentor information could not be found.",
+          );
         }
 
         setMentor(data.data);
@@ -405,7 +407,7 @@ function SchedulePageContent() {
         setError(
           err instanceof Error
             ? err.message
-            : "Terjadi kesalahan saat mengambil data mentor.",
+            : "An error occurred while retrieving mentor information.",
         );
       } finally {
         setLoadingMentor(false);
@@ -444,7 +446,9 @@ function SchedulePageContent() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.message || "Jadwal mentor gagal dimuat.");
+        throw new Error(
+          data.message || "Failed to load the mentor's schedule.",
+        );
       }
 
       const fetchedSlots: Slot[] = Array.isArray(data.data) ? data.data : [];
@@ -463,7 +467,7 @@ function SchedulePageContent() {
       setError(
         err instanceof Error
           ? err.message
-          : "Terjadi kesalahan saat mengambil jadwal.",
+          : "An error occurred while retrieving the schedule.",
       );
     } finally {
       setLoadingSlots(false);
@@ -509,7 +513,7 @@ function SchedulePageContent() {
   const formatDateLong = (dateString: string) => {
     const date = new Date(`${dateString}T00:00:00`);
 
-    return date.toLocaleDateString("id-ID", {
+    return date.toLocaleDateString("en-US", {
       weekday: "long",
       day: "numeric",
       month: "long",
@@ -532,23 +536,23 @@ function SchedulePageContent() {
     }
 
     if (!selectedSlot) {
-      setBookingError("Silakan pilih waktu konsultasi terlebih dahulu.");
+      setBookingError("Please select a consultation time first.");
 
       return;
     }
 
     if (!topic.trim()) {
-      setBookingError("Topik konsultasi wajib diisi.");
+      setBookingError("A consultation topic is required.");
       return;
     }
 
     if (!message.trim()) {
-      setBookingError("Pesan konsultasi wajib diisi.");
+      setBookingError("A consultation message is required.");
       return;
     }
 
     if (meetingType === "offline" && !meetingLocation.trim()) {
-      setBookingError("Lokasi pertemuan wajib diisi untuk sesi offline.");
+      setBookingError("A meeting location is required for in-person sessions.");
 
       return;
     }
@@ -579,7 +583,7 @@ function SchedulePageContent() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        let messageText = data.message || "Booking sesi gagal dilakukan.";
+        let messageText = data.message || "Failed to book the session.";
 
         if (data.errors) {
           const validationMessages = Object.values(data.errors)
@@ -611,7 +615,7 @@ function SchedulePageContent() {
       setBookingError(
         err instanceof Error
           ? err.message
-          : "Terjadi kesalahan saat membuat booking.",
+          : "An error occurred while booking the session.",
       );
     } finally {
       setBookingLoading(false);
@@ -700,7 +704,7 @@ function SchedulePageContent() {
             </p>
 
             <h1 className="mt-2 text-2xl font-extrabold text-[#2C1E16] sm:text-3xl">
-              Jadwal tidak dapat dimuat
+              Unable to Load Schedule
             </h1>
 
             <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-gray-500">
@@ -712,7 +716,7 @@ function SchedulePageContent() {
               onClick={() => router.back()}
               className="mt-7 inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#1E3F20] px-6 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#152e17] hover:shadow-lg"
             >
-              Kembali
+              Back
             </button>
           </div>
         </main>
@@ -749,7 +753,7 @@ function SchedulePageContent() {
               <span className="transition-transform duration-300 group-hover:-translate-x-1">
                 ←
               </span>
-              Kembali ke profil mentor
+              Back to Mentor Profile
             </button>
           </Reveal>
 
@@ -758,19 +762,19 @@ function SchedulePageContent() {
               <div>
                 <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#DCE8DA] bg-[#F1F6EF] px-3.5 py-2 text-xs font-bold text-[#1E3F20] shadow-sm">
                   <SparkleIcon className="h-4 w-4" />
-                  Jadwalkan Coffee Chat
+                  Schedule a Coffee Chat
                 </div>
 
                 <h1 className="max-w-3xl text-4xl font-extrabold leading-[1.05] tracking-tight text-[#2C1E16] sm:text-5xl">
-                  Atur waktu yang
+                  Choose a time that
                   <span className="block text-[#1E3F20]">
-                    paling nyaman untukmu.
+                    works best for you.
                   </span>
                 </h1>
 
                 <p className="mt-5 max-w-2xl text-sm leading-7 text-[#6B6259] sm:text-base">
-                  Pilih tanggal, tentukan waktu konsultasi, lalu ceritakan
-                  kebutuhanmu kepada mentor sebelum sesi dimulai.
+                  Choose a date and time, then tell your mentor what you need
+                  help with before the session.
                 </p>
               </div>
             </Reveal>
@@ -784,11 +788,11 @@ function SchedulePageContent() {
 
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">
-                      Ketersediaan
+                      Availability
                     </p>
 
                     <p className="mt-1 text-lg font-extrabold text-[#2C1E16]">
-                      {availableTotal} slot tersedia
+                      {availableTotal} slots available
                     </p>
                   </div>
                 </div>
@@ -809,7 +813,8 @@ function SchedulePageContent() {
                 </div>
 
                 <p className="mt-3 text-xs leading-5 text-gray-500">
-                  Jadwal diperbarui dari ketersediaan mentor secara langsung.
+                  The schedule updates in real time based on the mentor's
+                  availability.
                 </p>
               </div>
             </Reveal>
@@ -830,7 +835,7 @@ function SchedulePageContent() {
               </div>
 
               <div>
-                <p className="font-bold">Ada kendala</p>
+                <p className="font-bold">Something went wrong</p>
 
                 <p className="mt-0.5 leading-6">{error}</p>
               </div>
@@ -852,11 +857,11 @@ function SchedulePageContent() {
 
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#1E3F20]/60">
-                    Langkah pertama
+                    Step One
                   </p>
 
                   <p className="text-sm font-extrabold text-[#2C1E16]">
-                    Pilih tanggal & waktu
+                    Choose a Date & Time
                   </p>
                 </div>
               </div>
@@ -872,11 +877,11 @@ function SchedulePageContent() {
 
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-400">
-                    Langkah kedua
+                    Step Two
                   </p>
 
                   <p className="text-sm font-extrabold text-[#2C1E16]">
-                    Ceritakan kebutuhanmu
+                    Share What You Need
                   </p>
                 </div>
               </div>
@@ -892,11 +897,11 @@ function SchedulePageContent() {
 
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-400">
-                    Langkah ketiga
+                    Step Three
                   </p>
 
                   <p className="text-sm font-extrabold text-[#2C1E16]">
-                    Ajukan booking
+                    Book a Session
                   </p>
                 </div>
               </div>
@@ -940,7 +945,7 @@ function SchedulePageContent() {
 
                     <div className="min-w-0 flex-1">
                       <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/60">
-                        Kamu akan bertemu dengan
+                        You'll meet with
                       </p>
 
                       <h2 className="mt-1 truncate text-lg font-extrabold text-white sm:text-xl">
@@ -1002,12 +1007,12 @@ function SchedulePageContent() {
                       <ClockIcon className="h-4 w-4" />
 
                       <span className="text-[10px] font-bold uppercase tracking-wide text-gray-400">
-                        Pengalaman
+                        Experience
                       </span>
                     </div>
 
                     <p className="mt-2 text-sm font-extrabold">
-                      {mentor?.profile?.experience_years ?? 0} tahun
+                      {mentor?.profile?.experience_years ?? 0} years
                     </p>
                   </div>
 
@@ -1016,7 +1021,7 @@ function SchedulePageContent() {
                       <LocationIcon className="h-4 w-4" />
 
                       <span className="text-[10px] font-bold uppercase tracking-wide text-gray-400">
-                        Lokasi
+                        Location
                       </span>
                     </div>
 
@@ -1037,21 +1042,21 @@ function SchedulePageContent() {
                 <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-[#F3EEE7] px-3 py-1.5 text-[10px] font-bold text-[#8A6A47]">
-                      LANGKAH 01
+                      STEP 01
                     </div>
 
                     <h2 className="text-xl font-extrabold text-[#2C1E16]">
-                      Pilih tanggal
+                      Choose a Date
                     </h2>
 
                     <p className="mt-1 text-sm text-gray-500">
-                      Pilih hari yang paling nyaman untuk sesi konsultasi.
+                      Choose the day that works best for your consultation.
                     </p>
                   </div>
 
                   <div className="flex items-center gap-2 rounded-xl bg-[#F8F5F0] px-3 py-2 text-xs font-semibold text-gray-500">
-                    <CalendarIcon className="h-4 w-4 text-[#1E3F20]" />7 hari ke
-                    depan
+                    <CalendarIcon className="h-4 w-4 text-[#1E3F20]" />
+                    Next 7 days
                   </div>
                 </div>
 
@@ -1092,7 +1097,7 @@ function SchedulePageContent() {
                                   : "bg-[#EAF2EA] text-[#1E3F20]",
                               ].join(" ")}
                             >
-                              Hari ini
+                              Today
                             </span>
                           )}
 
@@ -1128,7 +1133,7 @@ function SchedulePageContent() {
                                   : "bg-gray-100 text-gray-400",
                             ].join(" ")}
                           >
-                            {count > 0 ? `${count} slot` : "Tidak tersedia"}
+                            {count > 0 ? `${count} slots` : "Unavailable"}
                           </div>
 
                           {active && (
@@ -1151,24 +1156,24 @@ function SchedulePageContent() {
                 <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-[#F3EEE7] px-3 py-1.5 text-[10px] font-bold text-[#8A6A47]">
-                      LANGKAH 02
+                      STEP 02
                     </div>
 
                     <h2 className="text-xl font-extrabold text-[#2C1E16]">
-                      Pilih waktu
+                      Choose a Time
                     </h2>
 
                     <p className="mt-1 text-sm text-gray-500">
                       {selectedDate
                         ? formatDateLong(selectedDate)
-                        : "Pilih tanggal terlebih dahulu"}
+                        : "Choose a date first"}
                     </p>
                   </div>
 
                   {selectedDateSlots.length > 0 && (
                     <div className="inline-flex w-fit items-center gap-2 rounded-xl bg-[#EAF2EA] px-3 py-2 text-xs font-bold text-[#1E3F20]">
                       <span className="h-2 w-2 rounded-full bg-[#1E3F20]" />
-                      {selectedDateSlots.length} slot tersedia
+                      {selectedDateSlots.length} slots available
                     </div>
                   )}
                 </div>
@@ -1189,12 +1194,12 @@ function SchedulePageContent() {
                     </div>
 
                     <p className="mt-5 text-sm font-extrabold text-gray-700">
-                      Belum ada slot tersedia
+                      No time slots available yet
                     </p>
 
                     <p className="mx-auto mt-1 max-w-sm text-xs leading-5 text-gray-400">
-                      Mentor belum membuka jadwal konsultasi pada tanggal ini.
-                      Coba pilih tanggal lainnya.
+                      The mentor has not opened any consultation slots for this
+                      date. Please choose another date.
                     </p>
                   </div>
                 ) : (
@@ -1227,7 +1232,7 @@ function SchedulePageContent() {
                                   active ? "text-[#1E3F20]" : "text-gray-400",
                                 ].join(" ")}
                               >
-                                Konsultasi
+                                Consultation
                               </span>
 
                               <span
@@ -1265,7 +1270,7 @@ function SchedulePageContent() {
                                 active ? "text-[#1E3F20]/70" : "text-gray-400",
                               ].join(" ")}
                             >
-                              45 menit
+                              45 minutes
                             </p>
 
                             {active && (
@@ -1288,16 +1293,16 @@ function SchedulePageContent() {
               <div className="rounded-[2rem] border border-gray-100 bg-white p-5 shadow-sm transition-all duration-500 hover:shadow-md sm:p-6">
                 <div className="mb-7">
                   <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-[#F3EEE7] px-3 py-1.5 text-[10px] font-bold text-[#8A6A47]">
-                    LANGKAH 03
+                    STEP 03
                   </div>
 
                   <h2 className="text-xl font-extrabold text-[#2C1E16]">
-                    Detail konsultasi
+                    Consultation Details
                   </h2>
 
                   <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">
-                    Berikan sedikit konteks agar mentor bisa datang ke sesi
-                    dengan persiapan yang lebih baik.
+                    Give your mentor a little context so they can prepare for
+                    the session.
                   </p>
                 </div>
 
@@ -1310,7 +1315,7 @@ function SchedulePageContent() {
                         htmlFor="topic"
                         className="block text-sm font-bold text-[#2C1E16]"
                       >
-                        Topik konsultasi
+                        Consultation Topic
                       </label>
 
                       <span className="text-[10px] font-semibold text-gray-400">
@@ -1323,7 +1328,7 @@ function SchedulePageContent() {
                       type="text"
                       value={topic}
                       onChange={(event) => setTopic(event.target.value)}
-                      placeholder="Contoh: Persiapan interview frontend developer"
+                      placeholder="Example: Preparing for a frontend developer interview"
                       maxLength={255}
                       className="w-full rounded-2xl border border-gray-200 bg-[#FCFBF8] px-4 py-4 text-sm text-[#2C1E16] outline-none transition-all duration-500 placeholder:text-gray-400 focus:border-[#1E3F20] focus:bg-white focus:ring-4 focus:ring-[#1E3F20]/10"
                     />
@@ -1337,7 +1342,7 @@ function SchedulePageContent() {
                         htmlFor="message"
                         className="block text-sm font-bold text-[#2C1E16]"
                       >
-                        Pesan untuk mentor
+                        Message for Mentor
                       </label>
 
                       <span className="rounded-full bg-[#F8F5F0] px-2.5 py-1 text-[10px] font-bold text-gray-400">
@@ -1352,7 +1357,7 @@ function SchedulePageContent() {
                         setMessage(event.target.value.slice(0, 500));
                       }}
                       rows={6}
-                      placeholder="Ceritakan apa yang sedang kamu hadapi atau apa yang ingin kamu tanyakan..."
+                      placeholder="Tell us what you're working through or what you'd like to ask..."
                       className="w-full resize-none rounded-2xl border border-gray-200 bg-[#FCFBF8] px-4 py-4 text-sm leading-6 text-[#2C1E16] outline-none transition-all duration-500 placeholder:text-gray-400 focus:border-[#1E3F20] focus:bg-white focus:ring-4 focus:ring-[#1E3F20]/10"
                     />
                   </div>
@@ -1362,11 +1367,11 @@ function SchedulePageContent() {
                   <div>
                     <div className="mb-3">
                       <p className="text-sm font-bold text-[#2C1E16]">
-                        Format pertemuan
+                        Meeting Format
                       </p>
 
                       <p className="mt-1 text-xs text-gray-400">
-                        Pilih cara kamu ingin bertemu dengan mentor.
+                        Choose how you would like to meet with your mentor.
                       </p>
                     </div>
 
@@ -1407,13 +1412,13 @@ function SchedulePageContent() {
 
                               {meetingType === "online" && (
                                 <span className="rounded-full bg-white px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-wide text-[#1E3F20]">
-                                  Dipilih
+                                  Selected
                                 </span>
                               )}
                             </div>
 
                             <p className="mt-1 text-xs leading-5 text-gray-500">
-                              Google Meet atau video call.
+                              Google Meet or video call.
                             </p>
                           </div>
                         </div>
@@ -1452,13 +1457,13 @@ function SchedulePageContent() {
 
                               {meetingType === "offline" && (
                                 <span className="rounded-full bg-white px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-wide text-[#1E3F20]">
-                                  Dipilih
+                                  Selected
                                 </span>
                               )}
                             </div>
 
                             <p className="mt-1 text-xs leading-5 text-gray-500">
-                              Bertemu langsung di lokasi yang disepakati.
+                              Meet in person at an agreed location.
                             </p>
                           </div>
                         </div>
@@ -1475,7 +1480,7 @@ function SchedulePageContent() {
                           htmlFor="location"
                           className="mb-2 block text-sm font-bold text-[#2C1E16]"
                         >
-                          Lokasi pertemuan
+                          Meeting Location
                         </label>
 
                         <input
@@ -1485,7 +1490,7 @@ function SchedulePageContent() {
                           onChange={(event) =>
                             setMeetingLocation(event.target.value)
                           }
-                          placeholder="Contoh: Career Cafe Denpasar"
+                          placeholder="Example: Career Cafe Denpasar"
                           maxLength={255}
                           className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3.5 text-sm text-[#2C1E16] outline-none transition-all duration-500 placeholder:text-gray-400 focus:border-[#1E3F20] focus:ring-4 focus:ring-[#1E3F20]/10"
                         />
@@ -1504,7 +1509,7 @@ function SchedulePageContent() {
 
                         <div>
                           <p className="font-bold">
-                            Periksa kembali data booking
+                            Please review your booking details
                           </p>
 
                           <p className="mt-0.5 leading-6">{bookingError}</p>
@@ -1526,19 +1531,19 @@ function SchedulePageContent() {
                     {bookingLoading ? (
                       <>
                         <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                        Memproses booking...
+                        Processing booking...
                       </>
                     ) : (
                       <>
-                        Ajukan Booking Sesi
+                        Book Session
                         <ArrowRightIcon className="h-4 w-4 transition-transform duration-500 group-hover:translate-x-1" />
                       </>
                     )}
                   </button>
 
                   <p className="text-center text-[11px] leading-5 text-gray-400">
-                    Setelah diajukan, booking akan masuk ke status pending dan
-                    menunggu konfirmasi mentor.
+                    After submission, your booking will be marked as pending and
+                    will wait for mentor confirmation.
                   </p>
                 </div>
               </div>
@@ -1558,7 +1563,7 @@ function SchedulePageContent() {
 
                   <div className="relative">
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/60">
-                      Ringkasan Booking
+                      Booking Summary
                     </p>
 
                     <h3 className="mt-3 text-xl font-extrabold">
@@ -1590,13 +1595,13 @@ function SchedulePageContent() {
 
                         <div className="min-w-0">
                           <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">
-                            Tanggal
+                            Date
                           </p>
 
                           <p className="mt-1 text-sm font-extrabold text-[#2C1E16]">
                             {selectedDate
                               ? formatDateLong(selectedDate)
-                              : "Belum dipilih"}
+                              : "Not selected"}
                           </p>
                         </div>
                       </div>
@@ -1619,7 +1624,7 @@ function SchedulePageContent() {
 
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">
-                            Waktu
+                            Time
                           </p>
 
                           <p className="mt-1 text-sm font-extrabold text-[#2C1E16]">
@@ -1627,12 +1632,12 @@ function SchedulePageContent() {
                               ? `${formatTime(
                                   selectedSlot.start_time,
                                 )} – ${formatTime(selectedSlot.end_time)}`
-                              : "Belum dipilih"}
+                              : "Not selected"}
                           </p>
 
                           {selectedSlot && (
                             <p className="mt-1 text-[10px] font-semibold text-[#1E3F20]">
-                              45 menit
+                              45 minutes
                             </p>
                           )}
                         </div>
@@ -1653,7 +1658,7 @@ function SchedulePageContent() {
                           </p>
 
                           <p className="mt-1 text-sm font-extrabold text-[#2C1E16]">
-                            45 menit
+                            45 minutes
                           </p>
                         </div>
                       </div>
@@ -1673,7 +1678,7 @@ function SchedulePageContent() {
 
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">
-                            Pertemuan
+                            Meeting
                           </p>
 
                           <p className="mt-1 text-sm font-extrabold capitalize text-[#2C1E16]">
@@ -1712,14 +1717,14 @@ function SchedulePageContent() {
                       <div>
                         <p className="text-xs font-bold text-[#2C1E16]">
                           {selectedSlot
-                            ? "Waktu sudah dipilih"
-                            : "Pilih waktu terlebih dahulu"}
+                            ? "Time selected"
+                            : "Select a time first"}
                         </p>
 
                         <p className="mt-1 text-[11px] leading-5 text-gray-500">
                           {selectedSlot
-                            ? "Lanjutkan dengan mengisi detail konsultasi di bawah."
-                            : "Pilih salah satu slot tersedia agar booking dapat diajukan."}
+                            ? "Continue by filling in the consultation details below."
+                            : "Select an available slot to continue with your booking."}
                         </p>
                       </div>
                     </div>
@@ -1735,15 +1740,15 @@ function SchedulePageContent() {
 
                       <div>
                         <p className="text-xs font-bold text-[#2C1E16]">
-                          Booking akan masuk ke mentor
+                          Your booking will be sent to the mentor
                         </p>
 
                         <p className="mt-1 text-[11px] leading-5 text-gray-500">
-                          Setelah diajukan, status sesi menjadi{" "}
+                          After submission, the session status becomes{" "}
                           <span className="font-bold text-[#2C1E16]">
                             pending
                           </span>{" "}
-                          sampai mentor melakukan konfirmasi.
+                          until the mentor confirms it.
                         </p>
                       </div>
                     </div>
@@ -1785,22 +1790,22 @@ function SchedulePageContent() {
 
               <div className="mt-6">
                 <span className="inline-flex items-center rounded-full bg-[#EAF2EA] px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#1E3F20]">
-                  Booking berhasil
+                  Booking Successful
                 </span>
 
                 <h2
                   id="booking-success-title"
                   className="mt-3 text-2xl font-extrabold tracking-tight text-[#2C1E16]"
                 >
-                  Permintaan berhasil diajukan!
+                  Your request has been submitted!
                 </h2>
 
                 <p
                   id="booking-success-description"
                   className="mt-2 text-sm leading-6 text-gray-500"
                 >
-                  Booking kamu sudah diterima oleh sistem dan sekarang menunggu
-                  konfirmasi dari mentor.
+                  Your booking has been received by the system and is now
+                  waiting for mentor confirmation.
                 </p>
               </div>
 
@@ -1827,7 +1832,7 @@ function SchedulePageContent() {
                       <CalendarIcon className="h-4 w-4 text-[#1E3F20]" />
 
                       <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">
-                        Tanggal
+                        Date
                       </p>
                     </div>
 
@@ -1841,7 +1846,7 @@ function SchedulePageContent() {
                       <ClockIcon className="h-4 w-4 text-[#1E3F20]" />
 
                       <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">
-                        Waktu
+                        Time
                       </p>
                     </div>
 
@@ -1867,7 +1872,7 @@ function SchedulePageContent() {
                   onClick={() => router.push("/mentors")}
                   className="group flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#1E3F20] px-4 py-3 text-sm font-bold text-white transition-all duration-500 hover:-translate-y-0.5 hover:bg-[#152e17] hover:shadow-lg active:scale-[0.98]"
                 >
-                  Lihat Mentor
+                  View Mentor
                   <ArrowRightIcon className="h-4 w-4 transition-transform duration-500 group-hover:translate-x-1" />
                 </button>
               </div>
