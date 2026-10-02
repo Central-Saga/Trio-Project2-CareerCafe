@@ -560,7 +560,7 @@ export default function BecomeMentorPage() {
             <div className="relative z-10 grid gap-8 px-6 py-8 sm:px-8 sm:py-10 lg:grid-cols-[1.5fr_0.8fr] lg:px-10 lg:py-11">
               <div>
                 <motion.div variants={heroItem}>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.16em] text-white/80 backdrop-blur-sm">
+                  <span className="inline-flex items-center gap-2 px-0 py-0 text-[10px] font-extrabold uppercase tracking-[0.16em] text-white/80">
                     <span className="h-1.5 w-1.5 rounded-full bg-[#DCE6D8]" />
                     Become a Mentor
                   </span>
