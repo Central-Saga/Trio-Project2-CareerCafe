@@ -109,7 +109,10 @@ Hentikan layanan tanpa menghapus volume database menggunakan `docker compose dow
 
 ## Screenshot
 
-Tambahkan screenshot asli aplikasi yang sedang berjalan ke `docs/screenshots/`. Screenshot yang disarankan adalah halaman utama, login, pencarian mentor, dan dashboard. Sisipkan gambar setelah file screenshot tersedia.
+### Halaman Utama
+
+![Halaman utama Career Café](docs/screenshots/career-cafe-home.png)
+
 
 ## Lisensi
 
