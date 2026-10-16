@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreFeedbackRequest;
 use App\Models\Feedback;
 use App\Models\Profile;
 use App\Models\Session;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 
 class FeedbackController extends Controller
 {
     /**
      * Store feedback for a completed session and atomically update mentor's cached rating (AC-10, FR-13, FR-14).
      */
-    public function store(Request $request, $sessionId)
+    public function store(StoreFeedbackRequest $request, $sessionId)
     {
         $mentee = $request->user();
 
@@ -52,27 +52,16 @@ class FeedbackController extends Controller
             ], 422);
         }
 
-        $validator = Validator::make($request->all(), [
-            'rating' => ['required', 'integer', 'between:1,5'],
-            'comment' => ['nullable', 'string', 'max:1000'],
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi rating gagal.',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
+        $validated = $request->validated();
 
         // AC-10: Cached Rating update within database transaction
-        $feedback = DB::transaction(function () use ($request, $session, $mentee) {
+        $feedback = DB::transaction(function () use ($validated, $session, $mentee) {
             $created = Feedback::create([
                 'session_id' => $session->id,
                 'mentor_id' => $session->mentor_id,
                 'mentee_id' => $mentee->id,
-                'rating' => $request->rating,
-                'comment' => $request->comment,
+                'rating' => $validated['rating'],
+                'comment' => $validated['comment'] ?? null,
             ]);
 
             // Hitung ulang dan update kolom cached di tabel profiles milik mentor

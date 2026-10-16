@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreMentorApplicationRequest;
+use App\Http\Requests\RejectMentorApplicationRequest;
+use App\Http\Resources\MentorApplicationResource;
 use App\Models\MentorApplication;
 use App\Models\MentorApplicationDocument;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
 use Throwable;
 
 class MentorApplicationController extends Controller
@@ -33,7 +35,7 @@ class MentorApplicationController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Riwayat pengajuan mentor berhasil diambil.',
-            'data' => $applications,
+            'data' => MentorApplicationResource::collection($applications)->resolve($request),
         ]);
     }
 
@@ -43,44 +45,9 @@ class MentorApplicationController extends Controller
      * Pengajuan menggunakan multipart/form-data karena
      * dapat membawa dokumen verifikasi.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreMentorApplicationRequest $request)
     {
         $user = $request->user();
-
-        if ($user->role !== 'mentee') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Hanya mentee yang dapat mengajukan diri sebagai mentor.',
-            ], 403);
-        }
-
-        /*
-         * Cek apakah user sudah punya pengajuan aktif.
-         *
-         * pending  = masih menunggu review
-         * approved = sudah menjadi mentor
-         */
-        $activeApplication = MentorApplication::query()
-            ->where('user_id', $user->id)
-            ->whereIn('status', ['pending', 'approved'])
-            ->latest('id')
-            ->first();
-
-        if ($activeApplication) {
-            if ($activeApplication->status === 'approved') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Akun kamu sudah terdaftar sebagai mentor.',
-                    'data' => $activeApplication,
-                ], 422);
-            }
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Kamu masih memiliki pengajuan mentor yang sedang menunggu review admin.',
-                'data' => $activeApplication,
-            ], 422);
-        }
 
         /*
          * Validasi data aplikasi mentor.
@@ -91,197 +58,13 @@ class MentorApplicationController extends Controller
          * - PDF/JPG/JPEG/PNG
          * - maksimal 5 MB per file
          */
-        $validator = Validator::make(
-            $request->all(),
-            [
-                'full_name' => [
-                    'required',
-                    'string',
-                    'max:255',
-                ],
-
-                'job_title' => [
-                    'required',
-                    'string',
-                    'max:255',
-                ],
-
-                'company' => [
-                    'nullable',
-                    'string',
-                    'max:255',
-                ],
-
-                'location' => [
-                    'nullable',
-                    'string',
-                    'max:255',
-                ],
-
-                'experience_years' => [
-                    'required',
-                    'integer',
-                    'min:0',
-                    'max:60',
-                ],
-
-                'education' => [
-                    'nullable',
-                    'string',
-                    'max:255',
-                ],
-
-                'industry_id' => [
-                    'nullable',
-                    'integer',
-                    'exists:industries,id',
-                ],
-
-                'bio' => [
-                    'required',
-                    'string',
-                    'max:3000',
-                ],
-
-                'motivation' => [
-                    'required',
-                    'string',
-                    'max:3000',
-                ],
-
-                'linkedin_url' => [
-                    'nullable',
-                    'url',
-                    'max:255',
-                ],
-
-                'skills' => [
-                    'nullable',
-                    'array',
-                    'max:20',
-                ],
-
-                'skills.*' => [
-                    'integer',
-                    'exists:skills,id',
-                ],
-
-                /*
-                 * Jenis dokumen.
-                 */
-                'document_types' => [
-                    'required',
-                    'array',
-                    'min:1',
-                    'max:3',
-                ],
-
-                'document_types.*' => [
-                    'required',
-                    'string',
-                    'in:certificate,work_experience,portfolio,other',
-                ],
-
-                /*
-                 * File dokumen.
-                 */
-                'documents' => [
-                    'required',
-                    'array',
-                    'min:1',
-                    'max:3',
-                ],
-
-                'documents.*' => [
-                    'required',
-                    'file',
-                    'mimes:pdf,jpg,jpeg,png',
-                    'max:5120',
-                ],
-            ],
-            [
-                'full_name.required' => 'Nama lengkap wajib diisi.',
-
-                'job_title.required' => 'Jabatan wajib diisi.',
-
-                'experience_years.required' =>
-                    'Pengalaman kerja wajib diisi.',
-
-                'experience_years.integer' =>
-                    'Pengalaman kerja harus berupa angka.',
-
-                'experience_years.min' =>
-                    'Pengalaman kerja tidak boleh negatif.',
-
-                'experience_years.max' =>
-                    'Pengalaman kerja maksimal 60 tahun.',
-
-                'industry_id.exists' =>
-                    'Industry yang dipilih tidak valid.',
-
-                'bio.required' =>
-                    'Bio wajib diisi.',
-
-                'motivation.required' =>
-                    'Alasan menjadi mentor wajib diisi.',
-
-                'linkedin_url.url' =>
-                    'URL LinkedIn tidak valid.',
-
-                'skills.array' =>
-                    'Data skills harus berupa array.',
-
-                'skills.*.integer' =>
-                    'ID skill harus berupa angka.',
-
-                'skills.*.exists' =>
-                    'Skill yang dipilih tidak valid.',
-
-                'document_types.required' =>
-                    'Jenis dokumen wajib dipilih.',
-
-                'document_types.min' =>
-                    'Minimal 1 dokumen harus dikirim.',
-
-                'document_types.max' =>
-                    'Maksimal 3 dokumen dapat dikirim.',
-
-                'document_types.*.in' =>
-                    'Jenis dokumen tidak valid.',
-
-                'documents.required' =>
-                    'Dokumen verifikasi wajib diunggah.',
-
-                'documents.min' =>
-                    'Minimal 1 dokumen verifikasi wajib diunggah.',
-
-                'documents.max' =>
-                    'Maksimal 3 dokumen verifikasi dapat diunggah.',
-
-                'documents.*.file' =>
-                    'Setiap bukti verifikasi harus berupa file.',
-
-                'documents.*.mimes' =>
-                    'Dokumen hanya boleh berformat PDF, JPG, JPEG, atau PNG.',
-
-                'documents.*.max' =>
-                    'Ukuran dokumen maksimal 5 MB per file.',
-            ]
-        );
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Data pengajuan mentor tidak valid.',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
+        $validated = $request->validated();
 
         /*
          * Ambil file dan jenis dokumen.
          */
-        $documents = $request->file('documents', []);
-        $documentTypes = $request->input('document_types', []);
+        $documents = $validated['documents'] ?? [];
+        $documentTypes = $validated['document_types'] ?? [];
 
         /*
          * Pastikan setiap file mempunyai jenis dokumen.
@@ -430,7 +213,7 @@ class MentorApplicationController extends Controller
                 'success' => true,
                 'message' =>
                     'Pengajuan mentor berhasil dikirim dan sedang menunggu review admin.',
-                'data' => $application,
+                'data' => MentorApplicationResource::make($application)->resolve($request),
             ], 201);
         } catch (Throwable $e) {
             /*
@@ -598,7 +381,7 @@ class MentorApplicationController extends Controller
                                 'success' => false,
                                 'message' =>
                                     'Hanya pengajuan dengan status pending yang dapat disetujui.',
-                                'data' => $application,
+                                'data' => MentorApplicationResource::make($application)->resolve($request),
                             ], 422)
                         );
                     }
@@ -796,7 +579,7 @@ class MentorApplicationController extends Controller
                 'success' => true,
                 'message' =>
                     'Pengajuan mentor berhasil disetujui. User sekarang terdaftar sebagai mentor.',
-                'data' => $application,
+                'data' => MentorApplicationResource::make($application)->resolve($request),
             ]);
         } catch (
             \Symfony\Component\HttpFoundation\Response|Throwable $e
@@ -825,42 +608,10 @@ class MentorApplicationController extends Controller
      * Admin menolak pengajuan mentor.
      */
     public function reject(
-        Request $request,
+        RejectMentorApplicationRequest $request,
         int $id
     ): JsonResponse {
-        $adminCheck = $this->ensureAdmin($request);
-
-        if ($adminCheck) {
-            return $adminCheck;
-        }
-
-        /*
-         * Alasan penolakan wajib diberikan.
-         */
-        $validator = Validator::make(
-            $request->all(),
-            [
-                'rejection_reason' => [
-                    'required',
-                    'string',
-                    'max:3000',
-                ],
-            ],
-            [
-                'rejection_reason.required' =>
-                    'Alasan penolakan wajib diisi.',
-            ]
-        );
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' =>
-                    'Alasan penolakan tidak valid.',
-                'errors' =>
-                    $validator->errors(),
-            ], 422);
-        }
+        $validated = $request->validated();
 
         /*
          * Hanya pending yang dapat ditolak.
@@ -891,12 +642,7 @@ class MentorApplicationController extends Controller
             'reviewed_at' =>
                 now(),
 
-            'rejection_reason' =>
-                trim(
-                    $request->input(
-                        'rejection_reason'
-                    )
-                ),
+            'rejection_reason' => trim($validated['rejection_reason']),
         ]);
 
         /*
@@ -916,8 +662,7 @@ class MentorApplicationController extends Controller
             'success' => true,
             'message' =>
                 'Pengajuan mentor berhasil ditolak.',
-            'data' =>
-                $application,
+            'data' => MentorApplicationResource::make($application)->resolve($request),
         ]);
     }
 

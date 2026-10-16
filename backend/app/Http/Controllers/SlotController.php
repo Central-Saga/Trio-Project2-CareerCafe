@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SetAvailabilityRequest;
 use App\Models\Availability;
 use App\Models\BookedSlot;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class SlotController extends Controller
 {
@@ -41,7 +41,7 @@ class SlotController extends Controller
     /**
      * Set weekly availability template for authenticated mentor (PRD FR-08).
      */
-    public function setAvailability(Request $request)
+    public function setAvailability(SetAvailabilityRequest $request)
     {
         $user = $request->user();
 
@@ -52,26 +52,13 @@ class SlotController extends Controller
             ], 403);
         }
 
-        $validator = Validator::make($request->all(), [
-            'availabilities' => ['required', 'array'],
-            'availabilities.*.day_of_week' => ['required', 'integer', 'between:0,6'],
-            'availabilities.*.start_time' => ['required', 'date_format:H:i'],
-            'availabilities.*.end_time' => ['required', 'date_format:H:i', 'after:availabilities.*.start_time'],
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Format ketersediaan mingguan tidak valid.',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
+        $validated = $request->validated();
 
         // Hapus template ketersediaan lama mentor
         Availability::where('mentor_id', $user->id)->delete();
 
         $createdTemplates = [];
-        foreach ($request->availabilities as $slot) {
+        foreach ($validated['availabilities'] as $slot) {
             $template = Availability::create([
                 'mentor_id' => $user->id,
                 'day_of_week' => $slot['day_of_week'],

@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreJobApplicationRequest;
+use App\Http\Resources\JobApplicationResource;
 use App\Models\Job;
 use App\Models\JobApplication;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class JobApplicationController extends Controller
 {
@@ -34,11 +35,11 @@ class JobApplicationController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Daftar lamaran berhasil diambil.',
-            'data' => $applications,
+            'data' => JobApplicationResource::collection($applications)->resolve($request),
         ]);
     }
 
-    public function store(Request $request, int $jobId): JsonResponse
+    public function store(StoreJobApplicationRequest $request, int $jobId): JsonResponse
     {
         $user = $request->user();
 
@@ -75,47 +76,19 @@ class JobApplicationController extends Controller
             ], 422);
         }
 
-        $validator = Validator::make(
-            $request->all(),
-            [
-                'full_name' => ['required', 'string', 'max:255'],
-                'email' => ['required', 'email', 'max:255'],
-                'phone' => ['nullable', 'string', 'max:50'],
-                'cv' => ['required', 'file', 'mimes:pdf', 'max:5120'],
-                'cover_letter' => ['nullable', 'string'],
-                'portfolio_url' => ['nullable', 'url', 'max:255'],
-            ],
-            [
-                'full_name.required' => 'Nama lengkap wajib diisi.',
-                'email.required' => 'Email wajib diisi.',
-                'email.email' => 'Format email tidak valid.',
-                'cv.required' => 'CV wajib diunggah.',
-                'cv.file' => 'CV harus berupa file.',
-                'cv.mimes' => 'CV harus dalam format PDF.',
-                'cv.max' => 'Ukuran CV maksimal 5 MB.',
-            ]
-        );
+        $validated = $request->validated();
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal.',
-                'errors' => $validator->errors(),
-                'data' => null,
-            ], 422);
-        }
-
-        $cvPath = $request->file('cv')->store('applications/cv');
+        $cvPath = $validated['cv']->store('applications/cv');
 
         $application = JobApplication::create([
             'job_id' => $job->id,
             'user_id' => $user->id,
-            'full_name' => $request->input('full_name'),
-            'email' => $request->input('email'),
-            'phone' => $request->input('phone'),
+            'full_name' => $validated['full_name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
             'cv_path' => $cvPath,
-            'cover_letter' => $request->input('cover_letter'),
-            'portfolio_url' => $request->input('portfolio_url'),
+            'cover_letter' => $validated['cover_letter'] ?? null,
+            'portfolio_url' => $validated['portfolio_url'] ?? null,
             'status' => 'pending',
             'applied_at' => now(),
         ]);
@@ -123,7 +96,7 @@ class JobApplicationController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Lamaran berhasil dikirim.',
-            'data' => $application,
+            'data' => JobApplicationResource::make($application->load('job'))->resolve($request),
         ], 201);
     }
 }

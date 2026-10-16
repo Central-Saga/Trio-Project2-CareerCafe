@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateProfileRequest;
+use App\Http\Requests\UploadProfilePhotoRequest;
+use App\Http\Requests\UploadProfileCoverRequest;
 use App\Models\Skill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class ProfileController extends Controller
@@ -98,43 +100,15 @@ class ProfileController extends Controller
     /**
      * Update profile details.
      */
-    public function updateProfile(Request $request)
+    public function updateProfile(UpdateProfileRequest $request)
     {
         $user = $request->user();
 
-        $validator = Validator::make($request->all(), [
-            'name' => ['nullable', 'string', 'min:2', 'max:255'],
-            'bio' => ['nullable', 'string', 'max:1000'],
-            'location' => ['nullable', 'string', 'max:255'],
-            'linkedin_url' => ['nullable', 'string', 'url', 'max:255'],
-            'timezone' => ['nullable', 'string', 'max:100'],
-
-            // Mentor specific
-            'job_title' => ['nullable', 'string', 'max:255'],
-            'company' => ['nullable', 'string', 'max:255'],
-            'industry_id' => ['nullable', 'exists:industries,id'],
-            'experience_years' => [
-                'nullable',
-                'integer',
-                'min:0',
-                'max:60',
-            ],
-            'education' => ['nullable', 'string', 'max:255'],
-            'skills' => ['nullable', 'array'],
-            'skills.*' => ['string', 'max:50'],
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi pembaruan profil gagal.',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
+        $validated = $request->validated();
 
         if ($request->filled('name')) {
             $user->update([
-                'name' => $request->name,
+                'name' => $validated['name'],
             ]);
         }
 
@@ -149,7 +123,7 @@ class ProfileController extends Controller
             ]
         );
 
-        $profileData = $request->only([
+        $profileFields = [
             'bio',
             'location',
             'linkedin_url',
@@ -159,13 +133,18 @@ class ProfileController extends Controller
             'industry_id',
             'experience_years',
             'education',
-        ]);
+        ];
+
+        $profileData = array_intersect_key(
+            $validated,
+            array_flip($profileFields)
+        );
 
         $profile->update($profileData);
 
         // Skill firstOrCreate handling
-        if ($request->has('skills')) {
-            $skillNames = $request->input('skills', []);
+        if (array_key_exists('skills', $validated)) {
+            $skillNames = $validated['skills'] ?? [];
             $skillIds = [];
 
             foreach ($skillNames as $name) {
@@ -196,28 +175,12 @@ class ProfileController extends Controller
     /**
      * Upload profile photo.
      */
-    public function uploadPhoto(Request $request)
+    public function uploadPhoto(UploadProfilePhotoRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'photo' => [
-                'required',
-                'file',
-                'image',
-                'mimes:jpg,jpeg,png,webp',
-                'max:2048',
-            ],
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi foto gagal. File harus bertipe jpg, jpeg, png, atau webp dan maksimal 2MB.',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
+        $validated = $request->validated();
 
         $user = $request->user();
-        $file = $request->file('photo');
+        $file = $validated['photo'];
 
         $extension = strtolower(
             $file->getClientOriginalExtension()
@@ -307,28 +270,12 @@ class ProfileController extends Controller
     /**
      * Upload cover/background profile photo.
      */
-    public function uploadCover(Request $request)
+    public function uploadCover(UploadProfileCoverRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'cover' => [
-                'required',
-                'file',
-                'image',
-                'mimes:jpg,jpeg,png,webp',
-                'max:2048',
-            ],
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi background gagal. File harus bertipe jpg, jpeg, png, atau webp dan maksimal 2MB.',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
+        $validated = $request->validated();
 
         $user = $request->user();
-        $file = $request->file('cover');
+        $file = $validated['cover'];
 
         $extension = strtolower(
             $file->getClientOriginalExtension()
