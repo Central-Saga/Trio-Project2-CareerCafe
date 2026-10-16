@@ -151,7 +151,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post(
         '/profile/photo',
         [ProfileController::class, 'uploadPhoto']
-    );
+    )->middleware('throttle:10,1');
 
     Route::delete(
         '/profile/photo',
@@ -161,7 +161,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post(
         '/profile/cover',
         [ProfileController::class, 'uploadCover']
-    );
+    )->middleware('throttle:10,1');
 
     Route::delete(
         '/profile/cover',
@@ -176,7 +176,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post(
         '/jobs/{jobId}/apply',
         [JobApplicationController::class, 'store']
-    );
+    )->middleware('throttle:5,1');
 
     Route::get(
         '/applications',
@@ -196,7 +196,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post(
         '/mentor-applications',
         [MentorApplicationController::class, 'store']
-    );
+    )->middleware('throttle:5,1');
 
 
     // =====================================================
@@ -211,12 +211,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch(
         '/admin/mentor-applications/{id}/approve',
         [MentorApplicationController::class, 'approve']
-    );
+    )->middleware('throttle:10,1');
 
     Route::patch(
         '/admin/mentor-applications/{id}/reject',
         [MentorApplicationController::class, 'reject']
-    );
+    )->middleware('throttle:10,1');
 
     /*
      * Membuka dokumen verifikasi mentor.
@@ -286,7 +286,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post(
         '/availability',
         [SlotController::class, 'setAvailability']
-    );
+    )->middleware('throttle:10,1');
 
 
     // =====================================================
@@ -296,7 +296,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post(
         '/sessions',
         [SessionController::class, 'store']
-    );
+    )->middleware('throttle:10,1');
 
     Route::get(
         '/sessions',
@@ -336,7 +336,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post(
         '/sessions/{id}/feedback',
         [FeedbackController::class, 'store']
-    );
+    )->middleware('throttle:5,1');
 
 
     // =====================================================

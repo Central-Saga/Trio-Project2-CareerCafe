@@ -107,7 +107,7 @@ class AdminSessionController extends Controller
         /*
          * PAGINATION
          */
-        $perPage = (int) $request->input('per_page', 20);
+        $perPage = \App\Support\ApiPagination::perPage($request, 20);
 
         $perPage = max(1, min($perPage, 100));
 
@@ -136,12 +136,7 @@ class AdminSessionController extends Controller
             'message' => 'Daftar session admin berhasil diambil.',
             'data' => $items,
             'stats' => $stats,
-            'pagination' => [
-                'current_page' => $sessions->currentPage(),
-                'last_page' => $sessions->lastPage(),
-                'per_page' => $sessions->perPage(),
-                'total' => $sessions->total(),
-            ],
+            'pagination' => \App\Support\ApiPagination::metadata($sessions),
         ]);
     }
 

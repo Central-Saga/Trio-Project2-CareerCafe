@@ -289,18 +289,7 @@ class MentorApplicationController extends Controller
         /*
          * Pagination.
          */
-        $perPage = (int) $request->input(
-            'per_page',
-            15
-        );
-
-        if ($perPage < 1) {
-            $perPage = 15;
-        }
-
-        if ($perPage > 100) {
-            $perPage = 100;
-        }
+        $perPage = \App\Support\ApiPagination::perPage($request, 15);
 
         $applications = $query->paginate(
             $perPage
@@ -314,19 +303,7 @@ class MentorApplicationController extends Controller
             'data' =>
                 $applications->items(),
 
-            'pagination' => [
-                'current_page' =>
-                    $applications->currentPage(),
-
-                'last_page' =>
-                    $applications->lastPage(),
-
-                'per_page' =>
-                    $applications->perPage(),
-
-                'total' =>
-                    $applications->total(),
-            ],
+            'pagination' => \App\Support\ApiPagination::metadata($applications),
         ]);
     }
 
