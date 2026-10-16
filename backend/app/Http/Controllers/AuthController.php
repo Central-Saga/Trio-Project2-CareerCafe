@@ -2,41 +2,28 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
 use App\Models\User;
 use App\Models\Profile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
     /**
      * Register a new mentee or mentor user.
      */
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => ['required', 'string', 'min:2', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'role' => ['nullable', 'string', Rule::in(['mentee', 'mentor'])],
-        ]);
+        $validated = $request->validated();
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi pendaftaran gagal.',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $role = $request->input('role', 'mentee');
+        $role = array_key_exists('role', $validated) ? $validated['role'] : 'mentee';
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
             'role' => $role,
             'status' => 'active',
         ]);
@@ -64,24 +51,13 @@ class AuthController extends Controller
     /**
      * Login user and issue Bearer token.
      */
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
-        ]);
+        $validated = $request->validated();
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi login gagal.',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
+        $user = User::with(['profile.industry', 'skills'])->where('email', $validated['email'])->first();
 
-        $user = User::with(['profile.industry', 'skills'])->where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (!$user || !Hash::check($validated['password'], $user->password)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Email atau kata sandi tidak sesuai.',

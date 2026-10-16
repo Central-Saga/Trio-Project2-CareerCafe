@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Http\Resources\PostResource;
+use App\Http\Requests\StorePostRequest;
+use App\Http\Requests\UpdatePostRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Gate;
 
 class PostController extends Controller
 {
@@ -37,7 +39,7 @@ class PostController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Daftar postingan Career Feed berhasil diambil.',
-            'data' => $posts->items(),
+            'data' => PostResource::collection($posts->getCollection())->resolve($request),
             'pagination' => [
                 'current_page' => $posts->currentPage(),
                 'last_page' => $posts->lastPage(),
@@ -50,7 +52,7 @@ class PostController extends Controller
     /**
      * Get single post detail.
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $post = Post::with(['user:id,name,role', 'user.profile:id,user_id,profile_photo,job_title,company,bio'])
             ->where('status', 'published')
@@ -66,60 +68,48 @@ class PostController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Detail postingan berhasil diambil.',
-            'data' => $post,
+            'data' => PostResource::make($post)->resolve($request),
         ]);
     }
 
     /**
      * Create new career feed post (PRD FR-16).
      */
-    public function store(Request $request)
+    public function store(StorePostRequest $request)
     {
         $user = $request->user();
 
-        $validator = Validator::make($request->all(), [
-            'title' => ['required', 'string', 'min:3', 'max:255'],
-            'content' => ['required', 'string', 'min:10'],
-            'category' => [
-                'required',
-                'string',
-                Rule::in([
-                    'Career Story',
-                    'Industry Insight',
-                    'Interview Tips',
-                    'Work Experience',
-                    'Networking Tips'
-                ]),
-            ],
-        ]);
-
-        if ($validator->fails()) {
+        if (!Gate::forUser($user)->allows('create', Post::class)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validasi postingan gagal.',
-                'errors' => $validator->errors(),
-            ], 422);
+                'message' => 'Anda tidak memiliki hak untuk membuat postingan.',
+            ], 403);
         }
+
+        $validated = $request->validated();
 
         $post = Post::create([
             'user_id' => $user->id,
-            'title' => $request->title,
-            'content' => $request->content,
-            'category' => $request->category,
+            'title' => $validated['title'],
+            'content' => $validated['content'],
+            'category' => $validated['category'],
             'status' => 'published',
         ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Postingan berhasil dipublikasikan di Career Feed.',
-            'data' => $post->load(['user:id,name,role', 'user.profile:id,user_id,profile_photo,job_title,company']),
+            'data' => PostResource::make($post->load([
+                'user:id,name,role',
+                'user.profile:id,user_id,profile_photo,job_title,company',
+            ]))->resolve($request),
         ], 201);
     }
 
     /**
      * Update own post (PRD FR-17).
      */
-    public function update(Request $request, $id)
+    public function update(UpdatePostRequest $request, $id)
     {
         $user = $request->user();
         $post = Post::find($id);
@@ -132,44 +122,21 @@ class PostController extends Controller
         }
 
         // Business Rule 7: User hanya dapat mengedit post miliknya sendiri
-        if ($post->user_id !== $user->id && $user->role !== 'admin') {
+        if (!Gate::forUser($user)->allows('update', $post)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda tidak memiliki hak untuk mengedit postingan ini.',
             ], 403);
         }
 
-        $validator = Validator::make($request->all(), [
-            'title' => ['sometimes', 'required', 'string', 'min:3', 'max:255'],
-            'content' => ['sometimes', 'required', 'string', 'min:10'],
-            'category' => [
-                'sometimes',
-                'required',
-                'string',
-                Rule::in([
-                    'Career Story',
-                    'Industry Insight',
-                    'Interview Tips',
-                    'Work Experience',
-                    'Networking Tips'
-                ]),
-            ],
-        ]);
+        $validated = $request->validated();
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi pembaruan postingan gagal.',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $post->update($request->only(['title', 'content', 'category']));
+        $post->update($validated);
 
         return response()->json([
             'success' => true,
             'message' => 'Postingan berhasil diperbarui.',
-            'data' => $post->fresh(['user:id,name,role', 'user.profile']),
+            'data' => PostResource::make($post->fresh(['user:id,name,role', 'user.profile']))->resolve($request),
         ]);
     }
 
@@ -189,7 +156,7 @@ class PostController extends Controller
         }
 
         // Business Rule 7: User hanya dapat menghapus post miliknya sendiri
-        if ($post->user_id !== $user->id && $user->role !== 'admin') {
+        if (!Gate::forUser($user)->allows('delete', $post)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda tidak memiliki hak untuk menghapus postingan ini.',

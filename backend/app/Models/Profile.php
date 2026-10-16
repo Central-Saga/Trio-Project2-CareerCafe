@@ -13,6 +13,7 @@ class Profile extends Model
         'user_id',
         'industry_id',
         'profile_photo',
+        'cover_photo',
         'bio',
         'location',
         'job_title',

@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreSessionRequest;
+use App\Http\Requests\RejectSessionRequest;
 use App\Models\BookedSlot;
+use App\Http\Resources\SessionResource;
 use App\Models\Session;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Gate;
 
 class SessionController extends Controller
 {
@@ -101,7 +104,7 @@ class SessionController extends Controller
         }
 
         // Authorization: Mentor, mentee, or admin
-        if ($session->mentor_id !== $user->id && $session->mentee_id !== $user->id && $user->role !== 'admin') {
+        if (!Gate::forUser($user)->allows('view', $session)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda tidak memiliki akses ke sesi ini.',
@@ -121,11 +124,11 @@ class SessionController extends Controller
     /**
      * Request a coffee chat session with concurrency locking (AC-09, FR-06, FR-09, Section 16 & 17).
      */
-    public function store(Request $request)
+    public function store(StoreSessionRequest $request)
     {
         $mentee = $request->user();
 
-        if ($mentee->role !== 'mentee') {
+        if (!Gate::forUser($mentee)->allows('create', Session::class)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Hanya mentee yang dapat membuat permintaan sesi mentoring.',
@@ -133,28 +136,12 @@ class SessionController extends Controller
             ], 403);
         }
 
-        $validator = Validator::make($request->all(), [
-            'booked_slot_id' => ['required', 'exists:booked_slots,id'],
-            'topic' => ['required', 'string', 'max:255'],
-            'message' => ['required', 'string', 'max:2000'],
-            'duration' => ['required', 'integer', 'min:15', 'max:120'],
-            'meeting_type' => ['required', 'in:online,offline'],
-            'meeting_link' => ['nullable', 'string', 'max:255'],
-            'meeting_location' => ['nullable', 'string', 'max:255'],
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal.',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
+        $validated = $request->validated();
 
         try {
             // DB Transaction with pessimistic locking (lockForUpdate) to prevent race condition (AC-09)
-            $session = DB::transaction(function () use ($request, $mentee) {
-                $slot = BookedSlot::where('id', $request->booked_slot_id)
+            $session = DB::transaction(function () use ($validated, $mentee) {
+                $slot = BookedSlot::where('id', $validated['booked_slot_id'])
                     ->lockForUpdate()
                     ->first();
 
@@ -174,12 +161,12 @@ class SessionController extends Controller
                     'mentor_id' => $slot->mentor_id,
                     'mentee_id' => $mentee->id,
                     'booked_slot_id' => $slot->id,
-                    'topic' => $request->topic,
-                    'message' => $request->message,
-                    'duration' => $request->duration,
-                    'meeting_type' => $request->meeting_type,
-                    'meeting_link' => $request->meeting_link ?? ($request->meeting_type === 'online' ? 'https://meet.google.com' : null),
-                    'meeting_location' => $request->meeting_location,
+                    'topic' => $validated['topic'],
+                    'message' => $validated['message'],
+                    'duration' => $validated['duration'],
+                    'meeting_type' => $validated['meeting_type'],
+                    'meeting_link' => $validated['meeting_link'] ?? ($validated['meeting_type'] === 'online' ? 'https://meet.google.com' : null),
+                    'meeting_location' => $validated['meeting_location'] ?? null,
                     'status' => 'pending',
                 ]);
 
@@ -189,7 +176,7 @@ class SessionController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Permintaan coffee chat berhasil dikirim ke mentor.',
-                'data' => $session->load(['mentor.profile', 'bookedSlot']),
+                'data' => SessionResource::make($session->load(['mentor.profile', 'bookedSlot']))->resolve($request),
             ], 201);
         } catch (\Exception $e) {
             $code = $e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 400;
@@ -219,7 +206,7 @@ class SessionController extends Controller
         }
 
         // Business Rule 3: Mentor hanya bisa approve/reject request yang ditujukan kepadanya
-        if ($session->mentor_id !== $mentor->id) {
+        if (!Gate::forUser($mentor)->allows('approve', $session)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Hanya mentor yang dituju yang dapat menyetujui sesi.',
@@ -241,38 +228,20 @@ class SessionController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Sesi coffee chat telah disetujui.',
-            'data' => $session->fresh(['mentor.profile', 'mentee.profile', 'bookedSlot']),
+            'data' => SessionResource::make($session->fresh(['mentor.profile', 'mentee.profile', 'bookedSlot']))->resolve($request),
         ]);
     }
 
     /**
      * Mentor rejects session (PRD FR-07, FR-09).
      */
-    public function reject(Request $request, $id)
+    public function reject(RejectSessionRequest $request, $id)
     {
         $mentor = $request->user();
 
-        $validator = Validator::make(
-            $request->all(),
-            [
-                'rejection_reason' => ['required', 'string', 'min:5', 'max:3000'],
-            ],
-            [
-                'rejection_reason.required' => 'Alasan penolakan wajib diisi.',
-                'rejection_reason.min' => 'Alasan penolakan minimal 5 karakter.',
-                'rejection_reason.max' => 'Alasan penolakan maksimal 3000 karakter.',
-            ]
-        );
+        $validated = $request->validated();
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Alasan penolakan tidak valid.',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $rejectionReason = trim($request->input('rejection_reason'));
+        $rejectionReason = trim($validated['rejection_reason']);
 
         if (mb_strlen($rejectionReason) < 5) {
             return response()->json([
@@ -293,7 +262,7 @@ class SessionController extends Controller
             ], 404);
         }
 
-        if ($session->mentor_id !== $mentor->id) {
+        if (!Gate::forUser($mentor)->allows('reject', $session)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Hanya mentor yang dituju yang dapat menolak sesi.',
@@ -353,7 +322,7 @@ class SessionController extends Controller
             ], 404);
         }
 
-        if ($session->mentor_id !== $user->id && $session->mentee_id !== $user->id) {
+        if (!Gate::forUser($user)->allows('cancel', $session)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anda tidak memiliki hak untuk membatalkan sesi ini.',
@@ -376,7 +345,7 @@ class SessionController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Sesi coffee chat telah dibatalkan.',
-            'data' => $session->fresh(),
+            'data' => SessionResource::make($session->fresh())->resolve($request),
         ]);
     }
 
@@ -396,7 +365,7 @@ class SessionController extends Controller
         }
 
         // Section 30.3: Mentee tidak diberi hak menandai completed; mentor diperbolehkan manual override
-        if ($session->mentor_id !== $user->id && $user->role !== 'admin') {
+        if (!Gate::forUser($user)->allows('complete', $session)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Hanya mentor pemilik sesi yang berhak menandai sesi selesai.',
@@ -415,7 +384,7 @@ class SessionController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Sesi coffee chat telah berhasil diselesaikan.',
-            'data' => $session->fresh(['mentor.profile', 'mentee.profile', 'bookedSlot']),
+            'data' => SessionResource::make($session->fresh(['mentor.profile', 'mentee.profile', 'bookedSlot']))->resolve($request),
         ]);
     }
 }
