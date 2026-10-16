@@ -83,19 +83,14 @@ class MentorController extends Controller
         ]);
 
         // Default pagination: 15 items per page (PRD Section 30.5)
-        $perPage = (int) $request->input('per_page', 15);
+        $perPage = \App\Support\ApiPagination::perPage($request, 15);
         $mentors = $query->latest('id')->paginate($perPage);
 
         return response()->json([
             'success' => true,
             'message' => 'Daftar mentor berhasil diambil.',
             'data' => $mentors->items(),
-            'pagination' => [
-                'current_page' => $mentors->currentPage(),
-                'last_page' => $mentors->lastPage(),
-                'per_page' => $mentors->perPage(),
-                'total' => $mentors->total(),
-            ],
+            'pagination' => \App\Support\ApiPagination::metadata($mentors),
         ]);
     }
 

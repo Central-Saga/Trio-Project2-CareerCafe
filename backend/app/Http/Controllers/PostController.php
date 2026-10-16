@@ -33,19 +33,14 @@ class PostController extends Controller
             });
         }
 
-        $perPage = (int) $request->input('per_page', 10);
+        $perPage = \App\Support\ApiPagination::perPage($request, 10);
         $posts = $query->latest('id')->paginate($perPage);
 
         return response()->json([
             'success' => true,
             'message' => 'Daftar postingan Career Feed berhasil diambil.',
             'data' => PostResource::collection($posts->getCollection())->resolve($request),
-            'pagination' => [
-                'current_page' => $posts->currentPage(),
-                'last_page' => $posts->lastPage(),
-                'per_page' => $posts->perPage(),
-                'total' => $posts->total(),
-            ],
+            'pagination' => \App\Support\ApiPagination::metadata($posts),
         ]);
     }
 

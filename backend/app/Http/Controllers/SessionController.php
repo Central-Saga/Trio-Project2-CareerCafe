@@ -52,7 +52,7 @@ class SessionController extends Controller
             $query->where('status', $request->status);
         }
 
-        $perPage = (int) $request->input('per_page', 20);
+        $perPage = \App\Support\ApiPagination::perPage($request, 20);
         $sessions = $query->latest('id')->paginate($perPage);
 
         // Pastikan rejection_reason selalu dikirim ke frontend mentee,
@@ -71,12 +71,7 @@ class SessionController extends Controller
             'success' => true,
             'message' => 'Daftar sesi berhasil diambil.',
             'data' => $sessionItems,
-            'pagination' => [
-                'current_page' => $sessions->currentPage(),
-                'last_page' => $sessions->lastPage(),
-                'per_page' => $sessions->perPage(),
-                'total' => $sessions->total(),
-            ],
+            'pagination' => \App\Support\ApiPagination::metadata($sessions),
         ]);
     }
 

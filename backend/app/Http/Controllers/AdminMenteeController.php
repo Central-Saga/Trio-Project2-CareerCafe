@@ -73,7 +73,7 @@ class AdminMenteeController extends Controller
             $query->where('status', $status);
         }
 
-        $perPage = (int) $request->input('per_page', 20);
+        $perPage = \App\Support\ApiPagination::perPage($request, 20);
 
         if ($perPage < 1) {
             $perPage = 20;
@@ -89,12 +89,7 @@ class AdminMenteeController extends Controller
             'success' => true,
             'message' => 'Daftar mentee berhasil diambil.',
             'data' => $mentees->items(),
-            'pagination' => [
-                'current_page' => $mentees->currentPage(),
-                'last_page' => $mentees->lastPage(),
-                'per_page' => $mentees->perPage(),
-                'total' => $mentees->total(),
-            ],
+            'pagination' => \App\Support\ApiPagination::metadata($mentees),
         ]);
     }
 
