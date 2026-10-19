@@ -1,12 +1,11 @@
 "use client";
 
+import { API_BASE_URL, apiFetch } from "@/lib/api";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const API_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api"
-).replace(/\/$/, "");
+const API_URL = API_BASE_URL;
 
 type ApplicationStatus = "pending" | "approved" | "rejected";
 
@@ -603,17 +602,17 @@ export default function AdminDashboardPage() {
 
         const [mentorsResponse, applicationsResponse, sessionsResponse] =
           await Promise.all([
-            fetch(`${API_URL}/mentors?per_page=100`, {
+            apiFetch(`${API_URL}/mentors?per_page=100`, {
               headers,
               cache: "no-store",
             }),
 
-            fetch(`${API_URL}/admin/mentor-applications?per_page=100`, {
+            apiFetch(`${API_URL}/admin/mentor-applications?per_page=100`, {
               headers,
               cache: "no-store",
             }),
 
-            fetch(`${API_URL}/admin/sessions?per_page=100`, {
+            apiFetch(`${API_URL}/admin/sessions?per_page=100`, {
               headers,
               cache: "no-store",
             }),

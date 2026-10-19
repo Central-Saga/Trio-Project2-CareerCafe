@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL, API_ORIGIN, apiFetch } from "@/lib/api";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -77,9 +78,7 @@ type ApiResponse = {
   };
 };
 
-const API_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api"
-).replace(/\/$/, "");
+const API_URL = API_BASE_URL;
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -126,14 +125,14 @@ function resolveImageUrl(value?: string | null): string {
   }
 
   if (value.startsWith("/")) {
-    return `http://127.0.0.1:8000${value}`;
+    return `${API_ORIGIN}${value}`;
   }
 
   if (value.startsWith("storage/")) {
-    return `http://127.0.0.1:8000/${value}`;
+    return `${API_ORIGIN}/${value}`;
   }
 
-  return `http://127.0.0.1:8000/storage/${value}`;
+  return `${API_ORIGIN}/storage/${value}`;
 }
 
 function getInitial(name?: string | null): string {
@@ -365,7 +364,7 @@ export default function AdminSessionsPage() {
           );
         }
 
-        const response = await fetch(
+        const response = await apiFetch(
           `${API_URL}/admin/sessions?${params.toString()}`,
           {
             method: "GET",
@@ -452,7 +451,7 @@ export default function AdminSessionsPage() {
     }
 
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         `${API_URL}/admin/sessions/${session.id}`,
         {
           headers: {
@@ -502,7 +501,7 @@ export default function AdminSessionsPage() {
     setSuccess("");
 
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         `${API_URL}/admin/sessions/${completeTarget.id}/complete`,
         {
           method: "PATCH",

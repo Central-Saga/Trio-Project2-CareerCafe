@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL, apiFetch } from "@/lib/api";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -56,9 +57,7 @@ type EditForm = {
   skills: string[];
 };
 
-const API_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api"
-).replace(/\/$/, "");
+const API_URL = API_BASE_URL;
 
 const BACKEND_URL = API_URL.replace(/\/api$/, "");
 
@@ -527,7 +526,7 @@ export default function MentorProfilePage() {
 
     try {
       const [meResponse, profileResponse] = await Promise.all([
-        fetch(`${API_URL}/me`, {
+        apiFetch(`${API_URL}/me`, {
           headers: {
             Accept: "application/json",
             Authorization: `Bearer ${token}`,
@@ -535,7 +534,7 @@ export default function MentorProfilePage() {
           cache: "no-store",
         }),
 
-        fetch(`${API_URL}/profile`, {
+        apiFetch(`${API_URL}/profile`, {
           headers: {
             Accept: "application/json",
             Authorization: `Bearer ${token}`,
@@ -825,7 +824,7 @@ export default function MentorProfilePage() {
          UPDATE PROFILE DATA
       ------------------------------------------------------- */
 
-      const profileResponse = await fetch(`${API_URL}/profile`, {
+      const profileResponse = await apiFetch(`${API_URL}/profile`, {
         method: "PUT",
         headers: {
           Accept: "application/json",
@@ -862,7 +861,7 @@ export default function MentorProfilePage() {
 
         photoForm.append("photo", selectedPhoto);
 
-        const photoResponse = await fetch(`${API_URL}/profile/photo`, {
+        const photoResponse = await apiFetch(`${API_URL}/profile/photo`, {
           method: "POST",
           headers: {
             Accept: "application/json",
@@ -889,7 +888,7 @@ export default function MentorProfilePage() {
            DELETE FOTO
         ----------------------------------------------------- */
 
-        const deletePhotoResponse = await fetch(`${API_URL}/profile/photo`, {
+        const deletePhotoResponse = await apiFetch(`${API_URL}/profile/photo`, {
           method: "DELETE",
           headers: {
             Accept: "application/json",

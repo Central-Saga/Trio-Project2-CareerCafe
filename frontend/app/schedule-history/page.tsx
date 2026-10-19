@@ -1,13 +1,12 @@
 "use client";
 
+import { API_BASE_URL, apiFetch } from "@/lib/api";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
 
 type SessionStatus =
   | "pending"
@@ -591,7 +590,7 @@ export default function ScheduleHistoryPage() {
           ? "per_page=50"
           : `tab=${encodeURIComponent(tab)}&per_page=50`;
 
-      const response = await fetch(`${API_BASE_URL}/sessions?${query}`, {
+      const response = await apiFetch(`${API_BASE_URL}/sessions?${query}`, {
         method: "GET",
         headers: {
           Accept: "application/json",
@@ -637,7 +636,7 @@ export default function ScheduleHistoryPage() {
       setDetailLoading(true);
       setError("");
 
-      const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}`, {
+      const response = await apiFetch(`${API_BASE_URL}/sessions/${sessionId}`, {
         method: "GET",
         headers: {
           Accept: "application/json",
@@ -683,7 +682,7 @@ export default function ScheduleHistoryPage() {
     try {
       setCancelling(true);
 
-      const response = await fetch(
+      const response = await apiFetch(
         `${API_BASE_URL}/sessions/${cancelTarget.id}/cancel`,
         {
           method: "PATCH",
@@ -817,7 +816,7 @@ export default function ScheduleHistoryPage() {
        *   comment: "..."
        * }
        */
-      const response = await fetch(
+      const response = await apiFetch(
         `${API_BASE_URL}/sessions/${ratingTarget.id}/feedback`,
         {
           method: "POST",
@@ -1112,7 +1111,7 @@ export default function ScheduleHistoryPage() {
                 </div>
               ))}
             </div>
-          ) : sessions.length === 0 ? (
+          ) : error ? null : sessions.length === 0 ? (
             <Reveal className="mt-8">
               <div className="rounded-3xl border border-[#EAE5DE] bg-white px-6 py-14 text-center shadow-[0_18px_60px_rgba(44,30,22,0.04)]">
                 <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-[#F3F0EA] text-[#8A6A47]">

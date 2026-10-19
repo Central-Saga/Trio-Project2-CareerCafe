@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL, API_ORIGIN, apiFetch } from "@/lib/api";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Session = {
@@ -33,9 +34,7 @@ type Session = {
   } | null;
 };
 
-const API_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api"
-).replace(/\/$/, "");
+const API_URL = API_BASE_URL;
 
 const filters = [
   { key: "all", label: "All Sessions" },
@@ -89,10 +88,10 @@ function resolveImageUrl(value?: string | null) {
   }
 
   if (value.startsWith("/")) {
-    return `http://127.0.0.1:8000${value}`;
+    return `${API_ORIGIN}${value}`;
   }
 
-  return `http://127.0.0.1:8000/storage/${value.replace(/^storage\//, "")}`;
+  return `${API_ORIGIN}/storage/${value.replace(/^storage\//, "")}`;
 }
 
 export default function MentorSessionsPage() {
@@ -116,7 +115,7 @@ export default function MentorSessionsPage() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/sessions?per_page=50`, {
+      const response = await apiFetch(`${API_URL}/sessions?per_page=50`, {
         headers: {
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
@@ -193,7 +192,7 @@ export default function MentorSessionsPage() {
     setSuccess("");
 
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         `${API_URL}/sessions/${session.id}/complete`,
         {
           method: "PATCH",

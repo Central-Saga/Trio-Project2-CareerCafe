@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL, apiFetch } from "@/lib/api";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
@@ -20,8 +21,6 @@ type Job = {
   is_active: boolean;
 };
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
 
 /* =========================================================
    REVEAL COMPONENT
@@ -160,7 +159,7 @@ export default function JobDetailPage() {
         setError("");
         setJob(null);
 
-        const response = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
+        const response = await apiFetch(`${API_BASE_URL}/jobs/${jobId}`, {
           method: "GET",
           headers: {
             Accept: "application/json",

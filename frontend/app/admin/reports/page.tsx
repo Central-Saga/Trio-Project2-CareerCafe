@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL, API_ORIGIN, apiFetch } from "@/lib/api";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -64,9 +65,7 @@ type ReportResponse = {
   data?: ReportData;
 };
 
-const API_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api"
-).replace(/\/$/, "");
+const API_URL = API_BASE_URL;
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -84,14 +83,14 @@ function resolveImageUrl(value?: string | null): string {
   }
 
   if (value.startsWith("/")) {
-    return `http://127.0.0.1:8000${value}`;
+    return `${API_ORIGIN}${value}`;
   }
 
   if (value.startsWith("storage/")) {
-    return `http://127.0.0.1:8000/${value}`;
+    return `${API_ORIGIN}/${value}`;
   }
 
-  return `http://127.0.0.1:8000/storage/${value}`;
+  return `${API_ORIGIN}/storage/${value}`;
 }
 
 function initials(name?: string | null): string {
@@ -201,7 +200,7 @@ export default function AdminReportsPage() {
 
         setError("");
 
-        const response = await fetch(`${API_URL}/admin/reports`, {
+        const response = await apiFetch(`${API_URL}/admin/reports`, {
           method: "GET",
           headers: {
             Accept: "application/json",

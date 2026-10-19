@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL, API_ORIGIN, apiFetch } from "@/lib/api";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Feedback = {
@@ -16,9 +17,7 @@ type Feedback = {
   } | null;
 };
 
-const API_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api"
-).replace(/\/$/, "");
+const API_URL = API_BASE_URL;
 
 function resolveImageUrl(value?: string | null) {
   if (!value) {
@@ -30,10 +29,10 @@ function resolveImageUrl(value?: string | null) {
   }
 
   if (value.startsWith("/")) {
-    return `http://127.0.0.1:8000${value}`;
+    return `${API_ORIGIN}${value}`;
   }
 
-  return `http://127.0.0.1:8000/storage/${value.replace(/^storage\//, "")}`;
+  return `${API_ORIGIN}/storage/${value.replace(/^storage\//, "")}`;
 }
 
 export default function MentorFeedbackPage() {
@@ -52,7 +51,7 @@ export default function MentorFeedbackPage() {
     }
 
     try {
-      const meResponse = await fetch(`${API_URL}/me`, {
+      const meResponse = await apiFetch(`${API_URL}/me`, {
         headers: {
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
@@ -77,7 +76,7 @@ export default function MentorFeedbackPage() {
 
       setMentorId(id);
 
-      const response = await fetch(`${API_URL}/mentors/${id}/feedbacks`, {
+      const response = await apiFetch(`${API_URL}/mentors/${id}/feedbacks`, {
         headers: {
           Accept: "application/json",
         },

@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL, apiFetch } from "@/lib/api";
 import Link from "next/link";
 import {
   useCallback,
@@ -52,9 +53,7 @@ type Application = {
 
 type TabKey = "all" | ApplicationStatus;
 
-const API_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api"
-).replace(/\/$/, "");
+const API_URL = API_BASE_URL;
 
 const tabs: {
   key: TabKey;
@@ -172,7 +171,7 @@ export default function AdminMentorApplicationsPage() {
       const params =
         activeTab === "all" ? "" : `?status=${encodeURIComponent(activeTab)}`;
 
-      const response = await fetch(
+      const response = await apiFetch(
         `${API_URL}/admin/mentor-applications${params}`,
         {
           headers: {
@@ -310,7 +309,7 @@ export default function AdminMentorApplicationsPage() {
     setSuccess("");
 
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         `${API_URL}/admin/mentor-applications/${selectedApplication.id}/approve`,
         {
           method: "PATCH",
@@ -398,7 +397,7 @@ export default function AdminMentorApplicationsPage() {
     setSuccess("");
 
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         `${API_URL}/admin/mentor-applications/${selectedApplication.id}/reject`,
         {
           method: "PATCH",

@@ -1,13 +1,12 @@
 "use client";
 
+import { API_BASE_URL, apiFetch } from "@/lib/api";
 import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
 
 type Job = {
   id: number;
@@ -160,7 +159,7 @@ export default function ApplicationsPage() {
           return;
         }
 
-        const response = await fetch(`${API_BASE_URL}/applications`, {
+        const response = await apiFetch(`${API_BASE_URL}/applications`, {
           method: "GET",
           headers: {
             Accept: "application/json",

@@ -1,5 +1,8 @@
 "use client";
 
+import { API_BASE_URL, apiFetch } from "@/lib/api";
+
+import Link from "next/link";
 import Navbar from "../components/Navbar";
 
 import {
@@ -10,7 +13,7 @@ import {
   type ReactNode,
 } from "react";
 
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = API_BASE_URL;
 
 type ProfileApiData = {
   id: number;
@@ -348,6 +351,9 @@ export default function ProfilePage() {
   const [message, setMessage] = useState("");
 
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [profileError, setProfileError] = useState("");
+  const [profileRetry, setProfileRetry] = useState(0);
+  const [requiresLogin, setRequiresLogin] = useState(false);
   const [uploadingProfile, setUploadingProfile] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
 
@@ -359,13 +365,18 @@ export default function ProfilePage() {
     const loadProfile = async () => {
       const token = localStorage.getItem("auth_token");
 
+      setProfileError("");
+      setRequiresLogin(false);
+
       if (!token) {
+        setProfileError("Sesi login tidak ditemukan. Silakan masuk kembali.");
+        setRequiresLogin(true);
         setLoadingProfile(false);
         return;
       }
 
       try {
-        const response = await fetch(`${API_URL}/profile`, {
+        const response = await apiFetch(`${API_URL}/profile`, {
           method: "GET",
           headers: {
             Accept: "application/json",
@@ -418,10 +429,10 @@ export default function ProfilePage() {
       } catch (error) {
         console.error("Gagal mengambil profil:", error);
 
-        setMessage(
+        setProfileError(
           error instanceof Error
             ? error.message
-            : "Failed to retrieve profile data.",
+            : "Gagal mengambil data profil.",
         );
       } finally {
         setLoadingProfile(false);
@@ -429,7 +440,7 @@ export default function ProfilePage() {
     };
 
     void loadProfile();
-  }, []);
+  }, [profileRetry]);
 
   useEffect(() => {
     return () => {
@@ -518,7 +529,7 @@ export default function ProfilePage() {
 
       formData.append("photo", compressedFile);
 
-      const response = await fetch(`${API_URL}/profile/photo`, {
+      const response = await apiFetch(`${API_URL}/profile/photo`, {
         method: "POST",
         headers: {
           Accept: "application/json",
@@ -588,7 +599,7 @@ export default function ProfilePage() {
 
       formData.append("cover", compressedFile);
 
-      const response = await fetch(`${API_URL}/profile/cover`, {
+      const response = await apiFetch(`${API_URL}/profile/cover`, {
         method: "POST",
         headers: {
           Accept: "application/json",
@@ -639,7 +650,7 @@ export default function ProfilePage() {
     try {
       setUploadingProfile(true);
 
-      const response = await fetch(`${API_URL}/profile/photo`, {
+      const response = await apiFetch(`${API_URL}/profile/photo`, {
         method: "DELETE",
         headers: {
           Accept: "application/json",
@@ -679,7 +690,7 @@ export default function ProfilePage() {
     try {
       setUploadingCover(true);
 
-      const response = await fetch(`${API_URL}/profile/cover`, {
+      const response = await apiFetch(`${API_URL}/profile/cover`, {
         method: "DELETE",
         headers: {
           Accept: "application/json",
@@ -817,6 +828,42 @@ export default function ProfilePage() {
                 <div className="h-4 w-72 max-w-full animate-pulse rounded bg-gray-200" />
               </div>
             </div>
+          ) : profileError ? (
+            <section
+              role="alert"
+              className="rounded-3xl border border-red-200 bg-white p-8 text-center shadow-sm"
+            >
+              <h2 className="text-2xl font-extrabold text-[#2C1E16]">
+                Profil belum dapat dimuat
+              </h2>
+
+              <p className="mt-3 text-sm leading-6 text-gray-600">
+                {profileError}
+              </p>
+
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                {requiresLogin ? (
+                  <Link
+                    href="/login"
+                    className="rounded-xl bg-[#1E3F20] px-5 py-3 text-sm font-bold text-white hover:bg-[#152E17]"
+                  >
+                    Masuk
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProfileError("");
+                      setLoadingProfile(true);
+                      setProfileRetry((count) => count + 1);
+                    }}
+                    className="rounded-xl bg-[#1E3F20] px-5 py-3 text-sm font-bold text-white hover:bg-[#152E17]"
+                  >
+                    Coba Lagi
+                  </button>
+                )}
+              </div>
+            </section>
           ) : (
             <>
               {/* PROFILE HERO */}

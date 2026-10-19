@@ -1,12 +1,11 @@
 "use client";
 
+import { API_BASE_URL, apiFetch } from "@/lib/api";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const API_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api"
-).replace(/\/$/, "");
+const API_URL = API_BASE_URL;
 
 type User = {
   id?: number;
@@ -74,14 +73,14 @@ export default function AdminSettingsPage() {
       setError("");
 
       const [meResponse, profileResponse] = await Promise.all([
-        fetch(`${API_URL}/me`, {
+        apiFetch(`${API_URL}/me`, {
           headers: {
             Accept: "application/json",
             Authorization: `Bearer ${token}`,
           },
           cache: "no-store",
         }),
-        fetch(`${API_URL}/profile`, {
+        apiFetch(`${API_URL}/profile`, {
           headers: {
             Accept: "application/json",
             Authorization: `Bearer ${token}`,

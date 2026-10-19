@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL, apiFetch } from "@/lib/api";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -49,9 +50,7 @@ type Accent =
   | "coral"
   | "cream";
 
-const API_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api"
-).replace(/\/$/, "");
+const API_URL = API_BASE_URL;
 
 const BACKEND_URL = API_URL.replace(/\/api$/, "");
 
@@ -204,7 +203,7 @@ export default function MentorLayout({
     }
 
     try {
-      const response = await fetch(`${API_URL}/sessions?per_page=100`, {
+      const response = await apiFetch(`${API_URL}/sessions?per_page=100`, {
         headers: {
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
@@ -529,7 +528,7 @@ export default function MentorLayout({
 
     try {
       const [meResponse, profileResponse] = await Promise.all([
-        fetch(`${API_URL}/me`, {
+        apiFetch(`${API_URL}/me`, {
           headers: {
             Accept: "application/json",
             Authorization: `Bearer ${token}`,
@@ -537,7 +536,7 @@ export default function MentorLayout({
           cache: "no-store",
         }),
 
-        fetch(`${API_URL}/profile`, {
+        apiFetch(`${API_URL}/profile`, {
           headers: {
             Accept: "application/json",
             Authorization: `Bearer ${token}`,

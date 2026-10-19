@@ -1,12 +1,11 @@
 "use client";
 
+import { API_BASE_URL, apiFetch } from "@/lib/api";
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
-const API_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api"
-).replace(/\/$/, "");
+const API_URL = API_BASE_URL;
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -57,7 +56,7 @@ export default function RegisterPage() {
        * sebagai mentee.
        */
 
-      const response = await fetch(`${API_URL}/register`, {
+      const response = await apiFetch(`${API_URL}/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

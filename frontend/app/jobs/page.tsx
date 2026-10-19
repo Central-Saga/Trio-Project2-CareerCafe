@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL, apiFetch } from "@/lib/api";
 import {
   useEffect,
   useMemo,
@@ -29,8 +30,6 @@ type Job = {
   is_active: boolean;
 };
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
 
 /* =========================================================
    JOB TYPES
@@ -395,7 +394,7 @@ export default function JobsPage() {
         setLoading(true);
         setError("");
 
-        const response = await fetch(`${API_BASE_URL}/jobs`, {
+        const response = await apiFetch(`${API_BASE_URL}/jobs`, {
           method: "GET",
           headers: {
             Accept: "application/json",
