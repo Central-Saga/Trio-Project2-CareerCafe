@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL, apiFetch } from "@/lib/api";
 import {
   useCallback,
   useEffect,
@@ -36,9 +37,6 @@ type ApiResponse = {
   errors?: Record<string, string[]>;
 };
 
-const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api"
-).replace(/\/$/, "");
 
 const categories = [
   { value: "Semua", label: "All" },
@@ -61,104 +59,6 @@ const popularTopics = [
   "Remote Work",
 ];
 
-const demoPosts: Post[] = [
-  {
-    id: 9001,
-    author: "Ava Morgan",
-    role: "Frontend Developer",
-    initial: "A",
-    title: "How do I prepare for my first technical interview?",
-    content:
-      "I have a technical interview next week. What should I prioritize: algorithms, system design, or reviewing my previous projects?",
-    category: "Interview",
-    likes: 84,
-    comments: 26,
-  },
-  {
-    id: 9002,
-    author: "Daniel Lee",
-    role: "Product Designer",
-    initial: "D",
-    title: "Building a portfolio that tells a clear story",
-    content:
-      "What makes a portfolio case study stand out to hiring managers without making the page feel too long or crowded?",
-    category: "UI/UX",
-    likes: 67,
-    comments: 18,
-  },
-  {
-    id: 9003,
-    author: "Maya Chen",
-    role: "Software Engineer",
-    initial: "M",
-    title: "React or Next.js first for a beginner?",
-    content:
-      "I want to build modern web applications quickly. Should I learn React deeply first or start directly with Next.js?",
-    category: "Programming",
-    likes: 91,
-    comments: 34,
-  },
-  {
-    id: 9004,
-    author: "Noah Williams",
-    role: "Career Switcher",
-    initial: "N",
-    title: "Switching careers without a traditional background",
-    content:
-      "For anyone who moved into tech from another field, which project or learning milestone helped you get your first opportunity?",
-    category: "Karier",
-    likes: 73,
-    comments: 21,
-  },
-  {
-    id: 9005,
-    author: "Sofia Rivera",
-    role: "Freelance Designer",
-    initial: "S",
-    title: "How should I price my first freelance project?",
-    content:
-      "I am preparing a quote for my first client. How do you set a fair rate without underpricing your work?",
-    category: "Freelance",
-    likes: 58,
-    comments: 17,
-  },
-  {
-    id: 9006,
-    author: "Ethan Park",
-    role: "Career Coach",
-    initial: "E",
-    title: "Creating a practical 90-day career plan",
-    content:
-      "What is a simple way to turn a long-term career goal into weekly actions that are measurable and realistic?",
-    category: "Tips & Trik",
-    likes: 76,
-    comments: 24,
-  },
-  {
-    id: 9007,
-    author: "Liam Foster",
-    role: "Remote Engineer",
-    initial: "L",
-    title: "What should I prepare for my first remote role?",
-    content:
-      "I want to improve my remote setup and communication habits before applying. Which routines made the biggest difference for you?",
-    category: "Karier",
-    likes: 62,
-    comments: 15,
-  },
-  {
-    id: 9008,
-    author: "Grace Kim",
-    role: "Marketing Specialist",
-    initial: "G",
-    title: "Making LinkedIn content feel useful, not salesy",
-    content:
-      "What type of posts help you build professional credibility while still sounding natural and authentic?",
-    category: "Karier",
-    likes: 54,
-    comments: 19,
-  },
-];
 
 const fallbackCategoryStyles = {
   badge: "bg-emerald-50 text-emerald-700 border-emerald-100",
@@ -437,7 +337,7 @@ export default function CommunityPage() {
     setPageError("");
 
     try {
-      const response = await fetch(`${API_BASE_URL}/posts`, {
+      const response = await apiFetch(`${API_BASE_URL}/posts`, {
         headers: { Accept: "application/json" },
         cache: "no-store",
       });
@@ -445,14 +345,21 @@ export default function CommunityPage() {
       const data = await parseApiResponse(response);
 
       if (!response.ok || data.success === false) {
-        throw new Error("Unable to load discussions.");
+        throw new Error(
+          typeof data.message === "string" && data.message
+            ? data.message
+            : "Unable to load discussions.",
+        );
       }
 
-      const normalized = unwrapList(data.data).map(normalizePost);
-      setPosts(normalized.length > 0 ? normalized : demoPosts);
-    } catch {
-      setPosts(demoPosts);
-      setPageError("");
+      setPosts(unwrapList(data.data).map(normalizePost));
+    } catch (error) {
+      setPosts([]);
+      setPageError(
+        error instanceof Error
+          ? error.message
+          : "Unable to load discussions.",
+      );
     } finally {
       setLoading(false);
     }
@@ -531,7 +438,7 @@ export default function CommunityPage() {
     setCreateError("");
 
     try {
-      const response = await fetch(`${API_BASE_URL}/posts`, {
+      const response = await apiFetch(`${API_BASE_URL}/posts`, {
         method: "POST",
         headers: {
           Accept: "application/json",

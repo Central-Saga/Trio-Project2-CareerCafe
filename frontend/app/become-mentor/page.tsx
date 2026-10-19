@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL, apiFetch } from "@/lib/api";
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -56,9 +57,7 @@ type MentorApplication = {
   }>;
 };
 
-const API_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api"
-).replace(/\/$/, "");
+const API_URL = API_BASE_URL;
 
 const MAX_DOCUMENTS = 3;
 const MAX_DOCUMENT_SIZE = 5 * 1024 * 1024;
@@ -161,8 +160,8 @@ export default function BecomeMentorPage() {
         setLoadingOptions(true);
 
         const [industryResponse, skillResponse] = await Promise.all([
-          fetch(`${API_URL}/industries`),
-          fetch(`${API_URL}/skills`),
+          apiFetch(`${API_URL}/industries`),
+          apiFetch(`${API_URL}/skills`),
         ]);
 
         const industryData = await industryResponse.json().catch(() => null);
@@ -192,7 +191,7 @@ export default function BecomeMentorPage() {
 
     const loadApplications = async () => {
       try {
-        const response = await fetch(`${API_URL}/mentor-applications/my`, {
+        const response = await apiFetch(`${API_URL}/mentor-applications/my`, {
           headers: {
             Accept: "application/json",
             Authorization: `Bearer ${token}`,
@@ -392,7 +391,7 @@ export default function BecomeMentorPage() {
         formData.append("document_types[]", document.type);
       });
 
-      const response = await fetch(`${API_URL}/mentor-applications`, {
+      const response = await apiFetch(`${API_URL}/mentor-applications`, {
         method: "POST",
         headers: {
           Accept: "application/json",

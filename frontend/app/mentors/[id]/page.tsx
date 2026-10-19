@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL, API_ORIGIN, apiFetch } from "@/lib/api";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   useCallback,
@@ -12,9 +13,6 @@ import {
 import { useParams, useRouter } from "next/navigation";
 import Navbar from "../../components/Navbar";
 
-const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api"
-).replace(/\/$/, "");
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -164,10 +162,10 @@ function resolveImageUrl(value?: string | null) {
   }
 
   if (value.startsWith("/")) {
-    return `http://127.0.0.1:8000${value}`;
+    return `${API_ORIGIN}${value}`;
   }
 
-  return `http://127.0.0.1:8000/storage/${value.replace(/^storage\//, "")}`;
+  return `${API_ORIGIN}/storage/${value.replace(/^storage\//, "")}`;
 }
 
 /* ============================================================
@@ -774,7 +772,7 @@ export default function MentorDetailPage() {
     setPageError("");
 
     try {
-      const response = await fetch(`${API_BASE_URL}/mentors/${mentorId}`, {
+      const response = await apiFetch(`${API_BASE_URL}/mentors/${mentorId}`, {
         headers: {
           Accept: "application/json",
         },
@@ -817,7 +815,7 @@ export default function MentorDetailPage() {
     setSlotError("");
 
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         `${API_BASE_URL}/mentors/${mentorId}/slots`,
         {
           headers: {
@@ -1141,7 +1139,7 @@ export default function MentorDetailPage() {
     setBookingError("");
 
     try {
-      const response = await fetch(`${API_BASE_URL}/sessions`, {
+      const response = await apiFetch(`${API_BASE_URL}/sessions`, {
         method: "POST",
         headers: {
           Accept: "application/json",

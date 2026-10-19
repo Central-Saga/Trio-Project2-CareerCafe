@@ -1,7 +1,11 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import { API_BASE_URL, API_ORIGIN, apiFetch } from "@/lib/api";
 
 type JobListing = {
   id: number;
@@ -17,80 +21,112 @@ type Mentor = {
   name: string;
   role: string;
   company: string;
-  rating: string;
+  rating: number | null;
   image: string;
   expertise: string[];
 };
 
-const jobListings: JobListing[] = [
-  {
-    id: 1,
-    title: "Frontend Developer",
-    company: "TechBali Denpasar",
-    location: "Denpasar, Bali (Hybrid)",
-    type: "Full-time",
-    salary: "Rp 6jt - 9jt",
-  },
-  {
-    id: 2,
-    title: "UI/UX Designer",
-    company: "KriyaBali Digital",
-    location: "Remote",
-    type: "Contract",
-    salary: "Rp 5jt - 7jt",
-  },
-  {
-    id: 3,
-    title: "Laravel Backend Engineer",
-    company: "Career Cafe Corp",
-    location: "Badung, Bali",
-    type: "Full-time",
-    salary: "Rp 7jt - 10jt",
-  },
-];
+function asRecord(value: unknown): Record<string, unknown> {
+  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
 
-const mentors: Mentor[] = [
-  {
-    id: 1,
-    name: "Rian Pratama, S.Kom.",
-    role: "Senior Fullstack Engineer",
-    company: "TechBali Denpasar",
-    rating: "4.9",
-    image:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=900&q=85",
-    expertise: ["Laravel", "Next.js", "PostgreSQL"],
-  },
-  {
-    id: 2,
-    name: "Putu Ayu Lestari",
-    role: "Lead UI/UX Designer",
-    company: "KriyaBali Digital",
-    rating: "5.0",
-    image:
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=900&q=85",
-    expertise: ["Figma", "User Research", "Design Systems"],
-  },
-  {
-    id: 3,
-    name: "Gede Hendra Kusuma",
-    role: "Product Manager & Mentor",
-    company: "Career Cafe Corp",
-    rating: "4.8",
-    image:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=900&q=85",
-    expertise: ["Product Strategy", "Agile", "Business Canvas"],
-  },
-  {
-    id: 4,
-    name: "Komang Sinta Dewi",
-    role: "Digital Marketing Specialist",
-    company: "Bali Creative Hub",
-    rating: "4.9",
-    image:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=85",
-    expertise: ["Social Media", "SEO", "Content Marketing"],
-  },
-];
+  return {};
+}
+
+function asText(value: unknown, fallback = ""): string {
+  if (typeof value === "string" && value.trim()) {
+    return value.trim();
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+
+  return fallback;
+}
+
+function unwrapList(payload: unknown): unknown[] {
+  const root = asRecord(payload);
+
+  if (Array.isArray(root.data)) {
+    return root.data;
+  }
+
+  const nested = asRecord(root.data);
+
+  if (Array.isArray(nested.data)) {
+    return nested.data;
+  }
+
+  return [];
+}
+
+function resolveImageUrl(value: unknown): string {
+  const imagePath = asText(value);
+
+  if (!imagePath) {
+    return "";
+  }
+
+  if (/^https?:\/\//i.test(imagePath)) {
+    return imagePath;
+  }
+
+  return `${API_ORIGIN}${imagePath.startsWith("/") ? "" : "/"}${imagePath}`;
+}
+
+function normalizeJob(value: unknown): JobListing {
+  const job = asRecord(value);
+
+  return {
+    id: Number(job.id),
+    title: asText(job.title, "Lowongan tanpa judul"),
+    company: asText(job.company, "Perusahaan belum dicantumkan"),
+    location: asText(job.location, "Lokasi belum dicantumkan"),
+    type: asText(job.type, "Tipe kerja belum dicantumkan"),
+    salary: asText(job.salary, "Gaji belum dicantumkan"),
+  };
+}
+
+function normalizeMentor(value: unknown): Mentor {
+  const mentor = asRecord(value);
+  const profile = asRecord(mentor.profile);
+  const rawRating = profile.avg_rating;
+  const ratingValue =
+    typeof rawRating === "number" ? rawRating : Number(rawRating);
+
+  const rating =
+    rawRating !== null &&
+    rawRating !== undefined &&
+    rawRating !== "" &&
+    Number.isFinite(ratingValue) &&
+    ratingValue > 0
+      ? ratingValue
+      : null;
+
+  const skills = Array.isArray(mentor.skills)
+    ? mentor.skills
+        .map((skill) => {
+          if (typeof skill === "string") {
+            return skill.trim();
+          }
+
+          return asText(asRecord(skill).name);
+        })
+        .filter(Boolean)
+    : [];
+
+  return {
+    id: Number(mentor.id),
+    name: asText(mentor.name, "Mentor"),
+    role: asText(profile.job_title, "Mentor Karier"),
+    company: asText(profile.company, "Informasi perusahaan belum tersedia"),
+    rating,
+    image: resolveImageUrl(profile.profile_photo),
+    expertise: skills,
+  };
+}
 
 const heroImages = {
   consultation:
@@ -107,6 +143,110 @@ const heroImages = {
 };
 
 export default function HomePage() {
+  const [jobListings, setJobListings] = useState<JobListing[]>([]);
+  const [jobsLoading, setJobsLoading] = useState(true);
+  const [jobsError, setJobsError] = useState("");
+  const [jobsRetry, setJobsRetry] = useState(0);
+
+  const [mentors, setMentors] = useState<Mentor[]>([]);
+  const [mentorsLoading, setMentorsLoading] = useState(true);
+  const [mentorsError, setMentorsError] = useState("");
+  const [mentorsRetry, setMentorsRetry] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadJobs() {
+      try {
+        const response = await apiFetch(`${API_BASE_URL}/jobs`);
+
+        if (!response.ok) {
+          throw new Error(`Gagal memuat lowongan (HTTP ${response.status}).`);
+        }
+
+        const payload: unknown = await response.json();
+        const jobs = unwrapList(payload).map(normalizeJob);
+
+        if (active) {
+          setJobListings(jobs);
+          setJobsError("");
+        }
+      } catch (error) {
+        if (active) {
+          setJobListings([]);
+          setJobsError(
+            error instanceof Error
+              ? error.message
+              : "Terjadi kesalahan saat memuat lowongan.",
+          );
+        }
+      } finally {
+        if (active) {
+          setJobsLoading(false);
+        }
+      }
+    }
+
+    void loadJobs();
+
+    return () => {
+      active = false;
+    };
+  }, [jobsRetry]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadMentors() {
+      try {
+        const response = await apiFetch(`${API_BASE_URL}/mentors`);
+
+        if (!response.ok) {
+          throw new Error(`Gagal memuat mentor (HTTP ${response.status}).`);
+        }
+
+        const payload: unknown = await response.json();
+        const loadedMentors = unwrapList(payload).map(normalizeMentor);
+
+        if (active) {
+          setMentors(loadedMentors);
+          setMentorsError("");
+        }
+      } catch (error) {
+        if (active) {
+          setMentors([]);
+          setMentorsError(
+            error instanceof Error
+              ? error.message
+              : "Terjadi kesalahan saat memuat mentor.",
+          );
+        }
+      } finally {
+        if (active) {
+          setMentorsLoading(false);
+        }
+      }
+    }
+
+    void loadMentors();
+
+    return () => {
+      active = false;
+    };
+  }, [mentorsRetry]);
+
+  function retryJobs() {
+    setJobsError("");
+    setJobsLoading(true);
+    setJobsRetry((count) => count + 1);
+  }
+
+  function retryMentors() {
+    setMentorsError("");
+    setMentorsLoading(true);
+    setMentorsRetry((count) => count + 1);
+  }
+
   return (
     <div className="min-h-screen bg-[#FCFBF8] font-sans text-[#2C1E16]">
       <Navbar />
@@ -420,7 +560,47 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 items-stretch gap-6 md:grid-cols-3">
-            {jobListings.map((job, index) => (
+            {jobsLoading ? (
+              Array.from({ length: 3 }, (_, index) => (
+                <div
+                  key={`job-loading-${index}`}
+                  className="min-h-[230px] animate-pulse rounded-2xl border border-[#DCE7DB] bg-[#F5F8F2] p-6"
+                  aria-label="Memuat lowongan"
+                >
+                  <div className="mb-6 h-6 w-24 rounded-full bg-[#E0E9DC]" />
+                  <div className="mb-3 h-5 w-3/4 rounded bg-[#E0E9DC]" />
+                  <div className="h-4 w-1/2 rounded bg-[#E8E3DA]" />
+                  <div className="mt-8 h-9 rounded bg-[#E0E9DC]" />
+                </div>
+              ))
+            ) : jobsError ? (
+              <div
+                role="alert"
+                className="col-span-full rounded-2xl border border-red-200 bg-red-50 p-6 text-center"
+              >
+                <p className="font-semibold text-red-800">
+                  Lowongan belum dapat dimuat
+                </p>
+                <p className="mt-2 text-sm text-red-700">{jobsError}</p>
+                <button
+                  type="button"
+                  onClick={retryJobs}
+                  className="mt-4 rounded-xl bg-[#1E3F20] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#152E17]"
+                >
+                  Coba Lagi
+                </button>
+              </div>
+            ) : jobListings.length === 0 ? (
+              <div className="col-span-full rounded-2xl border border-dashed border-[#DCE7DB] bg-[#F8FAF6] px-6 py-10 text-center">
+                <p className="text-lg font-bold text-[#2C1E16]">
+                  Belum ada lowongan tersedia
+                </p>
+                <p className="mt-2 text-sm text-gray-500">
+                  Lowongan aktif akan ditampilkan di sini ketika tersedia.
+                </p>
+              </div>
+            ) : (
+              jobListings.map((job, index) => (
               <article
                 key={job.id}
                 className={[
@@ -484,7 +664,7 @@ export default function HomePage() {
                   </Link>
                 </div>
               </article>
-            ))}
+            )))}
           </div>
         </section>
 
@@ -513,7 +693,50 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {mentors.map((mentor, index) => (
+            {mentorsLoading ? (
+              Array.from({ length: 4 }, (_, index) => (
+                <div
+                  key={`mentor-loading-${index}`}
+                  className="min-h-[430px] animate-pulse overflow-hidden rounded-2xl border border-[#DCE7DB] bg-[#F5F8F2]"
+                  aria-label="Memuat mentor"
+                >
+                  <div className="h-52 bg-[#E0E9DC]" />
+                  <div className="space-y-3 p-5">
+                    <div className="h-5 w-3/4 rounded bg-[#E0E9DC]" />
+                    <div className="h-4 w-full rounded bg-[#E8E3DA]" />
+                    <div className="h-4 w-2/3 rounded bg-[#E8E3DA]" />
+                    <div className="mt-5 h-8 rounded bg-[#E0E9DC]" />
+                  </div>
+                </div>
+              ))
+            ) : mentorsError ? (
+              <div
+                role="alert"
+                className="col-span-full rounded-2xl border border-red-200 bg-red-50 p-6 text-center"
+              >
+                <p className="font-semibold text-red-800">
+                  Data mentor belum dapat dimuat
+                </p>
+                <p className="mt-2 text-sm text-red-700">{mentorsError}</p>
+                <button
+                  type="button"
+                  onClick={retryMentors}
+                  className="mt-4 rounded-xl bg-[#1E3F20] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#152E17]"
+                >
+                  Coba Lagi
+                </button>
+              </div>
+            ) : mentors.length === 0 ? (
+              <div className="col-span-full rounded-2xl border border-dashed border-[#DCE7DB] bg-[#F8FAF6] px-6 py-10 text-center">
+                <p className="text-lg font-bold text-[#2C1E16]">
+                  Belum ada mentor tersedia
+                </p>
+                <p className="mt-2 text-sm text-gray-500">
+                  Profil mentor aktif akan ditampilkan di sini ketika tersedia.
+                </p>
+              </div>
+            ) : (
+              mentors.map((mentor, index) => (
               <article
                 key={mentor.id}
                 className={[
@@ -542,13 +765,22 @@ export default function HomePage() {
                           : "bg-[linear-gradient(135deg,#DFEEE3_0%,#EFE8DD_100%)]",
                   ].join(" ")}
                 >
-                  <img
-                    src={mentor.image}
-                    alt={mentor.name}
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    loading="lazy"
-                    decoding="async"
-                  />
+                  {mentor.image ? (
+                    <img
+                      src={mentor.image}
+                      alt={mentor.name}
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : (
+                    <div
+                      aria-label={`Foto ${mentor.name} belum tersedia`}
+                      className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,#DDEBDD_0%,#F2EEE5_100%)] text-5xl font-bold text-[#557257]"
+                    >
+                      {mentor.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
 
                   <div
                     className={[
@@ -576,9 +808,11 @@ export default function HomePage() {
                     ].join(" ")}
                   />
 
-                  <div className="absolute right-3 top-3 rounded-full bg-[linear-gradient(135deg,#FFFFFF_0%,#F7F3EC_100%)] px-2.5 py-1 text-[10px] font-bold text-[#2C1E16] shadow-sm backdrop-blur-sm transition-transform duration-300 group-hover:scale-105">
-                    ★ {mentor.rating}
-                  </div>
+                  {mentor.rating !== null && (
+                    <div className="absolute right-3 top-3 rounded-full bg-[linear-gradient(135deg,#FFFFFF_0%,#F7F3EC_100%)] px-2.5 py-1 text-[10px] font-bold text-[#2C1E16] shadow-sm backdrop-blur-sm transition-transform duration-300 group-hover:scale-105">
+                      ★ {mentor.rating.toFixed(1)}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-1 flex-col p-5">
@@ -624,7 +858,7 @@ export default function HomePage() {
                   </div>
                 </div>
               </article>
-            ))}
+            )))}
           </div>
         </section>
       </main>

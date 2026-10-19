@@ -1,11 +1,10 @@
 "use client";
 
+import { API_BASE_URL, apiFetch } from "@/lib/api";
 import Link from "next/link";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 
-const API_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api"
-).replace(/\/$/, "");
+const API_URL = API_BASE_URL;
 
 const BACKEND_URL = API_URL.replace(/\/api$/, "");
 
@@ -271,6 +270,9 @@ export default function MentorDashboardPage() {
   const [imageFailed, setImageFailed] = useState(false);
 
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
+  const [requiresLogin, setRequiresLogin] = useState(false);
 
   /* =======================================================
      LOAD DATA
@@ -293,7 +295,12 @@ export default function MentorDashboardPage() {
       setProfileImage("");
       setImageFailed(false);
 
+      setLoadError("");
+      setRequiresLogin(false);
+
       if (!token) {
+        setLoadError("Sesi login tidak ditemukan. Silakan masuk kembali.");
+        setRequiresLogin(true);
         setLoading(false);
         return;
       }
@@ -301,7 +308,7 @@ export default function MentorDashboardPage() {
       try {
         const [meResponse, profileResponse, sessionsResponse] =
           await Promise.all([
-            fetch(`${API_URL}/me`, {
+            apiFetch(`${API_URL}/me`, {
               headers: {
                 Accept: "application/json",
                 Authorization: `Bearer ${token}`,
@@ -309,7 +316,7 @@ export default function MentorDashboardPage() {
               cache: "no-store",
             }),
 
-            fetch(`${API_URL}/profile`, {
+            apiFetch(`${API_URL}/profile`, {
               headers: {
                 Accept: "application/json",
                 Authorization: `Bearer ${token}`,
@@ -317,7 +324,7 @@ export default function MentorDashboardPage() {
               cache: "no-store",
             }),
 
-            fetch(`${API_URL}/sessions?per_page=100`, {
+            apiFetch(`${API_URL}/sessions?per_page=100`, {
               headers: {
                 Accept: "application/json",
                 Authorization: `Bearer ${token}`,
@@ -325,6 +332,18 @@ export default function MentorDashboardPage() {
               cache: "no-store",
             }),
           ]);
+
+        const failedResponse = [
+          meResponse,
+          profileResponse,
+          sessionsResponse,
+        ].find((response) => !response.ok);
+
+        if (failedResponse) {
+          throw new Error(
+            `Gagal memuat data dashboard (HTTP ${failedResponse.status}).`,
+          );
+        }
 
         const [meData, profileData, sessionsData] = await Promise.all([
           meResponse.json().catch(() => null),
@@ -404,11 +423,13 @@ export default function MentorDashboardPage() {
         }
       } catch (error) {
         console.error("Dashboard load error:", error);
-
-        /**
-         * Kalau API gagal, jangan kembali ke foto Trio.
-         * Tampilkan inisial mentor.
-         */
+        setLoadError(
+          error instanceof Error
+            ? error.message
+            : "Terjadi kesalahan saat memuat dashboard.",
+        );
+        setSessions([]);
+        setProfile(null);
         setProfileImage("");
         setImageFailed(false);
       } finally {
@@ -417,7 +438,7 @@ export default function MentorDashboardPage() {
     }
 
     void loadDashboard();
-  }, []);
+  }, [retryCount]);
 
   /* =======================================================
      CALCULATIONS
@@ -578,6 +599,46 @@ export default function MentorDashboardPage() {
             <div className="h-[350px] rounded-[26px] bg-[#EAF6EA]" />
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex min-h-[calc(100vh-72px)] items-center justify-center bg-[#FAFEFA] px-5 py-12">
+        <section
+          role="alert"
+          className="w-full max-w-xl rounded-3xl border border-red-200 bg-white p-8 text-center shadow-sm"
+        >
+          <h1 className="text-2xl font-black text-[#302923]">
+            Dashboard belum dapat dimuat
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-gray-600">
+            {loadError}
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            {requiresLogin ? (
+              <Link
+                href="/login"
+                className="rounded-xl bg-[#1E3F20] px-5 py-3 text-sm font-bold text-white hover:bg-[#152E17]"
+              >
+                Masuk
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setLoadError("");
+                  setLoading(true);
+                  setRetryCount((count) => count + 1);
+                }}
+                className="rounded-xl bg-[#1E3F20] px-5 py-3 text-sm font-bold text-white hover:bg-[#152E17]"
+              >
+                Coba Lagi
+              </button>
+            )}
+          </div>
+        </section>
       </div>
     );
   }

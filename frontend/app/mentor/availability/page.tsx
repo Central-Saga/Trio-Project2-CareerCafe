@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL, apiFetch } from "@/lib/api";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Availability = {
@@ -40,9 +41,7 @@ type SaveResponse = {
   errors?: Record<string, string[] | string>;
 };
 
-const API_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api"
-).replace(/\/$/, "");
+const API_URL = API_BASE_URL;
 
 const DAYS = [
   {
@@ -142,7 +141,7 @@ export default function MentorAvailabilityPage() {
        * ambil dari endpoint /me.
        */
       if (!mentorId) {
-        const meResponse = await fetch(`${API_URL}/me`, {
+        const meResponse = await apiFetch(`${API_URL}/me`, {
           method: "GET",
           headers: {
             Accept: "application/json",
@@ -169,7 +168,7 @@ export default function MentorAvailabilityPage() {
       /*
        * Ambil availability dari backend.
        */
-      const response = await fetch(
+      const response = await apiFetch(
         `${API_URL}/mentors/${mentorId}/availability`,
         {
           method: "GET",
@@ -345,7 +344,7 @@ export default function MentorAvailabilityPage() {
     setSaving(true);
 
     try {
-      const response = await fetch(`${API_URL}/availability`, {
+      const response = await apiFetch(`${API_URL}/availability`, {
         method: "POST",
         headers: {
           Accept: "application/json",

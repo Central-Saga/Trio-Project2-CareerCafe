@@ -1,10 +1,9 @@
 "use client";
 
+import { API_BASE_URL, API_ORIGIN, apiFetch } from "@/lib/api";
 import { useEffect, useMemo, useState } from "react";
 
-const API_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api"
-).replace(/\/$/, "");
+const API_URL = API_BASE_URL;
 
 type MenteeProfile = {
   id?: number;
@@ -66,14 +65,14 @@ function resolveImageUrl(value?: string | null) {
   }
 
   if (value.startsWith("/")) {
-    return `http://127.0.0.1:8000${value}`;
+    return `${API_ORIGIN}${value}`;
   }
 
   if (value.startsWith("storage/")) {
-    return `http://127.0.0.1:8000/${value}`;
+    return `${API_ORIGIN}/${value}`;
   }
 
-  return `http://127.0.0.1:8000/storage/${value}`;
+  return `${API_ORIGIN}/storage/${value}`;
 }
 
 function getInitials(name?: string | null) {
@@ -398,7 +397,7 @@ export default function AdminMenteesPage() {
         params.set("status", statusFilter);
       }
 
-      const response = await fetch(
+      const response = await apiFetch(
         `${API_URL}/admin/mentees?${params.toString()}`,
         {
           method: "GET",

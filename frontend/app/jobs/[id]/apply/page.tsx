@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL, apiFetch } from "@/lib/api";
 import {
   useEffect,
   useState,
@@ -9,8 +10,6 @@ import {
 } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
 
 type Job = {
   id: number;
@@ -117,7 +116,7 @@ export default function JobApplyPage() {
            Ambil detail job
         ================================================= */
 
-        const jobResponse = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
+        const jobResponse = await apiFetch(`${API_BASE_URL}/jobs/${jobId}`, {
           method: "GET",
           headers: {
             Accept: "application/json",
@@ -143,7 +142,7 @@ export default function JobApplyPage() {
            Ambil user yang sedang login
         ================================================= */
 
-        const meResponse = await fetch(`${API_BASE_URL}/me`, {
+        const meResponse = await apiFetch(`${API_BASE_URL}/me`, {
           method: "GET",
           headers: {
             Accept: "application/json",
@@ -342,7 +341,7 @@ export default function JobApplyPage() {
          Kirim ke Laravel
       ================================================= */
 
-      const response = await fetch(`${API_BASE_URL}/jobs/${job.id}/apply`, {
+      const response = await apiFetch(`${API_BASE_URL}/jobs/${job.id}/apply`, {
         method: "POST",
         headers: {
           Accept: "application/json",

@@ -1,11 +1,10 @@
 "use client";
 
+import { API_BASE_URL, API_ORIGIN, apiFetch } from "@/lib/api";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-const API_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api"
-).replace(/\/$/, "");
+const API_URL = API_BASE_URL;
 
 type Skill = {
   id?: number;
@@ -75,14 +74,14 @@ function resolveImageUrl(value?: string | null) {
   }
 
   if (value.startsWith("/")) {
-    return `http://127.0.0.1:8000${value}`;
+    return `${API_ORIGIN}${value}`;
   }
 
   if (value.startsWith("storage/")) {
-    return `http://127.0.0.1:8000/${value}`;
+    return `${API_ORIGIN}/${value}`;
   }
 
-  return `http://127.0.0.1:8000/storage/${value}`;
+  return `${API_ORIGIN}/storage/${value}`;
 }
 
 function getInitials(name?: string | null) {
@@ -443,7 +442,7 @@ export default function AdminMentorsPage() {
     setError("");
 
     try {
-      const response = await fetch(`${API_URL}/mentors?per_page=100`, {
+      const response = await apiFetch(`${API_URL}/mentors?per_page=100`, {
         method: "GET",
         headers: {
           Accept: "application/json",

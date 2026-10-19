@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL, apiFetch } from "@/lib/api";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
@@ -510,6 +511,7 @@ export default function MentorsPage() {
   const [experienceFilter, setExperienceFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
   /* ============================================================
@@ -544,8 +546,8 @@ export default function MentorsPage() {
           query.set("search", debouncedSearch);
         }
 
-        const response = await fetch(
-          `http://127.0.0.1:8000/api/mentors?${query.toString()}`,
+        const response = await apiFetch(
+          `${API_BASE_URL}/mentors?${query.toString()}`,
           {
             method: "GET",
             headers: {
@@ -580,7 +582,7 @@ export default function MentorsPage() {
     void fetchMentors();
 
     return () => controller.abort();
-  }, [debouncedSearch]);
+  }, [debouncedSearch, retryCount]);
 
   /* ============================================================
      INDUSTRIES
@@ -900,7 +902,14 @@ export default function MentorsPage() {
         {error && (
           <Reveal>
             <div className="mb-6 rounded-2xl border border-[#F0D3D0] bg-[linear-gradient(135deg,#FFF1EF_0%,#FFF8F5_100%)] px-4 py-3 text-sm text-[#B55B51] shadow-sm">
-              {error}
+              <p>{error}</p>
+              <button
+                type="button"
+                onClick={() => setRetryCount((count) => count + 1)}
+                className="mt-3 rounded-xl bg-[#1E3F20] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#152e17]"
+              >
+                Try Again
+              </button>
             </div>
           </Reveal>
         )}
@@ -917,7 +926,7 @@ export default function MentorsPage() {
               <MentorSkeleton />
               <MentorSkeleton />
             </div>
-          ) : filteredMentors.length === 0 ? (
+          ) : error ? null : filteredMentors.length === 0 ? (
             <Reveal>
               <div className="rounded-[28px] border border-dashed border-[#DCD5CC] bg-[linear-gradient(135deg,#FFFFFF_0%,#FAF5ED_50%,#F1F6F0_100%)] px-6 py-14 text-center shadow-[0_12px_28px_rgba(74,58,43,0.04)]">
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#E5F0E3_0%,#F0E8F5_100%)] text-[#55765B] shadow-sm">

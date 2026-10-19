@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL, apiFetch } from "@/lib/api";
 import {
   Suspense,
   useEffect,
@@ -51,8 +52,6 @@ type BookingSuccess = {
   endTime: string;
 };
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
 
 /* =========================================================
    REVEAL ANIMATION
@@ -386,7 +385,7 @@ function SchedulePageContent() {
         setLoadingMentor(true);
         setError("");
 
-        const response = await fetch(`${API_BASE_URL}/mentors/${mentorId}`, {
+        const response = await apiFetch(`${API_BASE_URL}/mentors/${mentorId}`, {
           signal: controller.signal,
         });
 
@@ -439,7 +438,7 @@ function SchedulePageContent() {
         return;
       }
 
-      const response = await fetch(
+      const response = await apiFetch(
         `${API_BASE_URL}/mentors/${mentorId}/slots?from=${from}&to=${to}`,
       );
 
@@ -560,7 +559,7 @@ function SchedulePageContent() {
     try {
       setBookingLoading(true);
 
-      const response = await fetch(`${API_BASE_URL}/sessions`, {
+      const response = await apiFetch(`${API_BASE_URL}/sessions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

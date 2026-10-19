@@ -1,5 +1,6 @@
 "use client";
 
+import { API_BASE_URL, apiFetch } from "@/lib/api";
 import {
   type ReactNode,
   useCallback,
@@ -44,9 +45,7 @@ type Session = {
 
 type TabKey = "all" | "pending" | "approved" | "completed" | "cancelled";
 
-const API_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api"
-).replace(/\/$/, "");
+const API_URL = API_BASE_URL;
 
 const BACKEND_URL = API_URL.replace(/\/api$/, "");
 
@@ -291,7 +290,7 @@ export default function MentorRequestsPage() {
     setError("");
 
     try {
-      const response = await fetch(`${API_URL}/sessions?per_page=100`, {
+      const response = await apiFetch(`${API_URL}/sessions?per_page=100`, {
         headers: {
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
@@ -414,7 +413,7 @@ export default function MentorRequestsPage() {
     setSuccess("");
 
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         `${API_URL}/sessions/${approveRequest.id}/approve`,
         {
           method: "PATCH",
@@ -499,7 +498,7 @@ export default function MentorRequestsPage() {
     setSuccess("");
 
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         `${API_URL}/sessions/${rejectRequest.id}/reject`,
         {
           method: "PATCH",
