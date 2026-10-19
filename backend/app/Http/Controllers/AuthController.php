@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\User;
-use App\Models\Profile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
@@ -18,34 +18,37 @@ class AuthController extends Controller
     {
         $validated = $request->validated();
 
-        $role = array_key_exists('role', $validated) ? $validated['role'] : 'mentee';
+        return DB::transaction(function () use ($validated) {
+            $role = array_key_exists('role', $validated)
+                ? $validated['role']
+                : 'mentee';
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role' => $role,
-            'status' => 'active',
-        ]);
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => $role,
+                'status' => 'active',
+            ]);
 
-        // Buat profil default
-        $user->profile()->create([
-            'timezone' => 'Asia/Jakarta',
-            'avg_rating' => 0.00,
-            'total_reviews' => 0,
-        ]);
+            $user->profile()->create([
+                'timezone' => 'Asia/Jakarta',
+                'avg_rating' => 0.00,
+                'total_reviews' => 0,
+            ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+            $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Pendaftaran berhasil.',
-            'data' => [
-                'user' => $user->load('profile'),
-                'token' => $token,
-                'token_type' => 'Bearer',
-            ],
-        ], 201);
+            return response()->json([
+                'success' => true,
+                'message' => 'Pendaftaran berhasil.',
+                'data' => [
+                    'user' => $user->load('profile'),
+                    'token' => $token,
+                    'token_type' => 'Bearer',
+                ],
+            ], 201);
+        });
     }
 
     /**

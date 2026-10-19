@@ -8,6 +8,7 @@ use App\Http\Requests\UploadProfileCoverRequest;
 use App\Models\Skill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ProfileController extends Controller
@@ -103,73 +104,73 @@ class ProfileController extends Controller
     public function updateProfile(UpdateProfileRequest $request)
     {
         $user = $request->user();
-
         $validated = $request->validated();
 
-        if ($request->filled('name')) {
-            $user->update([
-                'name' => $validated['name'],
-            ]);
-        }
-
-        $profile = $user->profile()->firstOrCreate(
-            [
-                'user_id' => $user->id,
-            ],
-            [
-                'timezone' => 'Asia/Jakarta',
-                'avg_rating' => 0.00,
-                'total_reviews' => 0,
-            ]
-        );
-
-        $profileFields = [
-            'bio',
-            'location',
-            'linkedin_url',
-            'timezone',
-            'job_title',
-            'company',
-            'industry_id',
-            'experience_years',
-            'education',
-        ];
-
-        $profileData = array_intersect_key(
-            $validated,
-            array_flip($profileFields)
-        );
-
-        $profile->update($profileData);
-
-        // Skill firstOrCreate handling
-        if (array_key_exists('skills', $validated)) {
-            $skillNames = $validated['skills'] ?? [];
-            $skillIds = [];
-
-            foreach ($skillNames as $name) {
-                $trimmed = trim($name);
-
-                if (!empty($trimmed)) {
-                    $skill = Skill::firstOrCreate([
-                        'name' => $trimmed,
-                    ]);
-
-                    $skillIds[] = $skill->id;
-                }
+        return DB::transaction(function () use ($request, $user, $validated) {
+            if ($request->filled('name')) {
+                $user->update([
+                    'name' => $validated['name'],
+                ]);
             }
 
-            $user->skills()->sync($skillIds);
-        }
+            $profile = $user->profile()->firstOrCreate(
+                [
+                    'user_id' => $user->id,
+                ],
+                [
+                    'timezone' => 'Asia/Jakarta',
+                    'avg_rating' => 0.00,
+                    'total_reviews' => 0,
+                ]
+            );
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Profil berhasil diperbarui.',
-            'data' => $user->fresh([
-                'profile.industry',
-                'skills',
-            ]),
-        ]);
+            $profileFields = [
+                'bio',
+                'location',
+                'linkedin_url',
+                'timezone',
+                'job_title',
+                'company',
+                'industry_id',
+                'experience_years',
+                'education',
+            ];
+
+            $profileData = array_intersect_key(
+                $validated,
+                array_flip($profileFields)
+            );
+
+            $profile->update($profileData);
+
+            if (array_key_exists('skills', $validated)) {
+                $skillNames = $validated['skills'] ?? [];
+                $skillIds = [];
+
+                foreach ($skillNames as $name) {
+                    $trimmed = trim($name);
+
+                    if ($trimmed !== '') {
+                        $skill = Skill::firstOrCreate([
+                            'name' => $trimmed,
+                        ]);
+
+                        $skillIds[] = $skill->id;
+                    }
+                }
+
+                $user->skills()->sync($skillIds);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profil berhasil diperbarui.',
+                'data' => $user->fresh([
+                    'profile.industry',
+                    'skills',
+                ]),
+            ]);
+        });
     }
 
     /**

@@ -33,6 +33,28 @@ class PostPolicyEndpointTest extends TestCase
         ]);
     }
 
+    public function test_mentee_can_create_post_and_persist_it(): void
+    {
+        $owner = $this->makeUser('owner-create@example.test', 'mentee');
+
+        Sanctum::actingAs($owner);
+
+        $this->postJson('/api/posts', [
+            'title' => 'New career post',
+            'content' => 'This is a valid test post created for the community feed.',
+            'category' => 'Career Story',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.title', 'New career post');
+
+        $this->assertDatabaseHas('posts', [
+            'user_id' => $owner->id,
+            'title' => 'New career post',
+            'status' => 'published',
+        ]);
+    }
+
     public function test_owner_can_update_own_post(): void
     {
         $owner = $this->makeUser('owner@example.test', 'mentee');
