@@ -47,9 +47,9 @@ Masuk ke direktori hasil clone sebelum melanjutkan konfigurasi.
 
 Jalankan dari root repository. Perintah berikut hanya membuat file jika belum ada:
 
-- ` [ -f .env ] || cp .env.example .env `
-- ` [ -f backend/.env ] || cp backend/.env.example backend/.env `
-- ` [ -f frontend/.env.local ] || cp frontend/.env.example frontend/.env.local `
+- `[ -f .env ] || cp .env.example .env`
+- `[ -f backend/.env ] || cp backend/.env.example backend/.env`
+- `[ -f frontend/.env.local ] || cp frontend/.env.example frontend/.env.local`
 
 Pastikan `POSTGRES_PASSWORD` pada `.env` diisi dengan password lokal. Jangan commit file environment.
 
@@ -68,11 +68,11 @@ Pastikan port `3000` dan `8000` tersedia. Jangan menghapus volume database untuk
 
 ### 4. Alamat aplikasi
 
-| Layanan | Alamat |
-|---|---|
-| Frontend | http://localhost:3000 |
-| Backend | http://localhost:8000 |
-| API | http://localhost:8000/api |
+| Layanan  | Alamat                    |
+| -------- | ------------------------- |
+| Frontend | http://localhost:3000     |
+| Backend  | http://localhost:8000     |
+| API      | http://localhost:8000/api |
 
 Alamat tersebut merupakan alamat lokal yang direncanakan. Pastikan port tidak sedang digunakan layanan lain.
 
@@ -80,12 +80,12 @@ Alamat tersebut merupakan alamat lokal yang direncanakan. Pastikan port tidak se
 
 Akun di bawah ini tercantum dalam `backend/database/seeders/DatabaseSeeder.php`. Password demo adalah `password123`.
 
-| Role | Email |
-|---|---|
-| Mentee | `trioriawan@example.com` |
+| Role   | Email                          |
+| ------ | ------------------------------ |
+| Mentee | `trioriawan@example.com`       |
 | Mentor | `rian.pratama@careercafe.test` |
-| Mentor | `putu.ayu@careercafe.test` |
-| Mentor | `gede.hendra@careercafe.test` |
+| Mentor | `putu.ayu@careercafe.test`     |
+| Mentor | `gede.hendra@careercafe.test`  |
 | Mentor | `komang.sinta@careercafe.test` |
 
 Jalankan seeder sebelum memakai akun tersebut. Seeder yang diperiksa tidak mendefinisikan akun admin demo. Kredensial di atas hanya untuk pengujian lokal, bukan produksi.
@@ -111,9 +111,20 @@ Hentikan layanan tanpa menghapus volume database menggunakan `docker compose dow
 
 ### Halaman Utama
 
-![Halaman utama Career Café](docs/screenshots/career-cafe-home.png)
+![Halaman utama Career Cafe](docs/screenshots/career-cafe-home.png)
 
+### Pencarian Mentor
+
+![Halaman pencarian mentor](docs/screenshots/mentor-list.png)
+
+### Sesi Mentoring
+
+![Halaman sesi mentoring](docs/screenshots/mentoring-sessions.png)
 
 ## Lisensi
 
 Periksa ketentuan lisensi proyek sebelum menggunakan atau mendistribusikan aplikasi.
+
+## Kredit
+
+Dikembangkan oleh Trio Riawan untuk proyek Career Café.
