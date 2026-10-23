@@ -37,7 +37,8 @@ class AuthController extends Controller
                 'total_reviews' => 0,
             ]);
 
-            $token = $user->createToken('auth_token')->plainTextToken;
+            $expiresAt = now()->addMinutes((int) config('sanctum.expiration', 1440));
+            $token = $user->createToken('auth_token', ['*'], $expiresAt)->plainTextToken;
 
             return response()->json([
                 'success' => true,
@@ -77,7 +78,8 @@ class AuthController extends Controller
             ], 403);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $expiresAt = now()->addMinutes((int) config('sanctum.expiration', 1440));
+        $token = $user->createToken('auth_token', ['*'], $expiresAt)->plainTextToken;
 
         return response()->json([
             'success' => true,
@@ -100,6 +102,20 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Logout berhasil.',
+            'data' => null,
+        ]);
+    }
+
+    /**
+     * Logout from all devices by revoking every personal access token.
+     */
+    public function logoutAll(Request $request)
+    {
+        $request->user()->tokens()->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Logout dari semua perangkat berhasil.',
             'data' => null,
         ]);
     }

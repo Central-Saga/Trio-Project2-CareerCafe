@@ -959,6 +959,43 @@ export default function AdminLayout({
       );
     };
 
+  const performLogoutAll = async () => {
+    if (
+      !window.confirm(
+        "Keluar dari semua perangkat? Semua sesi Career Cafe kamu akan dicabut."
+      )
+    ) {
+      return;
+    }
+
+    const token = localStorage.getItem("auth_token");
+
+    if (!token) {
+      performLogout();
+      return;
+    }
+
+    try {
+      const response = await apiFetch(`${API_BASE_URL}/logout-all`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Server gagal mencabut sesi perangkat.");
+      }
+
+      performLogout();
+    } catch {
+      window.alert(
+        "Gagal keluar dari semua perangkat. Periksa koneksi internet dan coba lagi."
+      );
+    }
+  };
+
   const handleLogout =
     () => {
       setLogoutOpen(true);
@@ -1523,6 +1560,7 @@ export default function AdminLayout({
             adminName={adminName}
             onCancel={cancelLogout}
             onConfirm={confirmLogout}
+            onLogoutAll={performLogoutAll}
           />
         )}
       </div>
@@ -1847,10 +1885,12 @@ function LogoutConfirmModal({
   adminName,
   onCancel,
   onConfirm,
+  onLogoutAll,
 }: {
   adminName: string;
   onCancel: () => void;
   onConfirm: () => void;
+  onLogoutAll: () => void;
 }) {
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#241D18]/35 p-4 backdrop-blur-md">
@@ -1909,6 +1949,14 @@ function LogoutConfirmModal({
               </p>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={onLogoutAll}
+            className="mt-5 w-full cursor-pointer rounded-xl border border-[#E8C7C3] bg-white px-5 py-3 text-[10px] font-black text-[#B65A51] transition-all duration-300 hover:bg-[#FDF0EE]"
+          >
+            Keluar dari Semua Perangkat
+          </button>
 
           <div className="mt-6 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
             <button
