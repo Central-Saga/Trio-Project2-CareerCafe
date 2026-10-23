@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { API_BASE_URL, apiFetch } from "@/lib/api";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -65,6 +66,56 @@ export default function Navbar() {
     setIsProfileOpen(false);
 
     router.push("/login");
+  };
+
+  const handleLogoutAll = async () => {
+    if (
+      !window.confirm(
+        "Keluar dari semua perangkat? Semua sesi Career Cafe kamu akan dicabut."
+      )
+    ) {
+      return;
+    }
+
+    const token = localStorage.getItem("auth_token");
+
+    if (!token) {
+      handleLogout();
+      return;
+    }
+
+    try {
+      const response = await apiFetch(`${API_BASE_URL}/logout-all`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Server gagal mencabut sesi perangkat.");
+      }
+
+      [
+        "auth_token",
+        "token",
+        "user_name",
+        "user_role",
+        "user_email",
+        "profile_image",
+        "cover_image",
+        "user_id",
+      ].forEach((key) => localStorage.removeItem(key));
+
+      setIsLogoutModalOpen(false);
+      setIsProfileOpen(false);
+      router.push("/login");
+    } catch {
+      window.alert(
+        "Gagal keluar dari semua perangkat. Periksa koneksi internet dan coba lagi."
+      );
+    }
   };
 
   const isActive = (path: string) => {
@@ -356,6 +407,14 @@ export default function Navbar() {
                     className="flex w-full items-center rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
                   >
                     Log Out
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleLogoutAll}
+                    className="flex w-full items-center rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-700 transition-colors hover:bg-red-50"
+                  >
+                    Log Out All Devices
                   </button>
                 </div>
               </div>

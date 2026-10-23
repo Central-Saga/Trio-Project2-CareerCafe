@@ -133,6 +133,11 @@ Route::middleware('auth:sanctum')->group(function () {
         [AuthController::class, 'logout']
     );
 
+    Route::post(
+        '/logout-all',
+        [AuthController::class, 'logoutAll']
+    );
+
     Route::get(
         '/me',
         [AuthController::class, 'me']

@@ -131,6 +131,54 @@ class AuthenticationTest extends TestCase
             ->assertJsonPath('success', false);
     }
 
+    public function test_expired_token_is_rejected(): void
+    {
+        config(['sanctum.expiration' => 1440]);
+
+        $user = User::factory()->create([
+            'role' => 'mentee',
+            'status' => 'active',
+        ]);
+
+        $token = $user->createToken(
+            'expired-test-token',
+            ['*'],
+            now()->subMinute()
+        )->plainTextToken;
+
+        app('auth')->forgetGuards();
+
+        $this->withToken($token)
+            ->getJson('/api/me')
+            ->assertUnauthorized();
+    }
+
+    public function test_logout_all_revokes_every_user_token(): void
+    {
+        $user = User::factory()->create([
+            'role' => 'mentee',
+            'status' => 'active',
+        ]);
+
+        $tokenOne = $user->createToken('device-one')->plainTextToken;
+        $tokenTwo = $user->createToken('device-two')->plainTextToken;
+
+        $this->withToken($tokenOne)
+            ->postJson('/api/logout-all')
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseMissing('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+        ]);
+
+        app('auth')->forgetGuards();
+
+        $this->withToken($tokenTwo)
+            ->getJson('/api/me')
+            ->assertUnauthorized();
+    }
+
     public function test_current_user_endpoint_requires_authentication(): void
     {
         $this->getJson('/api/me')->assertUnauthorized();
