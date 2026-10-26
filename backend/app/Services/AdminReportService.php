@@ -1,36 +1,21 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Services;
 
 use App\Models\MentorApplication;
 use App\Models\Session;
 use App\Models\User;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class AdminReportController extends Controller
+class AdminReportService
 {
     /**
-     * Admin dashboard reports.
+     * Menghasilkan statistik dan laporan dashboard admin.
      *
-     * Menyediakan:
-     * - summary platform
-     * - session status distribution
-     * - mentor application distribution
-     * - session trend 6 bulan terakhir
-     * - mentor activity
+     * @return array<string, mixed>
      */
-    public function index(Request $request): JsonResponse
+    public function generate(): array
     {
-        $this->ensureAdmin($request);
-
-        /*
-         * =========================================================
-         * SUMMARY
-         * =========================================================
-         */
-
         $totalMentors = User::query()
             ->where('role', 'mentor')
             ->count();
@@ -85,55 +70,82 @@ class AdminReportController extends Controller
             ->where('status', 'rejected')
             ->count();
 
-        $totalFeedback = DB::table('feedbacks')
-            ->count();
+        $totalFeedback = DB::table('feedbacks')->count();
 
         $averageRating = (float) (
-            DB::table('feedbacks')
-                ->avg('rating') ?? 0
+            DB::table('feedbacks')->avg('rating') ?? 0
         );
 
-        /*
-         * =========================================================
-         * SESSION STATUS REPORT
-         * =========================================================
-         */
+        $completionRate = $totalSessions > 0
+            ? round(($completedSessions / $totalSessions) * 100, 1)
+            : 0;
 
-        $sessionStatus = [
-            'pending' => $pendingSessions,
-            'approved' => $approvedSessions,
-            'completed' => $completedSessions,
-            'cancelled' => Session::query()
-                ->where('status', 'cancelled')
-                ->count(),
-            'rejected' => Session::query()
-                ->where('status', 'rejected')
-                ->count(),
-            'expired' => Session::query()
-                ->where('status', 'expired')
-                ->count(),
+        $applicationApprovalRate = $totalApplications > 0
+            ? round(
+                ($approvedApplications / $totalApplications) * 100,
+                1
+            )
+            : 0;
+
+        return [
+            'summary' => [
+                'total_mentors' => $totalMentors,
+                'active_mentors' => $activeMentors,
+                'total_mentees' => $totalMentees,
+                'active_mentees' => $activeMentees,
+
+                'total_sessions' => $totalSessions,
+                'pending_sessions' => $pendingSessions,
+                'approved_sessions' => $approvedSessions,
+                'completed_sessions' => $completedSessions,
+                'cancelled_sessions' => $cancelledSessions,
+
+                'total_applications' => $totalApplications,
+                'pending_applications' => $pendingApplications,
+                'approved_applications' => $approvedApplications,
+                'rejected_applications' => $rejectedApplications,
+
+                'total_feedback' => $totalFeedback,
+                'average_rating' => round($averageRating, 2),
+
+                'completion_rate' => $completionRate,
+                'application_approval_rate' => $applicationApprovalRate,
+            ],
+
+            'session_status' => [
+                'pending' => $pendingSessions,
+                'approved' => $approvedSessions,
+                'completed' => $completedSessions,
+                'cancelled' => Session::query()
+                    ->where('status', 'cancelled')
+                    ->count(),
+                'rejected' => Session::query()
+                    ->where('status', 'rejected')
+                    ->count(),
+                'expired' => Session::query()
+                    ->where('status', 'expired')
+                    ->count(),
+            ],
+
+            'application_status' => [
+                'pending' => $pendingApplications,
+                'approved' => $approvedApplications,
+                'rejected' => $rejectedApplications,
+            ],
+
+            'monthly_trend' => $this->monthlyTrend(),
+
+            'mentor_activity' => $this->mentorActivity(),
         ];
+    }
 
-        /*
-         * =========================================================
-         * APPLICATION STATUS REPORT
-         * =========================================================
-         */
-
-        $applicationStatus = [
-            'pending' => $pendingApplications,
-            'approved' => $approvedApplications,
-            'rejected' => $rejectedApplications,
-        ];
-
-        /*
-         * =========================================================
-         * SESSION TREND
-         *
-         * 6 bulan terakhir, termasuk bulan berjalan.
-         * =========================================================
-         */
-
+    /**
+     * Tren sesi selama enam bulan, termasuk bulan berjalan.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function monthlyTrend(): array
+    {
         $startMonth = now()
             ->startOfMonth()
             ->subMonths(5);
@@ -161,10 +173,7 @@ class AdminReportController extends Controller
         $monthlyMap = [];
 
         foreach ($monthlyRows as $row) {
-            $key = date(
-                'Y-m',
-                strtotime($row->month)
-            );
+            $key = date('Y-m', strtotime($row->month));
 
             $monthlyMap[$key] = [
                 'total' => (int) $row->total,
@@ -175,7 +184,7 @@ class AdminReportController extends Controller
             ];
         }
 
-        $monthlyTrend = [];
+        $trend = [];
 
         for ($offset = 5; $offset >= 0; $offset--) {
             $month = now()
@@ -184,7 +193,7 @@ class AdminReportController extends Controller
 
             $key = $month->format('Y-m');
 
-            $monthlyTrend[] = [
+            $trend[] = [
                 'key' => $key,
                 'label' => $month->format('M Y'),
                 'total' => $monthlyMap[$key]['total'] ?? 0,
@@ -195,15 +204,17 @@ class AdminReportController extends Controller
             ];
         }
 
-        /*
-         * =========================================================
-         * MENTOR ACTIVITY
-         *
-         * Diurutkan berdasarkan total session.
-         * =========================================================
-         */
+        return $trend;
+    }
 
-        $topMentors = User::query()
+    /**
+     * Delapan mentor dengan jumlah sesi terbanyak.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function mentorActivity(): array
+    {
+        $mentors = User::query()
             ->where('role', 'mentor')
             ->with([
                 'profile:id,user_id,profile_photo,job_title,company,avg_rating,total_reviews',
@@ -225,7 +236,7 @@ class AdminReportController extends Controller
             ->limit(8)
             ->get();
 
-        $mentorActivity = $topMentors->map(function ($mentor) {
+        return $mentors->map(function ($mentor) {
             return [
                 'id' => $mentor->id,
                 'name' => $mentor->name,
@@ -245,80 +256,6 @@ class AdminReportController extends Controller
                 'approved_count' => (int) $mentor->approved_count,
                 'pending_count' => (int) $mentor->pending_count,
             ];
-        })->values();
-
-        /*
-         * =========================================================
-         * PLATFORM RATIOS
-         * =========================================================
-         */
-
-        $completionRate = $totalSessions > 0
-            ? round(
-                ($completedSessions / $totalSessions) * 100,
-                1
-            )
-            : 0;
-
-        $applicationApprovalRate = $totalApplications > 0
-            ? round(
-                ($approvedApplications / $totalApplications) * 100,
-                1
-            )
-            : 0;
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Laporan admin berhasil diambil.',
-
-            'data' => [
-                'summary' => [
-                    'total_mentors' => $totalMentors,
-                    'active_mentors' => $activeMentors,
-                    'total_mentees' => $totalMentees,
-                    'active_mentees' => $activeMentees,
-
-                    'total_sessions' => $totalSessions,
-                    'pending_sessions' => $pendingSessions,
-                    'approved_sessions' => $approvedSessions,
-                    'completed_sessions' => $completedSessions,
-                    'cancelled_sessions' => $cancelledSessions,
-
-                    'total_applications' => $totalApplications,
-                    'pending_applications' => $pendingApplications,
-                    'approved_applications' => $approvedApplications,
-                    'rejected_applications' => $rejectedApplications,
-
-                    'total_feedback' => $totalFeedback,
-                    'average_rating' => round($averageRating, 2),
-
-                    'completion_rate' => $completionRate,
-                    'application_approval_rate' => $applicationApprovalRate,
-                ],
-
-                'session_status' => $sessionStatus,
-
-                'application_status' => $applicationStatus,
-
-                'monthly_trend' => $monthlyTrend,
-
-                'mentor_activity' => $mentorActivity,
-            ],
-        ]);
-    }
-
-    /**
-     * Pastikan hanya admin yang dapat mengakses report.
-     */
-    private function ensureAdmin(Request $request): void
-    {
-        $user = $request->user();
-
-        if (!$user || !$user->isAdmin()) {
-            abort(response()->json([
-                'success' => false,
-                'message' => 'Hanya admin yang dapat mengakses laporan.',
-            ], 403));
-        }
+        })->values()->all();
     }
 }

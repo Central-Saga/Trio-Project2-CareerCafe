@@ -13,7 +13,7 @@ class AuthenticationTest extends TestCase
 
     public function test_registration_creates_user_profile_and_bearer_token(): void
     {
-        $response = $this->postJson('/api/register', [
+        $response = $this->postJson('/api/v1/register', [
             'name' => 'Authentication Test',
             'email' => 'register-auth@example.test',
             'password' => 'SecurePass123!',
@@ -57,7 +57,7 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->withToken($token)
-            ->getJson('/api/me')
+            ->getJson('/api/v1/me')
             ->assertOk()
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.id', $userId);
@@ -75,7 +75,7 @@ class AuthenticationTest extends TestCase
             'status' => 'active',
         ]);
 
-        $response = $this->postJson('/api/login', [
+        $response = $this->postJson('/api/v1/login', [
             'email' => 'login-auth@example.test',
             'password' => $password,
         ]);
@@ -91,12 +91,12 @@ class AuthenticationTest extends TestCase
         $this->assertNotEmpty($token);
 
         $this->withToken($token)
-            ->getJson('/api/me')
+            ->getJson('/api/v1/me')
             ->assertOk()
             ->assertJsonPath('data.id', $user->id);
 
         $this->withToken($token)
-            ->postJson('/api/logout')
+            ->postJson('/api/v1/logout')
             ->assertOk()
             ->assertJsonPath('success', true);
 
@@ -109,7 +109,7 @@ class AuthenticationTest extends TestCase
         app('auth')->forgetGuards();
 
         $this->withToken($token)
-            ->getJson('/api/me')
+            ->getJson('/api/v1/me')
             ->assertUnauthorized();
     }
 
@@ -123,7 +123,7 @@ class AuthenticationTest extends TestCase
             'status' => 'active',
         ]);
 
-        $this->postJson('/api/login', [
+        $this->postJson('/api/v1/login', [
             'email' => 'invalid-auth@example.test',
             'password' => 'WrongPass123!',
         ])
@@ -149,7 +149,7 @@ class AuthenticationTest extends TestCase
         app('auth')->forgetGuards();
 
         $this->withToken($token)
-            ->getJson('/api/me')
+            ->getJson('/api/v1/me')
             ->assertUnauthorized();
     }
 
@@ -164,7 +164,7 @@ class AuthenticationTest extends TestCase
         $tokenTwo = $user->createToken('device-two')->plainTextToken;
 
         $this->withToken($tokenOne)
-            ->postJson('/api/logout-all')
+            ->postJson('/api/v1/logout-all')
             ->assertOk()
             ->assertJsonPath('success', true);
 
@@ -175,12 +175,12 @@ class AuthenticationTest extends TestCase
         app('auth')->forgetGuards();
 
         $this->withToken($tokenTwo)
-            ->getJson('/api/me')
+            ->getJson('/api/v1/me')
             ->assertUnauthorized();
     }
 
     public function test_current_user_endpoint_requires_authentication(): void
     {
-        $this->getJson('/api/me')->assertUnauthorized();
+        $this->getJson('/api/v1/me')->assertUnauthorized();
     }
 }

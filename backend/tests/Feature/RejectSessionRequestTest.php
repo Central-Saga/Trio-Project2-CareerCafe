@@ -54,7 +54,7 @@ class RejectSessionRequestTest extends TestCase
 
         Sanctum::actingAs($mentor);
 
-        $this->patchJson("/api/sessions/{$session->id}/reject", [])
+        $this->patchJson("/api/v1/sessions/{$session->id}/reject", [])
             ->assertStatus(422)
             ->assertJson([
                 'success' => false,
@@ -74,7 +74,7 @@ class RejectSessionRequestTest extends TestCase
 
         Sanctum::actingAs($mentor);
 
-        $this->patchJson("/api/sessions/{$session->id}/reject", [
+        $this->patchJson("/api/v1/sessions/{$session->id}/reject", [
             'rejection_reason' => 'no',
         ])
             ->assertStatus(422)
@@ -93,7 +93,7 @@ class RejectSessionRequestTest extends TestCase
 
         $reason = 'Jadwal saya tidak sesuai dengan waktu yang diminta.';
 
-        $this->patchJson("/api/sessions/{$session->id}/reject", [
+        $this->patchJson("/api/v1/sessions/{$session->id}/reject", [
             'rejection_reason' => $reason,
         ])
             ->assertOk()

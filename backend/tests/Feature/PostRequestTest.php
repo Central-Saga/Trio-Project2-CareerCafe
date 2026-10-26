@@ -22,7 +22,7 @@ class PostRequestTest extends TestCase
 
     public function test_store_post_requires_valid_input(): void
     {
-        $this->postJson('/api/posts', [])
+        $this->postJson('/api/v1/posts', [])
             ->assertStatus(422)
             ->assertJson([
                 'success' => false,
@@ -37,7 +37,7 @@ class PostRequestTest extends TestCase
 
     public function test_update_post_rejects_invalid_title(): void
     {
-        $this->putJson('/api/posts/999', [
+        $this->putJson('/api/v1/posts/999', [
             'title' => 'ab',
         ])
             ->assertStatus(422)

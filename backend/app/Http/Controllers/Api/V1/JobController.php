@@ -1,38 +1,33 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api\V1;
 
-use App\Models\Job;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\JobResource;
+use App\Queries\JobQuery;
 use Illuminate\Http\JsonResponse;
 
 class JobController extends Controller
 {
-    /**
-     * Get all active jobs.
-     */
+    public function __construct(
+        private readonly JobQuery $jobQuery
+    ) {
+    }
+
     public function index(): JsonResponse
     {
-        $jobs = Job::query()
-            ->where('is_active', true)
-            ->orderByDesc('posted_at')
-            ->orderByDesc('id')
-            ->get();
-
         return response()->json([
             'success' => true,
             'message' => 'Daftar lowongan berhasil diambil.',
-            'data' => $jobs,
+            'data' => JobResource::collection(
+                $this->jobQuery->allActive()
+            )->resolve(request()),
         ]);
     }
 
-    /**
-     * Get one active job by ID.
-     */
     public function show(int $id): JsonResponse
     {
-        $job = Job::query()
-            ->where('is_active', true)
-            ->find($id);
+        $job = $this->jobQuery->findActive($id);
 
         if (!$job) {
             return response()->json([
@@ -45,7 +40,7 @@ class JobController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Detail lowongan berhasil diambil.',
-            'data' => $job,
+            'data' => JobResource::make($job)->resolve(request()),
         ]);
     }
 }

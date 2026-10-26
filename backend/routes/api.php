@@ -2,20 +2,29 @@
 
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\MentorController;
-use App\Http\Controllers\SlotController;
-use App\Http\Controllers\SessionController;
-use App\Http\Controllers\FeedbackController;
-use App\Http\Controllers\PostController;
-use App\Http\Controllers\IndustrySkillController;
-use App\Http\Controllers\JobController;
-use App\Http\Controllers\JobApplicationController;
-use App\Http\Controllers\MentorApplicationController;
-use App\Http\Controllers\AdminMenteeController;
-use App\Http\Controllers\AdminSessionController;
-use App\Http\Controllers\AdminReportController;
+use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\MentorController;
+use App\Http\Controllers\Api\V1\SlotController;
+use App\Http\Controllers\Api\V1\SessionController;
+use App\Http\Controllers\Api\V1\SessionActionController;
+use App\Http\Controllers\Api\V1\FeedbackController;
+use App\Http\Controllers\Api\V1\PostController;
+use App\Http\Controllers\Api\V1\IndustrySkillController;
+use App\Http\Controllers\Api\V1\JobController;
+use App\Http\Controllers\Api\V1\JobApplicationController;
+use App\Http\Controllers\Api\V1\MentorApplicationController;
+use App\Http\Controllers\Api\V1\AdminMentorApplicationController;
+use App\Http\Controllers\Api\V1\AdminMentorApplicationReviewController;
+use App\Http\Controllers\Api\V1\MentorApplicationDocumentController;
+use App\Http\Controllers\Api\V1\AdminMenteeController;
+use App\Http\Controllers\Api\V1\AdminSessionController;
+use App\Http\Controllers\Api\V1\AdminReportController;
+use App\Http\Controllers\Api\V1\PostReadController;
+use App\Http\Controllers\Api\V1\ProfileMediaController;
+use App\Http\Controllers\Api\V1\SessionCreationController;
+use App\Http\Controllers\Api\V1\AuthSessionController;
+use App\Http\Controllers\Api\V1\MentorSlotReadController;
 
 /*
 |--------------------------------------------------------------------------
@@ -89,12 +98,12 @@ Route::get(
 
 Route::get(
     '/mentors/{id}/availability',
-    [SlotController::class, 'getAvailability']
+    [MentorSlotReadController::class, 'getAvailability']
 );
 
 Route::get(
     '/mentors/{id}/slots',
-    [SlotController::class, 'getSlots']
+    [MentorSlotReadController::class, 'getSlots']
 );
 
 Route::get(
@@ -109,12 +118,12 @@ Route::get(
 
 Route::get(
     '/posts',
-    [PostController::class, 'index']
+    [PostReadController::class, 'index']
 );
 
 Route::get(
     '/posts/{id}',
-    [PostController::class, 'show']
+    [PostReadController::class, 'show']
 );
 
 
@@ -130,17 +139,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post(
         '/logout',
-        [AuthController::class, 'logout']
+        [AuthSessionController::class, 'logout']
     );
 
     Route::post(
         '/logout-all',
-        [AuthController::class, 'logoutAll']
+        [AuthSessionController::class, 'logoutAll']
     );
 
     Route::get(
         '/me',
-        [AuthController::class, 'me']
+        [AuthSessionController::class, 'me']
     );
 
     Route::get(
@@ -155,22 +164,22 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post(
         '/profile/photo',
-        [ProfileController::class, 'uploadPhoto']
+        [ProfileMediaController::class, 'uploadPhoto']
     )->middleware('throttle:10,1');
 
     Route::delete(
         '/profile/photo',
-        [ProfileController::class, 'deletePhoto']
+        [ProfileMediaController::class, 'deletePhoto']
     );
 
     Route::post(
         '/profile/cover',
-        [ProfileController::class, 'uploadCover']
+        [ProfileMediaController::class, 'uploadCover']
     )->middleware('throttle:10,1');
 
     Route::delete(
         '/profile/cover',
-        [ProfileController::class, 'deleteCover']
+        [ProfileMediaController::class, 'deleteCover']
     );
 
 
@@ -210,17 +219,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get(
         '/admin/mentor-applications',
-        [MentorApplicationController::class, 'adminIndex']
+        [AdminMentorApplicationController::class, 'index']
     );
 
     Route::patch(
         '/admin/mentor-applications/{id}/approve',
-        [MentorApplicationController::class, 'approve']
+        [AdminMentorApplicationReviewController::class, 'approve']
     )->middleware('throttle:10,1');
 
     Route::patch(
         '/admin/mentor-applications/{id}/reject',
-        [MentorApplicationController::class, 'reject']
+        [AdminMentorApplicationReviewController::class, 'reject']
     )->middleware('throttle:10,1');
 
     /*
@@ -235,7 +244,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get(
         '/admin/mentor-applications/{id}/documents/{documentId}',
-        [MentorApplicationController::class, 'viewDocument']
+        [MentorApplicationDocumentController::class, 'show']
     );
 
 
@@ -300,7 +309,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post(
         '/sessions',
-        [SessionController::class, 'store']
+        [SessionCreationController::class, 'store']
     )->middleware('throttle:10,1');
 
     Route::get(
@@ -315,22 +324,22 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::patch(
         '/sessions/{id}/approve',
-        [SessionController::class, 'approve']
+        [SessionActionController::class, 'approve']
     );
 
     Route::patch(
         '/sessions/{id}/reject',
-        [SessionController::class, 'reject']
+        [SessionActionController::class, 'reject']
     );
 
     Route::patch(
         '/sessions/{id}/cancel',
-        [SessionController::class, 'cancel']
+        [SessionActionController::class, 'cancel']
     );
 
     Route::patch(
         '/sessions/{id}/complete',
-        [SessionController::class, 'complete']
+        [SessionActionController::class, 'complete']
     );
 
 

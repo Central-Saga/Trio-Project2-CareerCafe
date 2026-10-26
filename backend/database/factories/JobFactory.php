@@ -17,12 +17,17 @@ class JobFactory extends Factory
      */
     public function definition(): array
     {
-    return [
-        'title' => fake()->jobTitle(),
-        'company' => fake()->company(),
-        'description' => fake()->paragraph(3),
-        'location' => fake()->city(),
-        'salary' => 'Rp ' . fake()->numberBetween(3, 15) . '.000.000',
-    ];
+        return [
+            'title' => fake()->jobTitle(),
+            'company' => fake()->company(),
+            'location' => fake()->city(),
+            'type' => 'Full-time',
+            'category' => 'Technology',
+            'skills' => [],
+            'description' => fake()->paragraph(3),
+            'salary' => 'Rp ' . fake()->numberBetween(3, 15) . '.000.000',
+            'posted_at' => now(),
+            'is_active' => true,
+        ];
     }
 }
