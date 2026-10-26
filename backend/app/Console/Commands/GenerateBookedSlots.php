@@ -2,29 +2,48 @@
 
 namespace App\Console\Commands;
 
-use App\Http\Controllers\SlotController;
 use App\Models\User;
+use App\Services\SlotService;
 use Illuminate\Console\Command;
 
 class GenerateBookedSlots extends Command
 {
     protected $signature = 'slots:generate {--weeks=4 : Jumlah minggu ke depan untuk generate slot}';
+
     protected $description = 'Generate slot konkret 2-4 minggu ke depan dari template availabilities (PRD Section 23)';
 
-    public function handle()
+    public function handle(SlotService $slotService): int
     {
-        $weeks = (int) $this->option('weeks');
-        $slotController = new SlotController();
+        $weeks = filter_var($this->option('weeks'), FILTER_VALIDATE_INT);
 
-        $mentors = User::where('role', 'mentor')->where('status', 'active')->get();
-        $this->info("Men-generate slot konkret untuk {$mentors->count()} mentor selama {$weeks} minggu...");
+        if ($weeks === false || $weeks < 1) {
+            $this->error('Opsi --weeks harus berupa bilangan bulat positif.');
 
-        foreach ($mentors as $mentor) {
-            $slotController->generateConcreteSlotsForMentor($mentor->id, $weeks);
-            $this->line("  -> Mentor [{$mentor->name}] selesai.");
+            return Command::FAILURE;
         }
 
-        $this->info('Semua slot berhasil di-generate.');
+        $mentorCount = 0;
+
+        User::query()
+            ->where('role', 'mentor')
+            ->where('status', 'active')
+            ->chunkById(100, function ($mentors) use (
+                $slotService,
+                $weeks,
+                &$mentorCount
+            ): void {
+                foreach ($mentors as $mentor) {
+                    $slotService->generateConcreteSlotsForMentor(
+                        (int) $mentor->id,
+                        $weeks,
+                    );
+                    $mentorCount++;
+                    $this->line("  -> Mentor [{$mentor->name}] selesai.");
+                }
+            });
+
+        $this->info("Slot berhasil di-generate untuk {$mentorCount} mentor selama {$weeks} minggu.");
+
         return Command::SUCCESS;
     }
 }

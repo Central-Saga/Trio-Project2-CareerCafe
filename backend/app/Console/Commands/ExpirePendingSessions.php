@@ -10,30 +10,56 @@ use Illuminate\Support\Facades\DB;
 class ExpirePendingSessions extends Command
 {
     protected $signature = 'sessions:expire';
+
     protected $description = 'Ubah request sesi pending > 48 jam menjadi expired dan kembalikan slot ke available (PRD Section 30.1)';
 
-    public function handle()
+    public function handle(): int
     {
         $cutoff = Carbon::now('UTC')->subHours(48);
 
-        $expiredSessions = Session::with('bookedSlot')
+        $expiredCount = 0;
+
+        Session::query()
             ->where('status', 'pending')
             ->where('created_at', '<', $cutoff)
-            ->get();
+            ->select('id')
+            ->chunkById(100, function ($sessions) use ($cutoff, &$expiredCount): void {
+                foreach ($sessions as $candidate) {
+                    $expired = DB::transaction(function () use ($candidate, $cutoff): bool {
+                        $session = Session::query()
+                            ->whereKey($candidate->id)
+                            ->where('status', 'pending')
+                            ->where('created_at', '<', $cutoff)
+                            ->lockForUpdate()
+                            ->first();
 
-        $this->info("Menemukan {$expiredSessions->count()} sesi pending yang melebihi batas 48 jam.");
+                        if (! $session) {
+                            return false;
+                        }
 
-        foreach ($expiredSessions as $session) {
-            DB::transaction(function () use ($session) {
-                $session->update(['status' => 'expired']);
-                if ($session->bookedSlot) {
-                    $session->bookedSlot->update(['status' => 'available']);
+                        $slot = $session->bookedSlot()
+                            ->lockForUpdate()
+                            ->first();
+
+                        $session->update(['status' => 'expired']);
+
+                        if ($slot?->status === 'pending') {
+                            $slot->update(['status' => 'available']);
+                        }
+
+                        return true;
+                    });
+
+                    if ($expired) {
+                        $expiredCount++;
+                        $this->line("  -> Sesi ID #{$candidate->id} diubah ke 'expired'.");
+                    }
                 }
             });
-            $this->line("  -> Sesi ID #{$session->id} diubah ke 'expired' dan slot dibebaskan.");
-        }
 
+        $this->info("Memproses {$expiredCount} sesi pending yang melebihi batas 48 jam.");
         $this->info('Pemeriksaan selesai.');
+
         return Command::SUCCESS;
     }
 }

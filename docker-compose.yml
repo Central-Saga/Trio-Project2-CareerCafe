@@ -1,3 +1,26 @@
+x-backend-app: &backend-app
+  build:
+    context: ./backend
+    dockerfile: Dockerfile
+  working_dir: /var/www/html
+  volumes:
+    - ./backend:/var/www/html
+  env_file:
+    - ./backend/.env
+  environment:
+    DB_CONNECTION: pgsql
+    DB_HOST: postgres
+    DB_PORT: "5432"
+    DB_DATABASE: ${POSTGRES_DB:-career_db}
+    DB_USERNAME: ${POSTGRES_USER:-postgres}
+    DB_PASSWORD: ${POSTGRES_PASSWORD:?Isi POSTGRES_PASSWORD di file .env}
+    CACHE_STORE: database
+    APP_URL: http://localhost:8000
+  depends_on:
+    postgres:
+      condition: service_healthy
+  restart: unless-stopped
+
 services:
   postgres:
     image: postgres:15-alpine
@@ -20,28 +43,13 @@ services:
     restart: unless-stopped
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    working_dir: /var/www/html
-    volumes:
-      - ./backend:/var/www/html
-    env_file:
-      - ./backend/.env
-    environment:
-      DB_CONNECTION: pgsql
-      DB_HOST: postgres
-      DB_PORT: "5432"
-      DB_DATABASE: ${POSTGRES_DB:-career_db}
-      DB_USERNAME: ${POSTGRES_USER:-postgres}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:?Isi POSTGRES_PASSWORD di file .env}
-      APP_URL: http://localhost:8000
+    <<: *backend-app
     ports:
       - "8000:8000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
+
+  scheduler:
+    <<: *backend-app
+    command: ["php", "artisan", "schedule:work"]
 
   frontend:
     build:
