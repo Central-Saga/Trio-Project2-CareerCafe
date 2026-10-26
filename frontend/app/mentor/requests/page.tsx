@@ -1,4 +1,5 @@
 "use client";
+import OptimizedImage from "@/components/OptimizedImage";
 
 import { API_BASE_URL, apiFetch } from "@/lib/api";
 import {
@@ -86,16 +87,14 @@ function getSlot(session: Session) {
 function parseDate(session: Session) {
   const slot = getSlot(session);
 
-  if (!slot) {
+  if (!slot?.date || !slot.start_time) {
     return null;
   }
 
-  if (slot.date && slot.start_time) {
-    const date = new Date(`${slot.date}T${slot.start_time}`);
+  const date = new Date(`${slot.date}T${slot.start_time}`);
 
-    if (!Number.isNaN(date.getTime())) {
-      return date;
-    }
+  if (!Number.isNaN(date.getTime())) {
+    return date;
   }
 
   return null;
@@ -133,7 +132,7 @@ function formatRequestDate(session: Session) {
   const date = parseDate(session);
 
   if (!date) {
-    return "Date unavailable";
+    return "—";
   }
 
   return new Intl.DateTimeFormat("en-US", {
@@ -279,21 +278,13 @@ export default function MentorRequestsPage() {
   ======================================================== */
 
   const loadSessions = useCallback(async () => {
-    const token = localStorage.getItem("auth_token") || "";
-
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
+setLoading(true);
     setError("");
 
     try {
       const response = await apiFetch(`${API_URL}/sessions?per_page=100`, {
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -399,15 +390,7 @@ export default function MentorRequestsPage() {
 
   const handleApproveSubmit = async () => {
     if (!approveRequest) return;
-
-    const token = localStorage.getItem("auth_token") || "";
-
-    if (!token) {
-      setError("Your session has expired. Please log in again.");
-      return;
-    }
-
-    setApproveSubmitting(true);
+setApproveSubmitting(true);
     setActionLoading(approveRequest.id);
     setError("");
     setSuccess("");
@@ -419,7 +402,6 @@ export default function MentorRequestsPage() {
           method: "PATCH",
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
         },
       );
@@ -466,13 +448,7 @@ export default function MentorRequestsPage() {
     if (!rejectRequest) return;
 
     const reason = rejectionReason.trim();
-
-    if (!reason) {
-      setRejectError("Alasan penolakan wajib diisi.");
-      return;
-    }
-
-    if (reason.length < 5) {
+if (reason.length < 5) {
       setRejectError(
         "Alasan penolakan terlalu singkat. Jelaskan alasan dengan lebih jelas.",
       );
@@ -483,15 +459,7 @@ export default function MentorRequestsPage() {
       setRejectError("Alasan penolakan maksimal 3000 karakter.");
       return;
     }
-
-    const token = localStorage.getItem("auth_token") || "";
-
-    if (!token) {
-      setRejectError("Your session has expired. Please log in again.");
-      return;
-    }
-
-    setRejectSubmitting(true);
+setRejectSubmitting(true);
     setActionLoading(rejectRequest.id);
     setRejectError("");
     setError("");
@@ -505,7 +473,6 @@ export default function MentorRequestsPage() {
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             rejection_reason: reason,
@@ -811,7 +778,7 @@ function RequestRow({
           {/* AVATAR */}
           <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#E9F0E8] text-sm font-black text-[#57755B]">
             {photo ? (
-              <img
+              <OptimizedImage
                 src={photo}
                 alt={session.mentee?.name || "Mentee"}
                 className="h-full w-full object-cover"
@@ -991,7 +958,7 @@ function RequestModal({
           <div className="flex items-center gap-4 rounded-[20px] bg-[#F6F3EE] p-4">
             <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#E8F0E8] text-base font-black text-[#55765B]">
               {photo ? (
-                <img
+                <OptimizedImage
                   src={photo}
                   alt={session.mentee?.name || "Mentee"}
                   className="h-full w-full object-cover"

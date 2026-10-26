@@ -1,4 +1,5 @@
 "use client";
+import OptimizedImage from "@/components/OptimizedImage";
 
 import { API_BASE_URL, apiFetch } from "@/lib/api";
 import Link from "next/link";
@@ -55,15 +56,8 @@ export default function AdminSettingsPage() {
   const [error, setError] = useState("");
 
   const loadAccount = useCallback(async () => {
-    const token = localStorage.getItem("auth_token");
-    const role = localStorage.getItem("user_role");
-
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-
-    if (role !== "admin") {
+const role = localStorage.getItem("user_role");
+if (role !== "admin") {
       router.replace("/");
       return;
     }
@@ -76,22 +70,19 @@ export default function AdminSettingsPage() {
         apiFetch(`${API_URL}/me`, {
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
           cache: "no-store",
         }),
         apiFetch(`${API_URL}/profile`, {
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
           cache: "no-store",
         }),
       ]);
 
       if (meResponse.status === 401 || profileResponse.status === 401) {
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("user_name");
+localStorage.removeItem("user_name");
         localStorage.removeItem("user_role");
 
         router.replace("/login");
@@ -196,17 +187,17 @@ export default function AdminSettingsPage() {
   }
 
   function resolveImageUrl(value?: string | null) {
-    if (!value) {
-      return "";
-    }
+  if (!value) {
+    return "";
+  }
 
-    if (
-      value.startsWith("http://") ||
-      value.startsWith("https://") ||
-      value.startsWith("data:")
-    ) {
-      return value;
-    }
+  if (
+    value.startsWith("http://") ||
+    value.startsWith("https://") ||
+    value.startsWith("data:")
+  ) {
+    return value;
+  }
 
     if (value.startsWith("/")) {
       return `${API_URL.replace(/\/api$/, "")}${value}`;
@@ -238,7 +229,7 @@ export default function AdminSettingsPage() {
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex min-w-0 items-center gap-4">
               {profile?.profile_photo ? (
-                <img
+                <OptimizedImage
                   src={resolveImageUrl(profile.profile_photo)}
                   alt={displayName}
                   className="h-16 w-16 rounded-[20px] object-cover shadow-sm"

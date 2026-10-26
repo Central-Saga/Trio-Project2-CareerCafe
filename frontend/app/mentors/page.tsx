@@ -1,4 +1,5 @@
 "use client";
+import OptimizedImage from "@/components/OptimizedImage";
 
 import { API_BASE_URL, apiFetch } from "@/lib/api";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -229,7 +230,6 @@ function Reveal({
 
   useEffect(() => {
     const element = ref.current;
-
     if (!element) {
       return;
     }
@@ -277,7 +277,7 @@ function MentorSkill({ skill }: { skill: Skill }) {
   return (
     <div className="inline-flex items-center gap-1.5 rounded-lg border border-[#E9E4DC] bg-[linear-gradient(135deg,#FFFFFF_0%,#F7F2EB_52%,#F0F5EE_100%)] px-2.5 py-1.5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#D5E1D4] hover:shadow-sm">
       {logo.slug ? (
-        <img
+        <OptimizedImage
           src={`https://cdn.simpleicons.org/${logo.slug}`}
           alt={logo.label}
           className="h-4 w-4 object-contain"
@@ -439,7 +439,7 @@ function MentorCard({
 
         {/* PHOTO */}
         <div className="relative min-h-full overflow-hidden bg-[linear-gradient(145deg,#DCEBDD_0%,#F1E7DC_48%,#EEE1E8_100%)]">
-          <img
+          <OptimizedImage
             src={image}
             alt={mentor.name}
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.045]"

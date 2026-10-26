@@ -41,7 +41,6 @@ function Reveal({
 
   useEffect(() => {
     const element = ref.current;
-
     if (!element) {
       return;
     }
@@ -148,13 +147,7 @@ export default function JobDetailPage() {
     let cancelled = false;
 
     const fetchJob = async () => {
-      if (!jobId) {
-        setError("Invalid job ID.");
-        setLoading(false);
-        return;
-      }
-
-      try {
+try {
         setLoading(true);
         setError("");
         setJob(null);
@@ -178,11 +171,7 @@ export default function JobDetailPage() {
         if (!result?.data) {
           throw new Error("Job detail data is unavailable.");
         }
-
-        if (!cancelled) {
-          setJob(result.data);
-        }
-      } catch (fetchError) {
+} catch (fetchError) {
         if (cancelled) {
           return;
         }
@@ -195,10 +184,7 @@ export default function JobDetailPage() {
             : "An error occurred while retrieving job details.",
         );
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
+}
     };
 
     fetchJob();

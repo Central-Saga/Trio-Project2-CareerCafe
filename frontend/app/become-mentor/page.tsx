@@ -93,7 +93,6 @@ export default function BecomeMentorPage() {
   const router = useRouter();
   const shouldReduceMotion = useReducedMotion();
 
-  const [token, setToken] = useState("");
   const [userRole, setUserRole] = useState("");
 
   const [industries, setIndustries] = useState<Industry[]>([]);
@@ -128,30 +127,64 @@ export default function BecomeMentorPage() {
   }, [applications]);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("auth_token") || "";
-    const storedRole = localStorage.getItem("user_role") || "";
-    const storedName = localStorage.getItem("user_name") || "";
+    let cancelled = false;
 
-    if (!storedToken) {
-      router.replace("/login");
-      return;
-    }
+    const loadCurrentUser = async () => {
+      try {
+        const response = await apiFetch(`${API_URL}/me`);
 
-    setToken(storedToken);
-    setUserRole(storedRole);
+        if (!response.ok) {
+          if (response.status !== 401) {
+            throw new Error("Gagal memeriksa sesi pengguna.");
+          }
 
-    if (storedRole === "mentor") {
-      router.replace("/mentor/dashboard");
-      return;
-    }
+          return;
+        }
 
-    if (storedRole === "admin") {
-      router.replace("/admin/mentor-applications");
-      return;
-    }
+        const payload = await response.json();
+        const user = payload?.data?.user ?? payload?.data;
+        const role =
+          typeof user?.role === "string" ? user.role.toLowerCase() : "";
 
-    setFullName(storedName);
-    setLoading(false);
+        if (!role) {
+          throw new Error("Data pengguna tidak valid.");
+        }
+
+        if (cancelled) {
+          return;
+        }
+
+        setUserRole(role);
+        setFullName(typeof user.name === "string" ? user.name : "");
+
+        if (role === "mentor") {
+          router.replace("/mentor/dashboard");
+          return;
+        }
+
+        if (role === "admin") {
+          router.replace("/admin/mentor-applications");
+          return;
+        }
+
+        setLoading(false);
+      } catch (loadError) {
+        if (!cancelled) {
+          setError(
+            loadError instanceof Error
+              ? loadError.message
+              : "Gagal memeriksa sesi pengguna.",
+          );
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadCurrentUser();
+
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   useEffect(() => {
@@ -185,7 +218,7 @@ export default function BecomeMentorPage() {
   }, []);
 
   useEffect(() => {
-    if (!token || userRole !== "mentee") {
+    if (userRole !== "mentee") {
       return;
     }
 
@@ -194,7 +227,6 @@ export default function BecomeMentorPage() {
         const response = await apiFetch(`${API_URL}/mentor-applications/my`, {
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -211,7 +243,7 @@ export default function BecomeMentorPage() {
     };
 
     loadApplications();
-  }, [token, userRole]);
+  }, [userRole]);
 
   const toggleSkill = (skillId: number) => {
     setSelectedSkills((current) => {
@@ -395,7 +427,6 @@ export default function BecomeMentorPage() {
         method: "POST",
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });

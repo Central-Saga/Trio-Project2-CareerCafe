@@ -14,15 +14,15 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
-
-->withRouting(
-    web: __DIR__.'/../routes/web.php',
-    api: __DIR__.'/../routes/api.php',
-    apiPrefix: 'api/v1',
-    commands: __DIR__.'/../routes/console.php',
-    health: '/up',
-)
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        apiPrefix: 'api/v1',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->statefulApi();
         $middleware->append(ApiErrorSchemaMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -36,7 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
             ValidationException $exception,
             Request $request
         ) {
-            if (!$request->is('api/*')) {
+            if (! $request->is('api/*')) {
                 return null;
             }
 
@@ -54,7 +54,7 @@ return Application::configure(basePath: dirname(__DIR__))
             HttpResponseException $exception,
             Request $request
         ) {
-            if (!$request->is('api/*')) {
+            if (! $request->is('api/*')) {
                 return null;
             }
 
@@ -62,7 +62,7 @@ return Application::configure(basePath: dirname(__DIR__))
             $status = $original->getStatusCode();
             $payload = json_decode((string) $original->getContent(), true);
 
-            if (!is_array($payload)) {
+            if (! is_array($payload)) {
                 $payload = [];
             }
 
@@ -85,7 +85,7 @@ return Application::configure(basePath: dirname(__DIR__))
             Throwable $exception,
             Request $request
         ) {
-            if (!$request->is('api/*')) {
+            if (! $request->is('api/*')) {
                 return null;
             }
 

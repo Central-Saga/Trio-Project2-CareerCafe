@@ -1,4 +1,5 @@
 "use client";
+import OptimizedImage from "@/components/OptimizedImage";
 
 import { API_BASE_URL, apiFetch } from "@/lib/api";
 
@@ -44,7 +45,6 @@ function Reveal({ children, className = "", delay = 0 }: RevealProps) {
 
   useEffect(() => {
     const element = ref.current;
-
     if (!element) {
       return;
     }
@@ -292,7 +292,7 @@ function compressImage(
         const ctx = canvas.getContext("2d");
 
         if (!ctx) {
-          reject(new Error("Canvas is unavailable."));
+          reject(new Error("Unable to prepare the image for compression."));
           return;
         }
 
@@ -301,7 +301,7 @@ function compressImage(
         canvas.toBlob(
           (blob) => {
             if (!blob) {
-              reject(new Error("Failed to compress the image."));
+              reject(new Error("Unable to generate a compressed image."));
               return;
             }
 
@@ -363,24 +363,13 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const loadProfile = async () => {
-      const token = localStorage.getItem("auth_token");
-
-      setProfileError("");
+setProfileError("");
       setRequiresLogin(false);
-
-      if (!token) {
-        setProfileError("Sesi login tidak ditemukan. Silakan masuk kembali.");
-        setRequiresLogin(true);
-        setLoadingProfile(false);
-        return;
-      }
-
-      try {
+try {
         const response = await apiFetch(`${API_URL}/profile`, {
           method: "GET",
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
           cache: "no-store",
         });
@@ -481,13 +470,7 @@ export default function ProfilePage() {
   const handleSaveProfile = () => {
     const cleanedName = editName.trim();
     const cleanedEmail = editEmail.trim();
-
-    if (!cleanedName) {
-      setMessage("Name cannot be empty.");
-      return;
-    }
-
-    localStorage.setItem("user_name", cleanedName);
+localStorage.setItem("user_name", cleanedName);
     localStorage.setItem("user_email", cleanedEmail);
 
     setName(cleanedName);
@@ -512,14 +495,6 @@ export default function ProfilePage() {
       return;
     }
 
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      setMessage("Login session not found. Please log in again.");
-      event.target.value = "";
-      return;
-    }
-
     try {
       setUploadingProfile(true);
 
@@ -533,7 +508,6 @@ export default function ProfilePage() {
         method: "POST",
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
@@ -582,14 +556,6 @@ export default function ProfilePage() {
       return;
     }
 
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      setMessage("Login session not found. Please log in again.");
-      event.target.value = "";
-      return;
-    }
-
     try {
       setUploadingCover(true);
 
@@ -603,7 +569,6 @@ export default function ProfilePage() {
         method: "POST",
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
@@ -640,21 +605,13 @@ export default function ProfilePage() {
   };
 
   const removeProfileImage = async () => {
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      setMessage("Login session not found.");
-      return;
-    }
-
-    try {
+try {
       setUploadingProfile(true);
 
       const response = await apiFetch(`${API_URL}/profile/photo`, {
         method: "DELETE",
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -680,21 +637,13 @@ export default function ProfilePage() {
   };
 
   const removeCoverImage = async () => {
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      setMessage("Login session not found.");
-      return;
-    }
-
-    try {
+try {
       setUploadingCover(true);
 
       const response = await apiFetch(`${API_URL}/profile/cover`, {
         method: "DELETE",
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -874,7 +823,7 @@ export default function ProfilePage() {
 
                   <div className="relative h-52 overflow-hidden">
                     {coverImage ? (
-                      <img
+                      <OptimizedImage
                         src={coverImage}
                         alt="Profile cover photo"
                         className="h-full w-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-[1.04]"
@@ -942,7 +891,7 @@ export default function ProfilePage() {
                         <div className="relative">
                           <div className="group/avatar relative">
                             {profileImage ? (
-                              <img
+                              <OptimizedImage
                                 src={profileImage}
                                 alt="Profile photo"
                                 className="h-28 w-28 rounded-full border-4 border-white bg-white object-cover shadow-lg transition-all duration-700 ease-out group-hover/avatar:scale-105 group-hover/avatar:shadow-[0_18px_40px_rgba(44,30,22,0.16)]"

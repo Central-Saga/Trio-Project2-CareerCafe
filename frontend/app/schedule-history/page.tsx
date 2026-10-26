@@ -1,4 +1,5 @@
 "use client";
+import OptimizedImage from "@/components/OptimizedImage";
 
 import { API_BASE_URL, apiFetch } from "@/lib/api";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -112,7 +113,6 @@ function Reveal({ children, className = "", delay = 0 }: RevealProps) {
 
   useEffect(() => {
     const element = ref.current;
-
     if (!element) {
       return;
     }
@@ -424,24 +424,26 @@ function getStatusClass(status: SessionStatus) {
 }
 
 function getInitials(name?: string | null) {
-  if (!name) {
-    return "CC";
+  const safeName = name?.trim() ?? "";
+
+  if (!safeName) {
+    return "";
   }
 
-  const parts = name.trim().split(/\s+/).slice(0, 2);
+  const parts = safeName.split(/\s+/).slice(0, 2);
 
   return parts.map((part) => part.charAt(0).toUpperCase()).join("");
 }
 
 function formatDate(value?: string | null) {
   if (!value) {
-    return "-";
+    return "—";
   }
 
   const cleanValue = value.includes("T") ? value.split("T")[0] : value;
-  const date = new Date(`${cleanValue}T00:00:00`);
+  const date = cleanValue ? new Date(`${cleanValue}T00:00:00`) : null;
 
-  if (Number.isNaN(date.getTime())) {
+  if (!date || Number.isNaN(date.getTime())) {
     return value;
   }
 
@@ -455,7 +457,7 @@ function formatDate(value?: string | null) {
 
 function formatTime(value?: string | null) {
   if (!value) {
-    return "-";
+    return "--:--";
   }
 
   if (value.includes("T")) {
@@ -558,25 +560,11 @@ export default function ScheduleHistoryPage() {
   const [ratingSuccess, setRatingSuccess] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-
-    void fetchSessions(selectedTab);
+void fetchSessions(selectedTab);
   }, [router, selectedTab]);
 
   async function fetchSessions(tab: TabKey, silent = false) {
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-
-    try {
+try {
       if (silent) {
         setRefreshing(true);
       } else {
@@ -594,14 +582,12 @@ export default function ScheduleHistoryPage() {
         method: "GET",
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
         },
         cache: "no-store",
       });
 
       if (response.status === 401) {
-        localStorage.removeItem("auth_token");
-        router.replace("/login");
+router.replace("/login");
         return;
       }
 
@@ -625,14 +611,7 @@ export default function ScheduleHistoryPage() {
   }
 
   async function openDetail(sessionId: number) {
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-
-    try {
+try {
       setDetailLoading(true);
       setError("");
 
@@ -640,14 +619,12 @@ export default function ScheduleHistoryPage() {
         method: "GET",
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
         },
         cache: "no-store",
       });
 
       if (response.status === 401) {
-        localStorage.removeItem("auth_token");
-        router.replace("/login");
+router.replace("/login");
         return;
       }
 
@@ -669,32 +646,26 @@ export default function ScheduleHistoryPage() {
 
   async function confirmCancel() {
     if (!cancelTarget) {
+      setError("No session selected to cancel.");
       return;
     }
 
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
+    const cancelSessionId = cancelTarget.id;
 
     try {
       setCancelling(true);
 
       const response = await apiFetch(
-        `${API_BASE_URL}/sessions/${cancelTarget.id}/cancel`,
+        `${API_BASE_URL}/sessions/${cancelSessionId}/cancel`,
         {
           method: "PATCH",
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
         },
       );
 
       if (response.status === 401) {
-        localStorage.removeItem("auth_token");
         router.replace("/login");
         return;
       }
@@ -709,7 +680,7 @@ export default function ScheduleHistoryPage() {
 
       await fetchSessions(selectedTab, true);
 
-      if (selectedSession?.id === cancelTarget.id) {
+      if (selectedSession?.id === cancelSessionId) {
         setSelectedSession((current) =>
           current
             ? {
@@ -780,6 +751,7 @@ export default function ScheduleHistoryPage() {
 
   async function submitRating() {
     if (!ratingTarget) {
+      setRatingError("Please select a completed session to rate.");
       return;
     }
 
@@ -792,13 +764,6 @@ export default function ScheduleHistoryPage() {
 
     if (ratingValue < 1 || ratingValue > 5) {
       setRatingError("Please select a rating from 1 to 5 stars.");
-      return;
-    }
-
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      router.replace("/login");
       return;
     }
 
@@ -823,7 +788,6 @@ export default function ScheduleHistoryPage() {
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             rating: ratingValue,
@@ -833,7 +797,6 @@ export default function ScheduleHistoryPage() {
       );
 
       if (response.status === 401) {
-        localStorage.removeItem("auth_token");
         router.replace("/login");
         return;
       }
@@ -1153,7 +1116,7 @@ export default function ScheduleHistoryPage() {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-start gap-4">
                               {profile?.profile_photo ? (
-                                <img
+                                <OptimizedImage
                                   src={profile.profile_photo}
                                   alt={mentor?.name ?? "Mentor"}
                                   className="h-14 w-14 flex-shrink-0 rounded-2xl border border-[#E8E2DA] object-cover shadow-sm"
@@ -1528,7 +1491,7 @@ export default function ScheduleHistoryPage() {
 
               <div className="flex items-center gap-4 rounded-2xl border border-[#EAE5DE] bg-white p-4">
                 {selectedSession.mentor?.profile?.profile_photo ? (
-                  <img
+                  <OptimizedImage
                     src={selectedSession.mentor.profile.profile_photo}
                     alt={selectedSession.mentor.name}
                     className="h-14 w-14 rounded-2xl object-cover"
@@ -1800,10 +1763,7 @@ export default function ScheduleHistoryPage() {
           <div
             className="absolute inset-0"
             onClick={() => {
-              if (!ratingSubmitting) {
-                closeRating();
-              }
-            }}
+}}
           />
 
           <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-3xl bg-[#FCFBF8] shadow-2xl">
@@ -1835,7 +1795,7 @@ export default function ScheduleHistoryPage() {
 
               <div className="flex items-center gap-4 rounded-2xl border border-[#EAE5DE] bg-white p-4">
                 {ratingTarget.mentor?.profile?.profile_photo ? (
-                  <img
+                  <OptimizedImage
                     src={ratingTarget.mentor.profile.profile_photo}
                     alt={ratingTarget.mentor.name}
                     className="h-14 w-14 rounded-2xl object-cover"
@@ -2020,10 +1980,7 @@ export default function ScheduleHistoryPage() {
           <div
             className="absolute inset-0"
             onClick={() => {
-              if (!cancelling) {
-                setCancelTarget(null);
-              }
-            }}
+}}
           />
 
           <div className="relative z-10 w-full max-w-md rounded-3xl bg-[#FCFBF8] p-6 shadow-2xl">

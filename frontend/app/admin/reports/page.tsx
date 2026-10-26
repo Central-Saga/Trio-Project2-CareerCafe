@@ -1,4 +1,5 @@
 "use client";
+import OptimizedImage from "@/components/OptimizedImage";
 
 import { API_BASE_URL, API_ORIGIN, apiFetch } from "@/lib/api";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -94,13 +95,11 @@ function resolveImageUrl(value?: string | null): string {
 }
 
 function initials(name?: string | null): string {
-  if (!name) {
-    return "CC";
-  }
+  const normalized = name?.trim() ?? "";
 
-  return name
-    .trim()
+  return normalized
     .split(/\s+/)
+    .filter(Boolean)
     .slice(0, 2)
     .map((part) => part.charAt(0).toUpperCase())
     .join("");
@@ -163,14 +162,7 @@ export default function AdminReportsPage() {
   const [lastUpdated, setLastUpdated] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("auth_token");
     const role = localStorage.getItem("user_role");
-
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-
     if (role !== "admin") {
       router.replace("/");
     }
@@ -178,14 +170,7 @@ export default function AdminReportsPage() {
 
   const loadReport = useCallback(
     async (silent = false) => {
-      const token = localStorage.getItem("auth_token");
       const role = localStorage.getItem("user_role");
-
-      if (!token) {
-        router.replace("/login");
-        return;
-      }
-
       if (role !== "admin") {
         router.replace("/");
         return;
@@ -204,13 +189,11 @@ export default function AdminReportsPage() {
           method: "GET",
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
           cache: "no-store",
         });
 
         if (response.status === 401) {
-          localStorage.removeItem("auth_token");
           router.replace("/login");
           return;
         }
@@ -1171,7 +1154,7 @@ function Avatar({
 }) {
   if (src) {
     return (
-      <img
+      <OptimizedImage
         src={src}
         alt=""
         className="h-12 w-12 shrink-0 rounded-2xl border-2 border-white object-cover shadow-sm"

@@ -257,8 +257,11 @@ function normalizePost(raw: RawPost, index: number): Post {
 
 function formatPostDate(value?: string | null) {
   if (!value) return "Just now";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Just now";
+
+  const date = value ? new Date(value) : null;
+
+  if (!date || Number.isNaN(date.getTime())) return "Just now";
+
   return date.toLocaleDateString("en-US", {
     day: "numeric",
     month: "short",
@@ -393,14 +396,7 @@ export default function CommunityPage() {
   );
 
   const openCreatePost = () => {
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-
-    setCreateError("");
+setCreateError("");
     setCreateSuccess("");
     setCreateOpen(true);
   };
@@ -414,22 +410,9 @@ export default function CommunityPage() {
 
   const handleCreatePost = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    const token = localStorage.getItem("auth_token");
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-
-    const title = newTitle.trim();
+const title = newTitle.trim();
     const content = newContent.trim();
-
-    if (!title) {
-      setCreateError("Discussion title is required.");
-      return;
-    }
-
-    if (!content) {
+if (!content) {
       setCreateError("Discussion content is required.");
       return;
     }
@@ -443,7 +426,6 @@ export default function CommunityPage() {
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           title,

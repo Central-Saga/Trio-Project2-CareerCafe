@@ -511,7 +511,7 @@ function getSessionDateKey(session: SessionItem) {
   const parsed = getSessionDate(session);
 
   if (!parsed) {
-    return null;
+    return "";
   }
 
   const year = parsed.getFullYear();
@@ -526,9 +526,9 @@ function formatDate(value?: string | null) {
     return "—";
   }
 
-  const date = new Date(value);
+  const date = value ? new Date(value) : null;
 
-  if (Number.isNaN(date.getTime())) {
+  if (!date || Number.isNaN(date.getTime())) {
     return "—";
   }
 
@@ -572,14 +572,7 @@ export default function AdminDashboardPage() {
 
   const loadDashboard = useCallback(
     async (manual = false) => {
-      const token = localStorage.getItem("auth_token");
-
-      if (!token) {
-        router.replace("/login");
-        return;
-      }
-
-      const role = localStorage.getItem("user_role");
+const role = localStorage.getItem("user_role");
 
       if (role && role !== "admin") {
         router.replace("/");
@@ -597,7 +590,6 @@ export default function AdminDashboardPage() {
       try {
         const headers = {
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
         };
 
         const [mentorsResponse, applicationsResponse, sessionsResponse] =
@@ -623,8 +615,7 @@ export default function AdminDashboardPage() {
           applicationsResponse.status === 401 ||
           sessionsResponse.status === 401
         ) {
-          localStorage.removeItem("auth_token");
-          localStorage.removeItem("user_name");
+localStorage.removeItem("user_name");
           localStorage.removeItem("user_role");
 
           router.replace("/login");

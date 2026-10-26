@@ -82,13 +82,9 @@ const getStatusConfig = (status: string): StatusConfig => {
 };
 
 const formatAppliedDate = (value: string | null): string => {
-  if (!value) {
-    return "-";
-  }
+  const date = value ? new Date(value) : null;
 
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
+  if (!date || Number.isNaN(date.getTime())) {
     return "-";
   }
 
@@ -152,18 +148,10 @@ export default function ApplicationsPage() {
       setError("");
 
       try {
-        const token = localStorage.getItem("auth_token");
-
-        if (!token) {
-          router.push("/login");
-          return;
-        }
-
         const response = await apiFetch(`${API_BASE_URL}/applications`, {
           method: "GET",
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
           cache: "no-store",
         });
@@ -171,8 +159,7 @@ export default function ApplicationsPage() {
         const result = await response.json();
 
         if (response.status === 401) {
-          localStorage.removeItem("auth_token");
-          router.push("/login");
+router.push("/login");
           return;
         }
 
@@ -180,8 +167,12 @@ export default function ApplicationsPage() {
           throw new Error(result?.message ?? "Failed to load applications.");
         }
 
+        if (!Array.isArray(result?.data)) {
+          throw new Error("The Applications API returned an invalid data format.");
+        }
+
         if (!cancelled) {
-          setApplications(Array.isArray(result?.data) ? result.data : []);
+          setApplications(result.data);
         }
       } catch (fetchError) {
         if (cancelled) {
