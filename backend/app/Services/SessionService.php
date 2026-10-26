@@ -230,4 +230,20 @@ class SessionService
             ]);
         });
     }
+
+    /**
+     * Soft-delete a session and its feedback together for audit retention.
+     */
+    public function delete(Session $session): void
+    {
+        DB::transaction(function () use ($session) {
+            $session = Session::query()
+                ->whereKey($session->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $session->feedback()->delete();
+            $session->delete();
+        });
+    }
 }
