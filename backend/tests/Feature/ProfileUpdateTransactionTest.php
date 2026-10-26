@@ -25,7 +25,7 @@ class ProfileUpdateTransactionTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $this->putJson('/api/profile', [
+        $this->putJson('/api/v1/profile', [
             'name' => 'Updated Test User',
             'bio' => 'Testing transactional profile updates.',
             'job_title' => 'Backend Developer',

@@ -22,7 +22,7 @@ class ProfileRequestTest extends TestCase
 
     public function test_update_profile_rejects_bio_that_is_too_long(): void
     {
-        $this->putJson('/api/profile', [
+        $this->putJson('/api/v1/profile', [
             'bio' => str_repeat('a', 1001),
         ])
             ->assertStatus(422)
@@ -35,7 +35,7 @@ class ProfileRequestTest extends TestCase
 
     public function test_upload_photo_requires_a_file(): void
     {
-        $this->postJson('/api/profile/photo', [])
+        $this->postJson('/api/v1/profile/photo', [])
             ->assertStatus(422)
             ->assertJson([
                 'success' => false,
@@ -46,7 +46,7 @@ class ProfileRequestTest extends TestCase
 
     public function test_upload_cover_requires_a_file(): void
     {
-        $this->postJson('/api/profile/cover', [])
+        $this->postJson('/api/v1/profile/cover', [])
             ->assertStatus(422)
             ->assertJson([
                 'success' => false,

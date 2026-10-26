@@ -17,7 +17,7 @@ class StoreSessionRequestTest extends TestCase
             'status' => 'active',
         ]));
 
-        $response = $this->postJson('/api/sessions', []);
+        $response = $this->postJson('/api/v1/sessions', []);
 
         $response
             ->assertStatus(422)

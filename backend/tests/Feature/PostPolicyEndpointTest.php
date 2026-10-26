@@ -39,7 +39,7 @@ class PostPolicyEndpointTest extends TestCase
 
         Sanctum::actingAs($owner);
 
-        $this->postJson('/api/posts', [
+        $this->postJson('/api/v1/posts', [
             'title' => 'New career post',
             'content' => 'This is a valid test post created for the community feed.',
             'category' => 'Career Story',
@@ -62,7 +62,7 @@ class PostPolicyEndpointTest extends TestCase
 
         Sanctum::actingAs($owner);
 
-        $this->putJson("/api/posts/{$post->id}", [
+        $this->putJson("/api/v1/posts/{$post->id}", [
             'title' => 'Updated career post',
         ])
             ->assertOk()
@@ -78,7 +78,7 @@ class PostPolicyEndpointTest extends TestCase
 
         Sanctum::actingAs($other);
 
-        $this->putJson("/api/posts/{$post->id}", [
+        $this->putJson("/api/v1/posts/{$post->id}", [
             'title' => 'Unauthorized update',
         ])
             ->assertForbidden()
@@ -98,7 +98,7 @@ class PostPolicyEndpointTest extends TestCase
 
         Sanctum::actingAs($admin);
 
-        $this->putJson("/api/posts/{$post->id}", [
+        $this->putJson("/api/v1/posts/{$post->id}", [
             'title' => 'Admin updated post',
         ])
             ->assertOk()
@@ -113,7 +113,7 @@ class PostPolicyEndpointTest extends TestCase
 
         Sanctum::actingAs($owner);
 
-        $this->deleteJson("/api/posts/{$post->id}")
+        $this->deleteJson("/api/v1/posts/{$post->id}")
             ->assertOk()
             ->assertJsonPath('success', true);
 
@@ -130,7 +130,7 @@ class PostPolicyEndpointTest extends TestCase
 
         Sanctum::actingAs($other);
 
-        $this->deleteJson("/api/posts/{$post->id}")
+        $this->deleteJson("/api/v1/posts/{$post->id}")
             ->assertForbidden()
             ->assertJsonPath('success', false);
 
@@ -145,7 +145,7 @@ class PostPolicyEndpointTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $this->postJson('/api/posts', [
+        $this->postJson('/api/v1/posts', [
             'title' => 'A valid test title',
             'content' => 'This content is long enough for validation.',
             'category' => 'Career Story',

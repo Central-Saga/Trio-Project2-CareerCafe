@@ -17,7 +17,7 @@ class ApiCorsTest extends TestCase
 
         $response = $this->call(
             'OPTIONS',
-            '/api/login',
+            '/api/v1/login',
             [],
             [],
             [],
@@ -49,7 +49,7 @@ class ApiCorsTest extends TestCase
 
         $response = $this->call(
             'OPTIONS',
-            '/api/login',
+            '/api/v1/login',
             [],
             [],
             [],

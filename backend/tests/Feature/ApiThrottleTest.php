@@ -12,7 +12,7 @@ class ApiThrottleTest extends TestCase
         RateLimiter::clear('127.0.0.1');
 
         for ($attempt = 0; $attempt < 5; $attempt++) {
-            $this->postJson('/api/login', [])
+            $this->postJson('/api/v1/login', [])
                 ->assertStatus(422)
                 ->assertJsonStructure([
                     'success',
@@ -22,7 +22,7 @@ class ApiThrottleTest extends TestCase
                 ]);
         }
 
-        $response = $this->postJson('/api/login', []);
+        $response = $this->postJson('/api/v1/login', []);
 
         $response
             ->assertStatus(429)

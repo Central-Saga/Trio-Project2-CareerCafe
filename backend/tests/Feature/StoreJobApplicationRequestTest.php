@@ -20,7 +20,7 @@ class StoreJobApplicationRequestTest extends TestCase
 
         Sanctum::actingAs($mentee);
 
-        $this->postJson('/api/jobs/999/apply', [])
+        $this->postJson('/api/v1/jobs/999/apply', [])
             ->assertStatus(422)
             ->assertJson([
                 'success' => false,

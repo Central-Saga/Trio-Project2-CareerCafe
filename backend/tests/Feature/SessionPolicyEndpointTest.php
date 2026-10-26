@@ -56,7 +56,7 @@ class SessionPolicyEndpointTest extends TestCase
 
         Sanctum::actingAs($other);
 
-        $this->getJson("/api/sessions/{$session->id}")
+        $this->getJson("/api/v1/sessions/{$session->id}")
             ->assertForbidden()
             ->assertJsonPath('success', false);
     }
@@ -69,7 +69,7 @@ class SessionPolicyEndpointTest extends TestCase
 
         Sanctum::actingAs($mentor);
 
-        $this->patchJson("/api/sessions/{$session->id}/approve")
+        $this->patchJson("/api/v1/sessions/{$session->id}/approve")
             ->assertOk()
             ->assertJsonPath('success', true);
 
@@ -93,7 +93,7 @@ class SessionPolicyEndpointTest extends TestCase
 
         Sanctum::actingAs($otherMentor);
 
-        $this->patchJson("/api/sessions/{$session->id}/approve")
+        $this->patchJson("/api/v1/sessions/{$session->id}/approve")
             ->assertForbidden()
             ->assertJsonPath('success', false);
 
@@ -112,7 +112,7 @@ class SessionPolicyEndpointTest extends TestCase
 
         Sanctum::actingAs($otherMentor);
 
-        $this->patchJson("/api/sessions/{$session->id}/reject", [
+        $this->patchJson("/api/v1/sessions/{$session->id}/reject", [
             'rejection_reason' => 'This request belongs to another mentor.',
         ])
             ->assertForbidden()
@@ -133,7 +133,7 @@ class SessionPolicyEndpointTest extends TestCase
 
         Sanctum::actingAs($other);
 
-        $this->patchJson("/api/sessions/{$session->id}/cancel")
+        $this->patchJson("/api/v1/sessions/{$session->id}/cancel")
             ->assertForbidden()
             ->assertJsonPath('success', false);
 
@@ -151,7 +151,7 @@ class SessionPolicyEndpointTest extends TestCase
 
         Sanctum::actingAs($mentee);
 
-        $this->patchJson("/api/sessions/{$session->id}/complete")
+        $this->patchJson("/api/v1/sessions/{$session->id}/complete")
             ->assertForbidden()
             ->assertJsonPath('success', false);
 
@@ -170,7 +170,7 @@ class SessionPolicyEndpointTest extends TestCase
 
         Sanctum::actingAs($admin);
 
-        $this->patchJson("/api/sessions/{$session->id}/complete")
+        $this->patchJson("/api/v1/sessions/{$session->id}/complete")
             ->assertOk()
             ->assertJsonPath('success', true);
 
@@ -195,7 +195,7 @@ class SessionPolicyEndpointTest extends TestCase
 
         Sanctum::actingAs($viewer);
 
-        $this->postJson('/api/sessions', [
+        $this->postJson('/api/v1/sessions', [
             'booked_slot_id' => $slot->id,
             'topic' => 'Career mentoring',
             'message' => 'I would like advice about my career path.',
