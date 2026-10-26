@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Availability;
-use App\Models\BookedSlot;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -15,7 +14,7 @@ class SlotService
      * Mengganti template ketersediaan mentor dan menghasilkan slot
      * konkret untuk empat minggu ke depan.
      *
-     * @param array<string, mixed> $validated
+     * @param  array<string, mixed>  $validated
      */
     public function setAvailability(
         User $mentor,
@@ -94,22 +93,16 @@ class SlotService
                     $startString = $currentStart->format('H:i:s');
                     $endString = $currentEnd->format('H:i:s');
 
-                    $exists = BookedSlot::query()
-                        ->where('mentor_id', $mentorId)
-                        ->where('date', $dateString)
-                        ->where('start_time', $startString)
-                        ->exists();
-
-                    if (!$exists) {
-                        BookedSlot::query()->create([
-                            'mentor_id' => $mentorId,
-                            'date' => $dateString,
-                            'start_time' => $startString,
-                            'end_time' => $endString,
-                            'status' => 'available',
-                            'availability_id' => $template->id,
-                        ]);
-                    }
+                    DB::table('booked_slots')->insertOrIgnore([
+                        'mentor_id' => $mentorId,
+                        'date' => $dateString,
+                        'start_time' => $startString,
+                        'end_time' => $endString,
+                        'status' => 'available',
+                        'availability_id' => $template->id,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
 
                     $currentStart->addMinutes(45);
                 }
