@@ -2,78 +2,43 @@
 
 namespace Database\Seeders;
 
+use App\Models\Availability;
+use App\Models\BookedSlot;
+use App\Models\Feedback;
+use App\Models\Industry;
+use App\Models\Job;
+use App\Models\JobApplication;
+use App\Models\MentorApplication;
+use App\Models\MentorApplicationDocument;
+use App\Models\Post;
+use App\Models\Profile;
+use App\Models\Session;
+use App\Models\Skill;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed data utama Career Cafe.
-     */
     public function run(): void
     {
-        /*
-        |--------------------------------------------------------------------------
-        | INDUSTRIES
-        |--------------------------------------------------------------------------
-        */
-
         $industries = [
-            [
-                'name' => 'Technology',
-                'description' => 'Teknologi informasi, software development, dan engineering.',
-            ],
-            [
-                'name' => 'Design',
-                'description' => 'UI/UX design, product design, dan visual design.',
-            ],
-            [
-                'name' => 'Product Management',
-                'description' => 'Product strategy, product development, dan agile management.',
-            ],
-            [
-                'name' => 'Digital Marketing',
-                'description' => 'SEO, social media, content marketing, dan branding.',
-            ],
+            'Technology' => 'Software development and information technology.',
+            'Design' => 'Product, user experience, and visual design.',
+            'Product Management' => 'Product strategy and agile development.',
+            'Digital Marketing' => 'SEO, social media, and content marketing.',
         ];
 
         $industryIds = [];
 
-        foreach ($industries as $industry) {
-            $existingIndustry = DB::table('industries')
-                ->where('name', $industry['name'])
-                ->first();
-
-            if ($existingIndustry) {
-                DB::table('industries')
-                    ->where('id', $existingIndustry->id)
-                    ->update([
-                        'description' => $industry['description'],
-                        'updated_at' => now(),
-                    ]);
-
-                $industryIds[$industry['name']] = $existingIndustry->id;
-            } else {
-                $id = DB::table('industries')->insertGetId([
-                    'name' => $industry['name'],
-                    'description' => $industry['description'],
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-
-                $industryIds[$industry['name']] = $id;
-            }
+        foreach ($industries as $name => $description) {
+            $industryIds[$name] = Industry::query()->updateOrCreate(
+                ['name' => $name],
+                ['description' => $description],
+            )->id;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | SKILLS
-        |--------------------------------------------------------------------------
-        */
-
-        $skills = [
+        $skillNames = [
             'Laravel',
             'Next.js',
             'PostgreSQL',
@@ -100,231 +65,41 @@ class DatabaseSeeder extends Seeder
             'Analytics',
             'PHP',
             'UI Design',
+            'UX Research',
             'Content',
         ];
 
         $skillIds = [];
 
-        foreach ($skills as $skillName) {
-            $existingSkill = DB::table('skills')
-                ->where('name', $skillName)
-                ->first();
-
-            if ($existingSkill) {
-                $skillIds[$skillName] = $existingSkill->id;
-            } else {
-                $id = DB::table('skills')->insertGetId([
-                    'name' => $skillName,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-
-                $skillIds[$skillName] = $id;
-            }
+        foreach ($skillNames as $name) {
+            $skillIds[$name] = Skill::query()->updateOrCreate(
+                ['name' => $name],
+            )->id;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | JOBS
-        |--------------------------------------------------------------------------
-        */
-
-        $jobs = [
+        User::query()->updateOrCreate(
+            ['email' => 'admin@careercafe.test'],
             [
-                'title' => 'Fullstack Developer',
-                'company' => 'TechBali',
-                'location' => 'Denpasar, Bali',
-                'type' => 'Full Time',
-                'category' => 'Technology',
-                'skills' => [
-                    'Laravel',
-                    'Next.js',
-                    'PostgreSQL',
-                ],
-                'description' =>
-                    'Mengembangkan aplikasi web menggunakan teknologi frontend dan backend modern. Posisi ini cocok untuk developer yang memiliki pengalaman dalam membangun aplikasi web dan memahami arsitektur backend serta frontend.',
-                'salary' => 'Rp 6jt - 9jt',
-                'posted_at' => now()->subDays(2),
-                'is_active' => true,
+                'name' => 'Career Cafe Admin',
+                'password' => Hash::make('password123'),
+                'role' => 'admin',
+                'status' => 'active',
             ],
-
-            [
-                'title' => 'UI/UX Designer',
-                'company' => 'KriyaBali Digital',
-                'location' => 'Denpasar, Bali',
-                'type' => 'Full Time',
-                'category' => 'Design',
-                'skills' => [
-                    'Figma',
-                    'UI Design',
-                    'UX Research',
-                ],
-                'description' =>
-                    'Merancang pengalaman pengguna dan antarmuka digital yang mudah digunakan, menarik, dan sesuai dengan kebutuhan pengguna.',
-                'salary' => 'Rp 5jt - 7jt',
-                'posted_at' => now()->subDays(1),
-                'is_active' => true,
-            ],
-
-            [
-                'title' => 'Product Manager',
-                'company' => 'Career Cafe Corp',
-                'location' => 'Bali / Remote',
-                'type' => 'Hybrid',
-                'category' => 'Product',
-                'skills' => [
-                    'Product Strategy',
-                    'Agile',
-                    'Business Canvas',
-                ],
-                'description' =>
-                    'Mengelola pengembangan produk digital dari tahap ide, riset pengguna, penyusunan strategi produk, hingga proses peluncuran.',
-                'salary' => 'Rp 8jt - 12jt',
-                'posted_at' => now()->subDays(3),
-                'is_active' => true,
-            ],
-
-            [
-                'title' => 'Digital Marketing Specialist',
-                'company' => 'Bali Creative Hub',
-                'location' => 'Gianyar, Bali',
-                'type' => 'Full Time',
-                'category' => 'Marketing',
-                'skills' => [
-                    'SEO',
-                    'Social Media',
-                    'Content Marketing',
-                ],
-                'description' =>
-                    'Menyusun strategi pemasaran digital dan meningkatkan visibilitas brand melalui berbagai kanal digital.',
-                'salary' => 'Rp 5jt - 8jt',
-                'posted_at' => now()->subDays(4),
-                'is_active' => true,
-            ],
-
-            [
-                'title' => 'Frontend Developer',
-                'company' => 'Nusa Digital',
-                'location' => 'Remote',
-                'type' => 'Remote',
-                'category' => 'Technology',
-                'skills' => [
-                    'React',
-                    'Next.js',
-                    'TypeScript',
-                ],
-                'description' =>
-                    'Mengembangkan interface web yang cepat, responsive, dan mudah digunakan.',
-                'salary' => 'Rp 7jt - 10jt',
-                'posted_at' => now()->subDays(5),
-                'is_active' => true,
-            ],
-
-            [
-                'title' => 'Graphic Designer',
-                'company' => 'Island Creative',
-                'location' => 'Badung, Bali',
-                'type' => 'Part Time',
-                'category' => 'Design',
-                'skills' => [
-                    'Illustrator',
-                    'Photoshop',
-                    'Branding',
-                ],
-                'description' =>
-                    'Membuat kebutuhan visual untuk branding, sosial media, dan kampanye digital.',
-                'salary' => 'Rp 3jt - 5jt',
-                'posted_at' => now()->subDays(6),
-                'is_active' => true,
-            ],
-
-            [
-                'title' => 'Backend Developer Intern',
-                'company' => 'StartUp Bali',
-                'location' => 'Denpasar, Bali',
-                'type' => 'Internship',
-                'category' => 'Technology',
-                'skills' => [
-                    'PHP',
-                    'Laravel',
-                    'Git',
-                ],
-                'description' =>
-                    'Membantu tim backend dalam mengembangkan API dan sistem backend untuk aplikasi digital.',
-                'salary' => 'Rp 1,5jt - 2,5jt',
-                'posted_at' => now()->subWeek(),
-                'is_active' => true,
-            ],
-
-            [
-                'title' => 'Social Media Specialist',
-                'company' => 'Bali Lifestyle Co.',
-                'location' => 'Badung, Bali',
-                'type' => 'Full Time',
-                'category' => 'Marketing',
-                'skills' => [
-                    'Instagram',
-                    'TikTok',
-                    'Analytics',
-                ],
-                'description' =>
-                    'Mengelola konten sosial media dan membantu meningkatkan engagement serta awareness brand.',
-                'salary' => 'Rp 4jt - 6jt',
-                'posted_at' => now()->subWeek(),
-                'is_active' => true,
-            ],
-        ];
-
-        foreach ($jobs as $job) {
-            DB::table('jobs')->updateOrInsert(
-                [
-                    'title' => $job['title'],
-                    'company' => $job['company'],
-                ],
-                [
-                    'location' => $job['location'],
-                    'type' => $job['type'],
-                    'category' => $job['category'],
-                    'skills' => json_encode($job['skills']),
-                    'description' => $job['description'],
-                    'salary' => $job['salary'],
-                    'posted_at' => $job['posted_at'],
-                    'is_active' => $job['is_active'],
-                    'updated_at' => now(),
-                ],
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | MENTORS
-        |--------------------------------------------------------------------------
-        */
+        );
 
         $mentors = [
             [
-                'name' => 'Rian Pratama, S.Kom.',
+                'name' => 'Rian Pratama',
                 'email' => 'rian.pratama@careercafe.test',
                 'job_title' => 'Senior Fullstack Engineer',
-                'company' => 'TechBali Denpasar',
+                'company' => 'TechBali',
                 'industry' => 'Technology',
                 'location' => 'Denpasar, Bali',
                 'experience_years' => 6,
                 'education' => 'S1 Teknik Informatika',
-                'linkedin_url' => 'https://www.linkedin.com/',
-                'timezone' => 'Asia/Makassar',
-                'avg_rating' => 4.90,
-                'total_reviews' => 120,
-                'profile_photo' => 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80',
-                'bio' => 'Berpengalaman lebih dari 6 tahun dalam pengembangan aplikasi web skala besar menggunakan ekosistem Laravel dan Next.js. Siap membantu memahami arsitektur perangkat lunak, backend, frontend, database, dan praktik terbaik industri.',
-                'skills' => [
-                    'Laravel',
-                    'Next.js',
-                    'PostgreSQL',
-                    'Docker',
-                ],
+                'bio' => 'Software engineer sharing practical web development experience.',
+                'skills' => ['Laravel', 'Next.js', 'PostgreSQL', 'Docker'],
             ],
-
             [
                 'name' => 'Putu Ayu Lestari',
                 'email' => 'putu.ayu@careercafe.test',
@@ -334,43 +109,21 @@ class DatabaseSeeder extends Seeder
                 'location' => 'Denpasar, Bali',
                 'experience_years' => 7,
                 'education' => 'S1 Desain Komunikasi Visual',
-                'linkedin_url' => 'https://www.linkedin.com/',
-                'timezone' => 'Asia/Makassar',
-                'avg_rating' => 5.00,
-                'total_reviews' => 95,
-                'profile_photo' => 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80',
-                'bio' => 'Fokus pada pembuatan antarmuka pengguna yang intuitif dan berpusat pada pengguna. Berpengalaman mendesain produk digital untuk berbagai startup lokal maupun internasional.',
-                'skills' => [
-                    'Figma',
-                    'User Research',
-                    'Design Systems',
-                    'Prototyping',
-                ],
+                'bio' => 'Product designer focused on accessible, user-centered experiences.',
+                'skills' => ['Figma', 'User Research', 'Design Systems', 'Prototyping'],
             ],
-
             [
                 'name' => 'Gede Hendra Kusuma',
                 'email' => 'gede.hendra@careercafe.test',
-                'job_title' => 'Product Manager & Mentor',
+                'job_title' => 'Product Manager',
                 'company' => 'Career Cafe Corp',
                 'industry' => 'Product Management',
                 'location' => 'Badung, Bali',
                 'experience_years' => 8,
                 'education' => 'S1 Manajemen Bisnis',
-                'linkedin_url' => 'https://www.linkedin.com/',
-                'timezone' => 'Asia/Makassar',
-                'avg_rating' => 4.80,
-                'total_reviews' => 110,
-                'profile_photo' => 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80',
-                'bio' => 'Membantu mengarahkan visi produk dari tahap konseptual hingga peluncuran pasar. Ahli dalam penyusunan Business Model Canvas, validasi pasar, manajemen proyek, dan metodologi Agile.',
-                'skills' => [
-                    'Product Strategy',
-                    'Agile',
-                    'Business Canvas',
-                    'Scrum',
-                ],
+                'bio' => 'Product manager experienced in strategy, discovery, and agile delivery.',
+                'skills' => ['Product Strategy', 'Agile', 'Business Canvas', 'Scrum'],
             ],
-
             [
                 'name' => 'Komang Sinta Dewi',
                 'email' => 'komang.sinta@careercafe.test',
@@ -380,32 +133,16 @@ class DatabaseSeeder extends Seeder
                 'location' => 'Gianyar, Bali',
                 'experience_years' => 5,
                 'education' => 'S1 Ilmu Komunikasi',
-                'linkedin_url' => 'https://www.linkedin.com/',
-                'timezone' => 'Asia/Makassar',
-                'avg_rating' => 4.90,
-                'total_reviews' => 88,
-                'profile_photo' => 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=600&q=80',
-                'bio' => 'Praktisi pemasaran digital yang berfokus pada strategi pertumbuhan merek, manajemen media sosial, optimalisasi SEO, dan content marketing untuk meningkatkan visibilitas bisnis.',
-                'skills' => [
-                    'Social Media',
-                    'SEO',
-                    'Content Marketing',
-                    'Branding',
-                ],
+                'bio' => 'Digital marketer focused on content, search, and brand growth.',
+                'skills' => ['Social Media', 'SEO', 'Content Marketing', 'Branding'],
             ],
         ];
 
-        /*
-        |--------------------------------------------------------------------------
-        | CREATE / UPDATE MENTORS
-        |--------------------------------------------------------------------------
-        */
+        $mentorUsers = [];
 
         foreach ($mentors as $mentorData) {
-            $mentor = User::updateOrCreate(
-                [
-                    'email' => $mentorData['email'],
-                ],
+            $mentor = User::query()->updateOrCreate(
+                ['email' => $mentorData['email']],
                 [
                     'name' => $mentorData['name'],
                     'password' => Hash::make('password123'),
@@ -413,66 +150,35 @@ class DatabaseSeeder extends Seeder
                     'status' => 'active',
                 ],
             );
+            $mentorUsers[$mentorData['email']] = $mentor;
 
-            /*
-            |--------------------------------------------------------------------------
-            | PROFILE
-            |--------------------------------------------------------------------------
-            */
-
-            DB::table('profiles')->updateOrInsert(
-                [
-                    'user_id' => $mentor->id,
-                ],
+            Profile::query()->updateOrCreate(
+                ['user_id' => $mentor->id],
                 [
                     'industry_id' => $industryIds[$mentorData['industry']],
-                    'profile_photo' => $mentorData['profile_photo'],
                     'bio' => $mentorData['bio'],
                     'location' => $mentorData['location'],
                     'job_title' => $mentorData['job_title'],
                     'company' => $mentorData['company'],
                     'experience_years' => $mentorData['experience_years'],
                     'education' => $mentorData['education'],
-                    'linkedin_url' => $mentorData['linkedin_url'],
-                    'timezone' => $mentorData['timezone'],
-                    'avg_rating' => $mentorData['avg_rating'],
-                    'total_reviews' => $mentorData['total_reviews'],
-                    'updated_at' => now(),
+                    'linkedin_url' => 'https://example.test/mentors/'.$mentor->id,
+                    'timezone' => 'Asia/Makassar',
+                    'avg_rating' => 0,
+                    'total_reviews' => 0,
                 ],
             );
 
-            /*
-            |--------------------------------------------------------------------------
-            | MENTOR SKILLS
-            |--------------------------------------------------------------------------
-            */
-
-            foreach ($mentorData['skills'] as $skillName) {
-                $skillId = $skillIds[$skillName];
-
-                DB::table('mentor_skills')->updateOrInsert(
-                    [
-                        'user_id' => $mentor->id,
-                        'skill_id' => $skillId,
-                    ],
-                    [
-                        'updated_at' => now(),
-                        'created_at' => now(),
-                    ],
-                );
-            }
+            $mentor->skills()->syncWithoutDetaching(
+                array_map(
+                    fn (string $skill): int => $skillIds[$skill],
+                    $mentorData['skills'],
+                ),
+            );
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | DEFAULT MENTEE FOR TESTING
-        |--------------------------------------------------------------------------
-        */
-
-        User::updateOrCreate(
-            [
-                'email' => 'trioriawan@example.com',
-            ],
+        $mentee = User::query()->updateOrCreate(
+            ['email' => 'trioriawan@example.com'],
             [
                 'name' => 'Trio Riawan',
                 'password' => Hash::make('password123'),
@@ -480,19 +186,168 @@ class DatabaseSeeder extends Seeder
                 'status' => 'active',
             ],
         );
+        $mentorApplicant = User::query()->updateOrCreate(
+            ['email' => 'mentee@careercafe.test'],
+            [
+                'name' => 'Demo Mentor Applicant',
+                'password' => Hash::make('password123'),
+                'role' => 'mentee',
+                'status' => 'active',
+            ],
+        );
 
-        /*
-        |--------------------------------------------------------------------------
-        | MESSAGE
-        |--------------------------------------------------------------------------
-        */
+        foreach ([$mentee, $mentorApplicant] as $user) {
+            Profile::query()->updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'industry_id' => $industryIds['Technology'],
+                    'bio' => 'Demo Career Cafe community member.',
+                    'location' => 'Denpasar, Bali',
+                    'job_title' => 'Software Developer',
+                    'company' => 'Example Studio',
+                    'experience_years' => 2,
+                    'education' => 'Bachelor Degree',
+                    'timezone' => 'Asia/Jakarta',
+                ],
+            );
+        }
 
-        $this->command?->info('==========================================');
-        $this->command?->info('Career Cafe database berhasil di-seed.');
-        $this->command?->info('8 lowongan berhasil dibuat/diperbarui.');
-        $this->command?->info('4 mentor berhasil dibuat/diperbarui.');
-        $this->command?->info('1 akun mentee testing berhasil dibuat/diperbarui.');
-        $this->command?->info('Password testing: password123');
-        $this->command?->info('==========================================');
+        $this->call([
+            JobSeeder::class,
+            MentorAvailabilitySeeder::class,
+        ]);
+
+        $fullstackJob = Job::query()
+            ->where('title', 'Fullstack Developer')
+            ->where('company', 'TechBali')
+            ->firstOrFail();
+
+        JobApplication::query()->updateOrCreate(
+            [
+                'job_id' => $fullstackJob->id,
+                'user_id' => $mentee->id,
+            ],
+            [
+                'full_name' => $mentee->name,
+                'email' => $mentee->email,
+                'phone' => null,
+                'cv_path' => null,
+                'cover_letter' => 'I am interested in this demo role.',
+                'portfolio_url' => 'https://example.test/portfolio',
+                'status' => 'pending',
+                'applied_at' => now(),
+            ],
+        );
+
+        foreach ([
+            [
+                'user' => $mentorUsers['rian.pratama@careercafe.test'],
+                'title' => 'Building reliable Laravel applications',
+                'category' => 'Industry Insight',
+                'content' => 'A practical demo post about maintainable web applications.',
+            ],
+            [
+                'user' => $mentorUsers['putu.ayu@careercafe.test'],
+                'title' => 'Starting with user research',
+                'category' => 'Interview Tips',
+                'content' => 'A practical demo post about understanding user needs.',
+            ],
+        ] as $postData) {
+            Post::query()->updateOrCreate(
+                [
+                    'user_id' => $postData['user']->id,
+                    'title' => $postData['title'],
+                ],
+                [
+                    'content' => $postData['content'],
+                    'category' => $postData['category'],
+                    'status' => 'published',
+                ],
+            );
+        }
+
+        $mentor = $mentorUsers['rian.pratama@careercafe.test'];
+        $availability = Availability::query()
+            ->where('mentor_id', $mentor->id)
+            ->orderBy('day_of_week')
+            ->firstOrFail();
+        $slot = BookedSlot::query()->updateOrCreate(
+            [
+                'mentor_id' => $mentor->id,
+                'date' => '2030-01-07',
+                'start_time' => '10:00:00',
+            ],
+            [
+                'end_time' => '10:45:00',
+                'status' => 'booked',
+                'availability_id' => $availability->id,
+            ],
+        );
+        $session = Session::query()->updateOrCreate(
+            ['booked_slot_id' => $slot->id],
+            [
+                'mentor_id' => $mentor->id,
+                'mentee_id' => $mentee->id,
+                'topic' => 'Career planning',
+                'message' => 'Demo mentoring session.',
+                'duration' => 45,
+                'meeting_type' => 'online',
+                'meeting_link' => 'https://meet.google.com',
+                'meeting_location' => null,
+                'status' => 'completed',
+            ],
+        );
+
+        Feedback::query()->updateOrCreate(
+            ['session_id' => $session->id],
+            [
+                'mentor_id' => $mentor->id,
+                'mentee_id' => $mentee->id,
+                'rating' => 5,
+                'comment' => 'A helpful demo mentoring session.',
+            ],
+        );
+
+        Profile::query()->where('user_id', $mentor->id)->update([
+            'avg_rating' => 5,
+            'total_reviews' => 1,
+        ]);
+
+        $application = MentorApplication::query()->updateOrCreate(
+            ['user_id' => $mentorApplicant->id],
+            [
+                'full_name' => $mentorApplicant->name,
+                'job_title' => 'Software Developer',
+                'company' => 'Example Studio',
+                'location' => 'Denpasar, Bali',
+                'experience_years' => 5,
+                'education' => 'Bachelor Degree',
+                'industry_id' => $industryIds['Technology'],
+                'bio' => 'Demo applicant with professional experience.',
+                'motivation' => 'I would like to support the community.',
+                'linkedin_url' => 'https://example.test/demo-mentor-applicant',
+                'skills' => [$skillIds['Laravel'], $skillIds['PostgreSQL']],
+                'status' => 'pending',
+                'reviewed_by' => null,
+                'reviewed_at' => null,
+                'rejection_reason' => null,
+            ],
+        );
+
+        MentorApplicationDocument::query()->updateOrCreate(
+            [
+                'mentor_application_id' => $application->id,
+                'document_type' => 'certificate',
+                'original_name' => 'demo-certificate.pdf',
+            ],
+            [
+                'file_path' => 'mentor-applications/demo/certificate.pdf',
+                'mime_type' => 'application/pdf',
+                'file_size' => 1024,
+            ],
+        );
+
+        $this->command?->info('Career Cafe demo data seeded or updated.');
+        $this->command?->info('Demo accounts use the password: password123');
     }
 }

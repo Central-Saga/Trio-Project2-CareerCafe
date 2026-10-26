@@ -117,9 +117,10 @@ class PostPolicyEndpointTest extends TestCase
             ->assertOk()
             ->assertJsonPath('success', true);
 
-        $this->assertDatabaseMissing('posts', [
+        $this->assertSoftDeleted('posts', [
             'id' => $post->id,
         ]);
+        $this->assertNull(Post::query()->find($post->id));
     }
 
     public function test_other_user_cannot_delete_post(): void
