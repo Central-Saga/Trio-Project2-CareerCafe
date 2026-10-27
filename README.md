@@ -1,5 +1,9 @@
 # Career Café
 
+[![CI](https://github.com/Central-Saga/Trio-Project2-CareerCafe/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Central-Saga/Trio-Project2-CareerCafe/actions/workflows/ci.yml)
+
+Badge CI menunjukkan status workflow untuk branch `main`.
+
 Career Café adalah platform pengembangan karier yang menghubungkan mentee dengan mentor profesional. Pengguna dapat mencari mentor, mengatur sesi mentoring, mengeksplorasi lowongan kerja, mengajukan lamaran, dan berbagi informasi karier.
 
 ## Fitur Utama
