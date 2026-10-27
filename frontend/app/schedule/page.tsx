@@ -1,4 +1,5 @@
 "use client";
+import OptimizedImage from "@/components/OptimizedImage";
 
 import { API_BASE_URL, apiFetch } from "@/lib/api";
 import {
@@ -71,7 +72,6 @@ function Reveal({
 
   useEffect(() => {
     const element = ref.current;
-
     if (!element) {
       return;
     }
@@ -370,15 +370,7 @@ function SchedulePageContent() {
   ========================================================= */
 
   useEffect(() => {
-    if (!mentorId) {
-      setError("No mentor has been selected.");
-      setLoadingMentor(false);
-      setLoadingSlots(false);
-
-      return;
-    }
-
-    const controller = new AbortController();
+const controller = new AbortController();
 
     const fetchMentor = async () => {
       try {
@@ -423,11 +415,7 @@ function SchedulePageContent() {
   ========================================================= */
 
   const fetchSlots = async () => {
-    if (!mentorId) {
-      return;
-    }
-
-    try {
+try {
       setLoadingSlots(true);
       setError("");
 
@@ -526,15 +514,7 @@ function SchedulePageContent() {
 
   const handleBooking = async () => {
     setBookingError("");
-
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-
-    if (!selectedSlot) {
+if (!selectedSlot) {
       setBookingError("Please select a consultation time first.");
 
       return;
@@ -564,7 +544,6 @@ function SchedulePageContent() {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           booked_slot_id: selectedSlot.id,
@@ -930,7 +909,7 @@ function SchedulePageContent() {
                   <div className="relative flex items-center gap-4">
                     <div className="h-[72px] w-[72px] flex-shrink-0 overflow-hidden rounded-2xl border-2 border-white/30 bg-[#EAF2EA]">
                       {mentor?.profile?.profile_photo ? (
-                        <img
+                        <OptimizedImage
                           src={mentor.profile.profile_photo}
                           alt={mentor.name}
                           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"

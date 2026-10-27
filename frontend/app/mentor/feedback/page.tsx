@@ -1,4 +1,5 @@
 "use client";
+import OptimizedImage from "@/components/OptimizedImage";
 
 import { API_BASE_URL, API_ORIGIN, apiFetch } from "@/lib/api";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -44,17 +45,10 @@ export default function MentorFeedbackPage() {
   const [error, setError] = useState("");
 
   const loadFeedback = useCallback(async () => {
-    const token = localStorage.getItem("auth_token") || "";
-
-    if (!token) {
-      return;
-    }
-
-    try {
+try {
       const meResponse = await apiFetch(`${API_URL}/me`, {
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -68,13 +62,7 @@ export default function MentorFeedbackPage() {
       const user = meData?.data ?? meData;
 
       const id = Number(user?.id);
-
-      if (!id) {
-        setError("Unable to determine mentor account.");
-        return;
-      }
-
-      setMentorId(id);
+setMentorId(id);
 
       const response = await apiFetch(`${API_URL}/mentors/${id}/feedbacks`, {
         headers: {
@@ -301,7 +289,7 @@ export default function MentorFeedbackPage() {
                 <div className="flex items-start gap-4">
                   <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#D26C61] text-sm font-extrabold text-white">
                     {feedback.mentee?.profile?.profile_photo ? (
-                      <img
+                      <OptimizedImage
                         src={resolveImageUrl(
                           feedback.mentee.profile.profile_photo,
                         )}

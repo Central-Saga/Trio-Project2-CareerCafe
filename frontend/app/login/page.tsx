@@ -1,4 +1,5 @@
 "use client";
+import OptimizedImage from "@/components/OptimizedImage";
 
 import { API_BASE_URL, apiFetch } from "@/lib/api";
 import Link from "next/link";
@@ -39,17 +40,12 @@ export default function LoginPage() {
       }
 
       const userData = data.data?.user || data.user || {};
-      const token = data.data?.token || data.access_token;
 
       const userName = userData.name || data.name || "User";
 
       const userRole = String(
         userData.role || data.role || "mentee",
       ).toLowerCase();
-
-      if (token) {
-        localStorage.setItem("auth_token", token);
-      }
 
       localStorage.setItem("user_name", userName);
       localStorage.setItem("user_role", userRole);
@@ -269,7 +265,7 @@ export default function LoginPage() {
                   "login-logo-enter 750ms cubic-bezier(0.22, 1, 0.36, 1) both",
               }}
             >
-              <img
+              <OptimizedImage
                 src="/image/logo.png"
                 alt="Logo Career Cafe"
                 className="-ml-5 h-40 w-auto mix-blend-multiply transition-transform duration-500 hover:scale-[1.01] xl:h-44"

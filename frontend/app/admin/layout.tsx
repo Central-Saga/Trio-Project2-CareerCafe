@@ -1,4 +1,5 @@
 "use client";
+import OptimizedImage from "@/components/OptimizedImage";
 
 import { API_BASE_URL, apiFetch } from "@/lib/api";
 import Link from "next/link";
@@ -225,20 +226,12 @@ export default function AdminLayout({
 
   const loadNotifications = useCallback(
     async () => {
-      const token =
-        localStorage.getItem("auth_token") || "";
-
-      if (!token) {
-        return;
-      }
-
-      try {
+try {
         const response = await apiFetch(
           `${API_URL}/admin/mentor-applications`,
           {
             headers: {
               Accept: "application/json",
-              Authorization: `Bearer ${token}`,
             },
             cache: "no-store",
           },
@@ -640,9 +633,9 @@ export default function AdminLayout({
       return "Baru saja";
     }
 
-    const date = new Date(value);
+    const date = value ? new Date(value) : null;
 
-    if (Number.isNaN(date.getTime())) {
+    if (!date || Number.isNaN(date.getTime())) {
       return "Baru saja";
     }
 
@@ -695,22 +688,9 @@ export default function AdminLayout({
 
   const loadProfile =
     useCallback(async () => {
-      const token =
-        localStorage.getItem(
-          "auth_token",
-        ) || "";
-
-      if (!token) {
-        router.replace("/login");
-        return;
-      }
-
-      const role =
-        (
-          localStorage.getItem(
-            "user_role",
-          ) || ""
-        ).toLowerCase();
+      const role = (
+        localStorage.getItem("user_role") || ""
+      ).toLowerCase();
 
       if (role !== "admin") {
         router.replace("/");
@@ -735,7 +715,6 @@ export default function AdminLayout({
             headers: {
               Accept:
                 "application/json",
-              Authorization: `Bearer ${token}`,
             },
             cache: "no-store",
           }),
@@ -746,7 +725,6 @@ export default function AdminLayout({
               headers: {
                 Accept:
                   "application/json",
-                Authorization: `Bearer ${token}`,
               },
               cache: "no-store",
             },
@@ -938,10 +916,26 @@ export default function AdminLayout({
   ========================================================= */
 
   const performLogout =
-    () => {
+    async (sessionAlreadyLoggedOut = false) => {
+      if (!sessionAlreadyLoggedOut) {
+        try {
+          const response = await apiFetch(`${API_BASE_URL}/logout`, {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error("Server gagal mengakhiri sesi.");
+          }
+        } catch {
+          window.alert("Gagal logout. Periksa koneksi internet dan coba lagi.");
+          return;
+        }
+      }
+
       [
-        "auth_token",
-        "token",
         "user_name",
         "user_role",
         "user_email",
@@ -967,20 +961,11 @@ export default function AdminLayout({
     ) {
       return;
     }
-
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      performLogout();
-      return;
-    }
-
-    try {
+try {
       const response = await apiFetch(`${API_BASE_URL}/logout-all`, {
         method: "POST",
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -988,7 +973,7 @@ export default function AdminLayout({
         throw new Error("Server gagal mencabut sesi perangkat.");
       }
 
-      performLogout();
+      await performLogout(true);
     } catch {
       window.alert(
         "Gagal keluar dari semua perangkat. Periksa koneksi internet dan coba lagi."
@@ -1009,7 +994,7 @@ export default function AdminLayout({
   const confirmLogout =
     () => {
       setLogoutOpen(false);
-      performLogout();
+      void performLogout();
     };
 
   const isActive =
@@ -1051,7 +1036,7 @@ export default function AdminLayout({
           <div className="text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-[#1E3F20] text-white shadow-lg">
               {profileImage ? (
-                <img
+                <OptimizedImage
                   src={profileImage}
                   alt={adminName}
                   className="h-full w-full object-cover"
@@ -1315,7 +1300,7 @@ export default function AdminLayout({
                   ].join(" ")}
                 >
                   {profileImage ? (
-                    <img
+                    <OptimizedImage
                       src={profileImage}
                       alt={adminName}
                       className="h-full w-full object-cover"

@@ -10,10 +10,8 @@ class AuthPayloadResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'user' => (new UserResource($this->resource['user']))
+            'user' => UserResource::make($this->resource)
                 ->resolve($request),
-            'token' => $this->resource['token'],
-            'token_type' => $this->resource['token_type'],
         ];
     }
 }

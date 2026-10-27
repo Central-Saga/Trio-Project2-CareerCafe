@@ -1,5 +1,6 @@
 "use client";
 
+import OptimizedImage from "@/components/OptimizedImage";
 import { API_BASE_URL, API_ORIGIN, apiFetch } from "@/lib/api";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -85,12 +86,7 @@ function resolveImageUrl(value?: string | null) {
 }
 
 function getInitials(name?: string | null) {
-  const normalized = name?.trim();
-
-  if (!normalized) {
-    return "M";
-  }
-
+  const normalized = name?.trim() ?? "";
   const parts = normalized.split(/\s+/).filter(Boolean);
 
   if (parts.length === 1) {
@@ -425,15 +421,7 @@ export default function AdminMentorsPage() {
   const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
 
   async function loadMentors(showRefreshState = false) {
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      setError("Sesi login admin tidak ditemukan.");
-      setLoading(false);
-      return;
-    }
-
-    if (showRefreshState) {
+if (showRefreshState) {
       setRefreshing(true);
     } else {
       setLoading(true);
@@ -446,7 +434,6 @@ export default function AdminMentorsPage() {
         method: "GET",
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
         },
         cache: "no-store",
       });
@@ -454,8 +441,7 @@ export default function AdminMentorsPage() {
       const result: ApiResponse = await response.json().catch(() => ({}));
 
       if (response.status === 401) {
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("user_name");
+localStorage.removeItem("user_name");
         localStorage.removeItem("user_role");
         window.location.href = "/login";
         return;
@@ -483,14 +469,7 @@ export default function AdminMentorsPage() {
 
   useEffect(() => {
     const role = localStorage.getItem("user_role");
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      window.location.href = "/login";
-      return;
-    }
-
-    if (role !== "admin") {
+if (role !== "admin") {
       window.location.href = "/";
       return;
     }
@@ -507,12 +486,7 @@ export default function AdminMentorsPage() {
       if (statusFilter !== "all" && status !== statusFilter) {
         return false;
       }
-
-      if (!normalizedSearch) {
-        return true;
-      }
-
-      const skillText = getSkills(mentor).join(" ").toLowerCase();
+const skillText = getSkills(mentor).join(" ").toLowerCase();
 
       const searchableText = [
         mentor.name,
@@ -941,9 +915,10 @@ function MentorAdminCard({
               <div className="flex min-w-0 items-center gap-3.5">
                 <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-[15px] bg-[#EEF2F6] sm:h-14 sm:w-14">
                   {image ? (
-                    <img
+                    <OptimizedImage
                       src={image}
                       alt={mentor.name || "Mentor"}
+                      fill
                       className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                   ) : (
@@ -1061,9 +1036,10 @@ function MentorAdminCard({
         {/* Right image */}
         <div className="relative overflow-hidden bg-[#EDE8E2]">
           {image ? (
-            <img
+            <OptimizedImage
               src={image}
               alt={mentor.name || "Mentor"}
+              fill
               className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
             />
           ) : (
@@ -1260,7 +1236,7 @@ function MentorDetailModal({
             <div className="overflow-hidden rounded-[24px] border border-[#E7E0D9] bg-[#FCFAF7]">
               <div className="relative h-36 overflow-hidden bg-[#EAEFF4] sm:h-44">
                 {mentor.profile?.cover_photo ? (
-                  <img
+                  <OptimizedImage
                     src={resolveImageUrl(mentor.profile.cover_photo)}
                     alt=""
                     className="h-full w-full object-cover"
@@ -1284,7 +1260,7 @@ function MentorDetailModal({
 
                 <div className="absolute bottom-[-1px] left-5 h-20 w-20 overflow-hidden rounded-[20px] border-4 border-white bg-[#EAF0F7] shadow-md sm:left-6 sm:h-24 sm:w-24">
                   {image ? (
-                    <img
+                    <OptimizedImage
                       src={image}
                       alt={mentor.name || "Mentor"}
                       className="h-full w-full object-cover"

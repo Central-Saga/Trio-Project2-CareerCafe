@@ -5,19 +5,19 @@ namespace App\Services;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Sanctum\PersonalAccessToken;
 use RuntimeException;
 
 class AuthService
 {
     /**
-     * Mendaftarkan pengguna, membuat profil, dan menerbitkan token.
+     * Mendaftarkan pengguna dan membuat profil.
      *
-     * @param array<string, mixed> $validated
-     * @return array{user: User, token: string, token_type: string}
+     * @param  array<string, mixed>  $validated
      */
-    public function register(array $validated): array
+    public function register(array $validated): User
     {
-        return DB::transaction(function () use ($validated): array {
+        return DB::transaction(function () use ($validated): User {
             $role = array_key_exists('role', $validated)
                 ? $validated['role']
                 : 'mentee';
@@ -36,33 +36,18 @@ class AuthService
                 'total_reviews' => 0,
             ]);
 
-            $expiresAt = now()->addMinutes(
-                (int) config('sanctum.expiration', 1440)
-            );
-
-            $token = $user->createToken(
-                'auth_token',
-                ['*'],
-                $expiresAt
-            )->plainTextToken;
-
-            return [
-                'user' => $user->load('profile'),
-                'token' => $token,
-                'token_type' => 'Bearer',
-            ];
+            return $user->load('profile');
         });
     }
 
     /**
-     * Memeriksa kredensial dan menerbitkan token login.
+     * Memeriksa kredensial login.
      *
-     * @param array<string, mixed> $validated
-     * @return array{user: User, token: string, token_type: string}
+     * @param  array<string, mixed>  $validated
      *
      * @throws RuntimeException Jika kredensial salah atau akun nonaktif.
      */
-    public function login(array $validated): array
+    public function login(array $validated): User
     {
         $user = User::query()
             ->with(['profile.industry', 'skills'])
@@ -70,8 +55,8 @@ class AuthService
             ->first();
 
         if (
-            !$user ||
-            !Hash::check($validated['password'], $user->password)
+            ! $user ||
+            ! Hash::check($validated['password'], $user->password)
         ) {
             throw new RuntimeException(
                 'Email atau kata sandi tidak sesuai.',
@@ -86,21 +71,7 @@ class AuthService
             );
         }
 
-        $expiresAt = now()->addMinutes(
-            (int) config('sanctum.expiration', 1440)
-        );
-
-        $token = $user->createToken(
-            'auth_token',
-            ['*'],
-            $expiresAt
-        )->plainTextToken;
-
-        return [
-            'user' => $user,
-            'token' => $token,
-            'token_type' => 'Bearer',
-        ];
+        return $user;
     }
 
     /**
@@ -108,7 +79,11 @@ class AuthService
      */
     public function logout(User $user): void
     {
-        $user->currentAccessToken()->delete();
+        $currentToken = $user->currentAccessToken();
+
+        if ($currentToken instanceof PersonalAccessToken) {
+            $currentToken->delete();
+        }
     }
 
     /**
@@ -117,6 +92,10 @@ class AuthService
     public function logoutAll(User $user): void
     {
         $user->tokens()->delete();
+
+        DB::table(config('session.table', 'sessions'))
+            ->where('user_id', $user->getKey())
+            ->delete();
     }
 
     /**

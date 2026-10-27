@@ -105,14 +105,7 @@ export default function JobApplyPage() {
       setError("");
 
       try {
-        const token = localStorage.getItem("auth_token");
-
-        if (!token) {
-          router.push("/login");
-          return;
-        }
-
-        /* =================================================
+/* =================================================
            Ambil detail job
         ================================================= */
 
@@ -138,7 +131,7 @@ export default function JobApplyPage() {
           setJob(jobData.data);
         }
 
-        /* =================================================
+/* =================================================
            Ambil user yang sedang login
         ================================================= */
 
@@ -146,30 +139,25 @@ export default function JobApplyPage() {
           method: "GET",
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
+          cache: "no-store",
         });
 
         if (meResponse.ok) {
-          const meData = await meResponse.json();
+          const meData = await meResponse.json().catch(() => null);
 
           const user =
             meData?.data?.user ?? meData?.data ?? meData?.user ?? null;
 
-          if (!cancelled) {
-            setForm((current) => ({
-              ...current,
-              full_name: user?.name ?? localStorage.getItem("user_name") ?? "",
-              email: user?.email ?? "",
-            }));
-          }
-        } else {
-          const storedName = localStorage.getItem("user_name");
+          if (!cancelled && user && typeof user === "object") {
+            const userRecord = user as Record<string, unknown>;
+            const name = typeof userRecord.name === "string" ? userRecord.name : "";
+            const email = typeof userRecord.email === "string" ? userRecord.email : "";
 
-          if (!cancelled && storedName) {
             setForm((current) => ({
               ...current,
-              full_name: storedName,
+              full_name: name || current.full_name,
+              email: email || current.email,
             }));
           }
         }
@@ -189,7 +177,7 @@ export default function JobApplyPage() {
         if (!cancelled) {
           setLoadingJob(false);
         }
-      }
+}
     };
 
     if (jobId) {
@@ -233,7 +221,7 @@ export default function JobApplyPage() {
     if (!isPdf) {
       event.target.value = "";
       setCvFile(null);
-      setError("Your resume must be a PDF file.");
+      setError("Only PDF files are allowed for the resume.");
       return;
     }
 
@@ -277,35 +265,13 @@ export default function JobApplyPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    if (!job) {
-      return;
-    }
-
-    setError("");
-
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-
-    if (!cvFile) {
+setError("");
+if (!cvFile) {
       setError("Please upload your resume first.");
       return;
     }
 
-    const isPdf =
-      cvFile.type === "application/pdf" ||
-      cvFile.name.toLowerCase().endsWith(".pdf");
-
-    if (!isPdf) {
-      setError("CV harus berupa file PDF.");
-      return;
-    }
-
-    if (cvFile.size > MAX_CV_SIZE) {
+if (cvFile.size > MAX_CV_SIZE) {
       setError("Ukuran CV maksimal 5 MB.");
       return;
     }
@@ -341,11 +307,14 @@ export default function JobApplyPage() {
          Kirim ke Laravel
       ================================================= */
 
+      if (!job) {
+        throw new Error("Job details are not available.");
+      }
+
       const response = await apiFetch(`${API_BASE_URL}/jobs/${job.id}/apply`, {
         method: "POST",
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
@@ -354,8 +323,7 @@ export default function JobApplyPage() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          localStorage.removeItem("auth_token");
-          router.push("/login");
+router.push("/login");
           return;
         }
 
@@ -435,26 +403,20 @@ export default function JobApplyPage() {
   if (!job) {
     return (
       <div className="min-h-screen bg-[#FCFBF8] font-sans text-[#2C1E16]">
-        <main className="mx-auto flex min-h-screen max-w-2xl items-center justify-center px-6">
-          <div className="w-full rounded-[30px] border border-red-100 bg-white p-10 text-center shadow-sm">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50 text-2xl font-extrabold text-red-500">
-              !
-            </div>
-
-            <h1 className="mt-5 text-2xl font-extrabold">
-              Job Not Found
-            </h1>
-
-            <p className="mt-3 text-sm leading-6 text-gray-500">
-              {error || "The job you selected is unavailable."}
+        <main className="mx-auto max-w-3xl px-6 py-12 md:py-16">
+          <div className="rounded-[30px] border border-red-100 bg-white p-8 text-center shadow-sm">
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-red-500">
+              Job unavailable
             </p>
-
+            <h1 className="mt-4 text-3xl font-extrabold text-[#2C1E16]">
+              This job could not be loaded.
+            </h1>
             <button
               type="button"
               onClick={() => router.push("/jobs")}
-              className="mt-6 rounded-xl bg-[#1E3F20] px-6 py-3 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-[#152e17] hover:shadow-lg"
+              className="mt-6 cursor-pointer rounded-full bg-[#1E3F20] px-5 py-3 text-sm font-bold text-white"
             >
-              Back to Jobs
+              Back to jobs
             </button>
           </div>
         </main>
@@ -527,12 +489,29 @@ export default function JobApplyPage() {
 
             <button
               type="button"
-              onClick={() => {
-                localStorage.removeItem("auth_token");
-                localStorage.removeItem("user_name");
-                localStorage.removeItem("user_role");
+              onClick={async () => {
+                try {
+                  const response = await apiFetch(`${API_BASE_URL}/logout`, {
+                    method: "POST",
+                    headers: {
+                      Accept: "application/json",
+                    },
+                  });
 
-                router.push("/login");
+                  if (!response.ok) {
+                    throw new Error("Server gagal mengakhiri sesi.");
+                  }
+
+                  localStorage.removeItem("user_name");
+                  localStorage.removeItem("user_role");
+                  router.push("/login");
+                } catch (logoutError) {
+                  setError(
+                    logoutError instanceof Error
+                      ? logoutError.message
+                      : "Gagal logout. Periksa koneksi internet dan coba lagi.",
+                  );
+                }
               }}
               className="cursor-pointer border-none bg-transparent px-3 text-xs font-bold text-red-600 transition-colors hover:text-red-700"
             >

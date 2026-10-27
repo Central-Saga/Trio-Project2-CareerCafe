@@ -1,4 +1,5 @@
 "use client";
+import OptimizedImage from "@/components/OptimizedImage";
 
 import Link from "next/link";
 import { API_BASE_URL, apiFetch } from "@/lib/api";
@@ -54,18 +55,35 @@ export default function Navbar() {
     };
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("user_name");
-    localStorage.removeItem("user_role");
-    localStorage.removeItem("user_email");
-    localStorage.removeItem("profile_image");
-    localStorage.removeItem("cover_image");
+  const handleLogout = async () => {
+    try {
+      const response = await apiFetch(`${API_BASE_URL}/logout`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+        },
+      });
 
-    setIsLogoutModalOpen(false);
-    setIsProfileOpen(false);
+      if (!response.ok) {
+        throw new Error("Server gagal mengakhiri sesi.");
+      }
 
-    router.push("/login");
+      [
+        "user_name",
+        "user_role",
+        "user_email",
+        "profile_image",
+        "cover_image",
+      ].forEach((key) => localStorage.removeItem(key));
+
+      setIsLogoutModalOpen(false);
+      setIsProfileOpen(false);
+      router.push("/login");
+    } catch {
+      window.alert(
+        "Gagal logout. Periksa koneksi internet dan coba lagi.",
+      );
+    }
   };
 
   const handleLogoutAll = async () => {
@@ -76,20 +94,11 @@ export default function Navbar() {
     ) {
       return;
     }
-
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      handleLogout();
-      return;
-    }
-
-    try {
+try {
       const response = await apiFetch(`${API_BASE_URL}/logout-all`, {
         method: "POST",
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -98,8 +107,6 @@ export default function Navbar() {
       }
 
       [
-        "auth_token",
-        "token",
         "user_name",
         "user_role",
         "user_email",
@@ -269,7 +276,7 @@ export default function Navbar() {
                 aria-expanded={isProfileOpen}
               >
                 {profileImage ? (
-                  <img
+                  <OptimizedImage
                     src={profileImage}
                     alt="Profile photo"
                     className="h-full w-full object-cover"
@@ -300,7 +307,7 @@ export default function Navbar() {
                   <div className="flex items-center gap-3">
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#1E3F20] text-base font-bold text-white">
                       {profileImage ? (
-                        <img
+                        <OptimizedImage
                           src={profileImage}
                           alt="Profile photo"
                           className="h-full w-full object-cover"

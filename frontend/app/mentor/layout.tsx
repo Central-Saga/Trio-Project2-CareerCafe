@@ -1,4 +1,5 @@
 "use client";
+import OptimizedImage from "@/components/OptimizedImage";
 
 import { API_BASE_URL, apiFetch } from "@/lib/api";
 import Link from "next/link";
@@ -196,17 +197,10 @@ export default function MentorLayout({
   ========================================================= */
 
   const loadNotifications = useCallback(async () => {
-    const token = localStorage.getItem("auth_token") || "";
-
-    if (!token) {
-      return;
-    }
-
-    try {
+try {
       const response = await apiFetch(`${API_URL}/sessions?per_page=100`, {
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
         },
         cache: "no-store",
       });
@@ -506,14 +500,7 @@ export default function MentorLayout({
   ========================================================= */
 
   const loadProfile = useCallback(async () => {
-    const token = localStorage.getItem("auth_token") || "";
-
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-
-    const role = localStorage.getItem("user_role") || "";
+const role = localStorage.getItem("user_role") || "";
 
     if (role !== "mentor") {
       router.replace("/");
@@ -531,7 +518,6 @@ export default function MentorLayout({
         apiFetch(`${API_URL}/me`, {
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
           cache: "no-store",
         }),
@@ -539,7 +525,6 @@ export default function MentorLayout({
         apiFetch(`${API_URL}/profile`, {
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
           cache: "no-store",
         }),
@@ -681,10 +666,24 @@ export default function MentorLayout({
      LOGOUT
   ========================================================= */
 
-  const performLogout = () => {
+  const performLogout = async () => {
+    try {
+      const response = await apiFetch(`${API_BASE_URL}/logout`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Server gagal mengakhiri sesi.");
+      }
+    } catch {
+      window.alert("Gagal logout. Periksa koneksi internet dan coba lagi.");
+      return;
+    }
+
     [
-      "auth_token",
-      "token",
       "user_name",
       "user_role",
       "user_email",
@@ -713,7 +712,7 @@ export default function MentorLayout({
 
   const confirmLogout = () => {
     setLogoutOpen(false);
-    performLogout();
+    void performLogout();
   };
 
   const isActive = (href: string) => {
@@ -734,7 +733,7 @@ export default function MentorLayout({
         <div className="text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-[#1B5E20] text-white shadow-lg">
             {profileImage ? (
-              <img
+              <OptimizedImage
                 src={profileImage}
                 alt={mentorName}
                 className="h-full w-full object-cover"
@@ -813,7 +812,7 @@ export default function MentorLayout({
                 ].join(" ")}
               >
                 {profileImage ? (
-                  <img
+                  <OptimizedImage
                     src={profileImage}
                     alt={mentorName}
                     className="h-full w-full object-cover"

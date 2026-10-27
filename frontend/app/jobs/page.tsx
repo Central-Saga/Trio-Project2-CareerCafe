@@ -189,7 +189,6 @@ function RevealCard({
 
   useEffect(() => {
     const element = ref.current;
-
     if (!element) {
       return;
     }
@@ -247,7 +246,6 @@ function RevealItem({
 
   useEffect(() => {
     const element = ref.current;
-
     if (!element) {
       return;
     }
@@ -367,12 +365,8 @@ export default function JobsPage() {
   useEffect(() => {
     const storedSavedJobs = localStorage.getItem("saved_jobs");
 
-    if (!storedSavedJobs) {
-      return;
-    }
-
     try {
-      const parsed = JSON.parse(storedSavedJobs);
+      const parsed = JSON.parse(storedSavedJobs ?? "null");
 
       if (Array.isArray(parsed)) {
         setSavedJobs(parsed);

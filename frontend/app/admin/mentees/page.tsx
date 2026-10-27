@@ -1,4 +1,5 @@
 "use client";
+import OptimizedImage from "@/components/OptimizedImage";
 
 import { API_BASE_URL, API_ORIGIN, apiFetch } from "@/lib/api";
 import { useEffect, useMemo, useState } from "react";
@@ -76,12 +77,7 @@ function resolveImageUrl(value?: string | null) {
 }
 
 function getInitials(name?: string | null) {
-  const normalized = name?.trim();
-
-  if (!normalized) {
-    return "M";
-  }
-
+  const normalized = name?.trim() ?? "";
   const parts = normalized.split(/\s+/).filter(Boolean);
 
   if (parts.length === 1) {
@@ -134,9 +130,9 @@ function formatDate(value?: string | null) {
     return "—";
   }
 
-  const date = new Date(value);
+  const date = value ? new Date(value) : null;
 
-  if (Number.isNaN(date.getTime())) {
+  if (!date || Number.isNaN(date.getTime())) {
     return "—";
   }
 
@@ -368,15 +364,7 @@ export default function AdminMenteesPage() {
   const [selectedMentee, setSelectedMentee] = useState<Mentee | null>(null);
 
   async function loadMentees(showRefresh = false) {
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      setError("Sesi admin tidak ditemukan.");
-      setLoading(false);
-      return;
-    }
-
-    if (showRefresh) {
+if (showRefresh) {
       setRefreshing(true);
     } else {
       setLoading(true);
@@ -403,7 +391,6 @@ export default function AdminMenteesPage() {
           method: "GET",
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
           cache: "no-store",
         },
@@ -412,8 +399,7 @@ export default function AdminMenteesPage() {
       const result: ApiResponse = await response.json().catch(() => ({}));
 
       if (response.status === 401) {
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("user_name");
+localStorage.removeItem("user_name");
         localStorage.removeItem("user_role");
         window.location.href = "/login";
         return;
@@ -439,15 +425,8 @@ export default function AdminMenteesPage() {
   }
 
   useEffect(() => {
-    const token = localStorage.getItem("auth_token");
-    const role = localStorage.getItem("user_role");
-
-    if (!token) {
-      window.location.href = "/login";
-      return;
-    }
-
-    if (role !== "admin") {
+const role = localStorage.getItem("user_role");
+if (role !== "admin") {
       window.location.href = "/";
       return;
     }
@@ -459,7 +438,7 @@ export default function AdminMenteesPage() {
     const timer = window.setTimeout(() => {
       if (
         typeof window !== "undefined" &&
-        localStorage.getItem("auth_token") &&
+        localStorage.getItem("") &&
         localStorage.getItem("user_role") === "admin"
       ) {
         void loadMentees(true);
@@ -845,7 +824,7 @@ function MenteeCard({
           <div className="flex min-w-0 items-center gap-3.5">
             <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[16px] bg-[#F0E9F8]">
               {image ? (
-                <img
+                <OptimizedImage
                   src={image}
                   alt={mentee.name || "Mentee"}
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
@@ -1131,7 +1110,7 @@ function MenteeDetailModal({
             <div className="overflow-hidden rounded-[24px] border border-[#E7E0D9] bg-[#FCFAF7]">
               <div className="relative h-36 overflow-hidden bg-[#F0E9F8] sm:h-44">
                 {mentee.profile?.cover_photo ? (
-                  <img
+                  <OptimizedImage
                     src={resolveImageUrl(mentee.profile.cover_photo)}
                     alt=""
                     className="h-full w-full object-cover"
@@ -1155,7 +1134,7 @@ function MenteeDetailModal({
 
                 <div className="absolute bottom-[-1px] left-5 h-20 w-20 overflow-hidden rounded-[20px] border-4 border-white bg-[#F0E9F8] shadow-md sm:left-6 sm:h-24 sm:w-24">
                   {image ? (
-                    <img
+                    <OptimizedImage
                       src={image}
                       alt={mentee.name || "Mentee"}
                       className="h-full w-full object-cover"

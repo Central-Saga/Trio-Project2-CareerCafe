@@ -1,4 +1,5 @@
 "use client";
+import OptimizedImage from "@/components/OptimizedImage";
 
 import { API_BASE_URL, API_ORIGIN, apiFetch } from "@/lib/api";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -808,6 +809,8 @@ export default function MentorDetailPage() {
 
   const loadSlots = useCallback(async () => {
     if (!mentorId) {
+      setSlotError("Invalid mentor ID.");
+      setLoadingSlots(false);
       return;
     }
 
@@ -1029,13 +1032,6 @@ export default function MentorDetailPage() {
   ============================================================ */
 
   const handleOpenBooking = (slot?: BookedSlot) => {
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-
     if (userRole === "mentor") {
       setBookingError("Mentor accounts cannot book sessions as a mentee.");
 
@@ -1055,12 +1051,9 @@ export default function MentorDetailPage() {
     }
 
     const activeSlot = slot ?? selectedDateSlots[0];
-
     if (!activeSlot) {
       setBookingError("Please select an available date and time first.");
-
       setErrorOpen(true);
-
       return;
     }
 
@@ -1099,23 +1092,12 @@ export default function MentorDetailPage() {
     if (!selectedSlot || !mentor) {
       return;
     }
-
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-
     const cleanTopic = topic.trim();
     const cleanMessage = message.trim();
     const cleanLocation = meetingLocation.trim();
-
     if (!cleanTopic) {
       setBookingError("The consultation topic is required.");
-
       setErrorOpen(true);
-
       return;
     }
 
@@ -1144,7 +1126,6 @@ export default function MentorDetailPage() {
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           booked_slot_id: selectedSlot.id,
@@ -1266,61 +1247,31 @@ export default function MentorDetailPage() {
     );
   }
 
-  /* ============================================================
-     MENTOR NOT FOUND
-  ============================================================ */
-
   if (!mentor) {
     return (
-      <div className="min-h-screen bg-[#FCFBF8] text-[#2C1E16]">
+      <div className="min-h-screen overflow-x-hidden bg-[#FCFBF8] text-[#2C1E16]">
         <Navbar />
 
-        <main className="mx-auto max-w-[800px] px-5 py-24 text-center sm:px-8">
-          <motion.div
-            initial={
-              shouldReduceMotion
-                ? false
-                : {
-                    opacity: 0,
-                    y: 20,
-                    scale: 0.96,
-                  }
-            }
-            animate={
-              shouldReduceMotion
-                ? undefined
-                : {
-                    opacity: 1,
-                    y: 0,
-                    scale: 1,
-                  }
-            }
-            transition={{
-              duration: 0.72,
-              ease: EASE,
-            }}
-          >
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#F4EBE6] text-[#A25F52]">
-              !
-            </div>
-
-            <h1 className="mt-6 text-3xl font-extrabold tracking-tight">
+        <main className="mx-auto max-w-3xl px-5 py-20 text-center sm:px-8">
+          <div className="rounded-[28px] border border-[#E7DFD5] bg-white p-8 shadow-sm">
+            <p className="text-sm font-black uppercase tracking-[0.18em] text-[#8C8178]">
               Mentor not found
-            </h1>
-
-            <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-gray-500">
-              {pageError ||
-                "The mentor profile you are looking for is unavailable or no longer active."}
             </p>
-
+            <h1 className="mt-4 text-3xl font-black text-[#2C1E16]">
+              We couldn&apos;t load this mentor profile.
+            </h1>
+            <p className="mt-3 text-sm text-[#6F685F]">
+              {pageError ||
+                "The profile may have been removed or the request may have failed."}
+            </p>
             <button
               type="button"
               onClick={() => router.push("/mentors")}
-              className="mt-7 rounded-2xl bg-[#1E3F20] px-6 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-[#1E3F20]/10 transition hover:-translate-y-0.5 hover:bg-[#162F18]"
+              className="mt-6 inline-flex items-center justify-center rounded-full bg-[#233B2A] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#1b2d22]"
             >
-              View All Mentors
+              Back to mentors
             </button>
-          </motion.div>
+          </div>
         </main>
       </div>
     );
@@ -1472,7 +1423,7 @@ export default function MentorDetailPage() {
               >
                 <div className="overflow-hidden rounded-[28px] border-8 border-white bg-[#ECE6DE] shadow-[0_18px_40px_rgba(44,30,22,0.14)]">
                   {profileImage ? (
-                    <img
+                    <OptimizedImage
                       src={profileImage}
                       alt={mentor.name}
                       className="aspect-[4/5] w-full object-cover"

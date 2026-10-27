@@ -22,7 +22,7 @@ class AuthServiceTest extends TestCase
         $this->service = app(AuthService::class);
     }
 
-    public function test_register_creates_user_profile_and_token(): void
+    public function test_register_creates_user_profile_without_a_token(): void
     {
         $result = $this->service->register([
             'name' => 'Auth Service User',
@@ -31,10 +31,8 @@ class AuthServiceTest extends TestCase
             'role' => 'mentee',
         ]);
 
-        $this->assertSame('Bearer', $result['token_type']);
-        $this->assertNotEmpty($result['token']);
-        $this->assertSame('Auth Service User', $result['user']->name);
-        $this->assertSame('mentee', $result['user']->role);
+        $this->assertSame('Auth Service User', $result->name);
+        $this->assertSame('mentee', $result->role);
 
         $this->assertDatabaseHas('users', [
             'email' => 'auth-service@example.test',
@@ -43,17 +41,16 @@ class AuthServiceTest extends TestCase
         ]);
 
         $this->assertDatabaseHas('profiles', [
-            'user_id' => $result['user']->id,
+            'user_id' => $result->id,
             'timezone' => 'Asia/Jakarta',
         ]);
 
-        $this->assertDatabaseHas('personal_access_tokens', [
-            'tokenable_id' => $result['user']->id,
-            'name' => 'auth_token',
+        $this->assertDatabaseMissing('personal_access_tokens', [
+            'tokenable_id' => $result->id,
         ]);
     }
 
-    public function test_login_returns_user_and_bearer_token(): void
+    public function test_login_returns_user_without_creating_a_token(): void
     {
         $user = $this->makeAuthUser([
             'email' => 'login-service@example.test',
@@ -65,13 +62,10 @@ class AuthServiceTest extends TestCase
             'password' => 'SecurePassword123!',
         ]);
 
-        $this->assertSame($user->id, $result['user']->id);
-        $this->assertSame('Bearer', $result['token_type']);
-        $this->assertNotEmpty($result['token']);
+        $this->assertSame($user->id, $result->id);
 
-        $this->assertDatabaseHas('personal_access_tokens', [
+        $this->assertDatabaseMissing('personal_access_tokens', [
             'tokenable_id' => $user->id,
-            'name' => 'auth_token',
         ]);
     }
 
@@ -94,7 +88,6 @@ class AuthServiceTest extends TestCase
 
         $this->assertDatabaseMissing('personal_access_tokens', [
             'tokenable_id' => $user->id,
-            'name' => 'auth_token',
         ]);
     }
 
@@ -118,7 +111,6 @@ class AuthServiceTest extends TestCase
 
         $this->assertDatabaseMissing('personal_access_tokens', [
             'tokenable_id' => $user->id,
-            'name' => 'auth_token',
         ]);
     }
 

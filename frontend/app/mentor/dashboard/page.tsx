@@ -1,4 +1,5 @@
 "use client";
+import OptimizedImage from "@/components/OptimizedImage";
 
 import { API_BASE_URL, apiFetch } from "@/lib/api";
 import Link from "next/link";
@@ -140,7 +141,7 @@ function formatTime(value?: string | null) {
   const date = parseDate(value);
 
   if (!date) {
-    return "—";
+    return "--:--";
   }
 
   return date.toLocaleTimeString("id-ID", {
@@ -231,12 +232,11 @@ function statusClass(status?: string | null) {
 
 function isUpcoming(session: Session) {
   const date = parseDate(getSlot(session)?.starts_at);
+  const status = String(session.status ?? "").toLowerCase();
 
   if (!date) {
     return false;
   }
-
-  const status = String(session.status ?? "").toLowerCase();
 
   return (
     date.getTime() >= Date.now() &&
@@ -280,9 +280,7 @@ export default function MentorDashboardPage() {
 
   useEffect(() => {
     async function loadDashboard() {
-      const token = localStorage.getItem("auth_token") || "";
-
-      const storedName = localStorage.getItem("user_name") || "";
+const storedName = localStorage.getItem("user_name") || "";
 
       if (storedName) {
         setMentorName(storedName);
@@ -297,21 +295,12 @@ export default function MentorDashboardPage() {
 
       setLoadError("");
       setRequiresLogin(false);
-
-      if (!token) {
-        setLoadError("Sesi login tidak ditemukan. Silakan masuk kembali.");
-        setRequiresLogin(true);
-        setLoading(false);
-        return;
-      }
-
-      try {
+try {
         const [meResponse, profileResponse, sessionsResponse] =
           await Promise.all([
             apiFetch(`${API_URL}/me`, {
               headers: {
                 Accept: "application/json",
-                Authorization: `Bearer ${token}`,
               },
               cache: "no-store",
             }),
@@ -319,7 +308,6 @@ export default function MentorDashboardPage() {
             apiFetch(`${API_URL}/profile`, {
               headers: {
                 Accept: "application/json",
-                Authorization: `Bearer ${token}`,
               },
               cache: "no-store",
             }),
@@ -327,7 +315,6 @@ export default function MentorDashboardPage() {
             apiFetch(`${API_URL}/sessions?per_page=100`, {
               headers: {
                 Accept: "application/json",
-                Authorization: `Bearer ${token}`,
               },
               cache: "no-store",
             }),
@@ -718,7 +705,7 @@ export default function MentorDashboardPage() {
 
             <div className="pointer-events-none absolute inset-0 z-[2]">
               {hasMentorPhoto ? (
-                <img
+                <OptimizedImage
                   src={profileImage}
                   alt={mentorName}
                   className="absolute inset-y-0 right-0 h-full w-[62%] object-cover object-[center_28%] transition-transform duration-[1000ms] ease-out hover:scale-[1.018]"

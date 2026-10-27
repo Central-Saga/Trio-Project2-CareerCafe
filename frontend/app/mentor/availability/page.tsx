@@ -83,7 +83,7 @@ const DAYS = [
 
 function normalizeTime(value?: string) {
   if (!value) {
-    return "09:00";
+    return "--:--";
   }
 
   return value.slice(0, 5);
@@ -122,30 +122,17 @@ export default function MentorAvailabilityPage() {
   ========================================================= */
 
   const loadAvailability = useCallback(async () => {
-    const token = localStorage.getItem("auth_token") || "";
-
-    if (!token) {
-      setError("Sesi login tidak ditemukan. Silakan login kembali.");
-      setLoading(false);
-      return;
-    }
-
     try {
       setLoading(true);
       setError("");
 
-      let mentorId = localStorage.getItem("user_id");
+      let mentorId = typeof window !== "undefined" ? localStorage.getItem("user_id") : "";
 
-      /*
-       * Kalau user_id belum ada di localStorage,
-       * ambil dari endpoint /me.
-       */
       if (!mentorId) {
         const meResponse = await apiFetch(`${API_URL}/me`, {
           method: "GET",
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
           cache: "no-store",
         });
@@ -154,20 +141,17 @@ export default function MentorAvailabilityPage() {
           .json()
           .catch(() => null)) as MeResponse | null;
 
-        if (meResponse.ok && meResult?.data?.id) {
+        if (meResponse.ok && meResult?.data?.id !== undefined) {
           mentorId = String(meResult.data.id);
           localStorage.setItem("user_id", mentorId);
         }
       }
 
       if (!mentorId) {
-        setError("Tidak dapat menentukan akun mentor.");
+        setError("Unable to identify the active mentor profile.");
         return;
       }
 
-      /*
-       * Ambil availability dari backend.
-       */
       const response = await apiFetch(
         `${API_URL}/mentors/${mentorId}/availability`,
         {
@@ -289,14 +273,7 @@ export default function MentorAvailabilityPage() {
   ========================================================= */
 
   const saveAvailability = async () => {
-    const token = localStorage.getItem("auth_token") || "";
-
-    if (!token) {
-      setError("Sesi login tidak ditemukan. Silakan login kembali.");
-      return;
-    }
-
-    setError("");
+setError("");
     setSuccess("");
 
     /*
@@ -349,7 +326,6 @@ export default function MentorAvailabilityPage() {
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });

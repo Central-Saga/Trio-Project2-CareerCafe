@@ -1,4 +1,5 @@
 "use client";
+import OptimizedImage from "@/components/OptimizedImage";
 
 import { API_BASE_URL, API_ORIGIN, apiFetch } from "@/lib/api";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -203,7 +204,7 @@ function formatDate(date?: string | null): string {
   const parsed = new Date(date);
 
   if (Number.isNaN(parsed.getTime())) {
-    return date;
+    return "—";
   }
 
   return new Intl.DateTimeFormat("id-ID", {
@@ -229,7 +230,7 @@ function formatDateTime(date?: string | null): string {
   const parsed = new Date(date);
 
   if (Number.isNaN(parsed.getTime())) {
-    return date;
+    return "—";
   }
 
   return new Intl.DateTimeFormat("id-ID", {
@@ -243,7 +244,7 @@ function formatDateTime(date?: string | null): string {
 
 function formatMeetingType(value?: string | null): string {
   if (!value) {
-    return "—";
+    return "Unknown";
   }
 
   if (value.toLowerCase() === "online") {
@@ -305,14 +306,7 @@ export default function AdminSessionsPage() {
 
   useEffect(() => {
     const role = localStorage.getItem("user_role");
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-
-    if (role !== "admin") {
+if (role !== "admin") {
       router.replace("/");
     }
   }, [router]);
@@ -327,15 +321,8 @@ export default function AdminSessionsPage() {
 
   const loadSessions = useCallback(
     async (silent = false) => {
-      const token = localStorage.getItem("auth_token");
-      const role = localStorage.getItem("user_role");
-
-      if (!token) {
-        router.replace("/login");
-        return;
-      }
-
-      if (role !== "admin") {
+const role = localStorage.getItem("user_role");
+if (role !== "admin") {
         router.replace("/");
         return;
       }
@@ -370,15 +357,13 @@ export default function AdminSessionsPage() {
             method: "GET",
             headers: {
               Accept: "application/json",
-              Authorization: `Bearer ${token}`,
             },
             cache: "no-store",
           },
         );
 
         if (response.status === 401) {
-          localStorage.removeItem("auth_token");
-          router.replace("/login");
+router.replace("/login");
           return;
         }
 
@@ -441,22 +426,12 @@ export default function AdminSessionsPage() {
     setSelectedSession(session);
     setDetailLoading(true);
     setError("");
-
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      setDetailLoading(false);
-      router.replace("/login");
-      return;
-    }
-
-    try {
+try {
       const response = await apiFetch(
         `${API_URL}/admin/sessions/${session.id}`,
         {
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
           cache: "no-store",
         },
@@ -489,13 +464,6 @@ export default function AdminSessionsPage() {
       return;
     }
 
-    const token = localStorage.getItem("auth_token");
-
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-
     setCompleting(true);
     setError("");
     setSuccess("");
@@ -507,7 +475,6 @@ export default function AdminSessionsPage() {
           method: "PATCH",
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
         },
       );
@@ -799,10 +766,7 @@ export default function AdminSessionsPage() {
           session={completeTarget}
           submitting={completing}
           onClose={() => {
-            if (!completing) {
-              setCompleteTarget(null);
-            }
-          }}
+}}
           onConfirm={() => void handleComplete()}
         />
       )}
@@ -1500,7 +1464,7 @@ function Avatar({
 
   if (src) {
     return (
-      <img
+      <OptimizedImage
         src={src}
         alt=""
         className={`${dimensions} shrink-0 border-2 border-white object-cover shadow-sm`}

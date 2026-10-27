@@ -1,4 +1,5 @@
 "use client";
+import OptimizedImage from "@/components/OptimizedImage";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -64,12 +65,7 @@ function unwrapList(payload: unknown): unknown[] {
 
 function resolveImageUrl(value: unknown): string {
   const imagePath = asText(value);
-
-  if (!imagePath) {
-    return "";
-  }
-
-  if (/^https?:\/\//i.test(imagePath)) {
+if (/^https?:\/\//i.test(imagePath)) {
     return imagePath;
   }
 
@@ -369,7 +365,7 @@ export default function HomePage() {
                     href="/mentors"
                     className="group relative block min-h-[430px] w-full overflow-hidden rounded-[2rem] bg-[linear-gradient(145deg,#EEE4D7_0%,#E7EFE5_52%,#F3E4E9_100%)] text-left shadow-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl"
                   >
-                    <img
+                    <OptimizedImage
                       src={heroImages.consultation}
                       alt="Career consultation at Career Cafe"
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
@@ -408,7 +404,7 @@ export default function HomePage() {
                     href="/mentors/1"
                     className="group relative block min-h-[205px] w-full overflow-hidden rounded-[2rem] bg-[linear-gradient(145deg,#E5EEE5_0%,#EDE4D9_52%,#F4E6EA_100%)] text-left shadow-lg transition-all duration-500 hover:-translate-y-1 hover:shadow-xl"
                   >
-                    <img
+                    <OptimizedImage
                       src={heroImages.mentor}
                       alt="Professional mentor"
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
@@ -447,7 +443,7 @@ export default function HomePage() {
                     href="/community"
                     className="group relative block min-h-[205px] w-full overflow-hidden rounded-[2rem] bg-[linear-gradient(145deg,#ECE5F3_0%,#F5E5E2_52%,#E7EFE6_100%)] text-left shadow-lg transition-all duration-500 hover:-translate-y-1 hover:shadow-xl"
                   >
-                    <img
+                    <OptimizedImage
                       src={heroImages.collaboration}
                       alt="Community and collaboration"
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
@@ -488,7 +484,7 @@ export default function HomePage() {
                   className="group mt-5 ml-auto flex w-full items-center gap-4 rounded-2xl border border-white/80 bg-[linear-gradient(135deg,#FFFFFF_0%,#F7F3ED_48%,#EDF3EA_100%)] px-5 py-4 text-left shadow-xl transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl sm:max-w-[520px]"
                 >
                   <div className="flex flex-shrink-0 -space-x-2">
-                    <img
+                    <OptimizedImage
                       src={heroImages.career}
                       alt=""
                       className="h-10 w-10 rounded-full border-2 border-white object-cover"
@@ -496,7 +492,7 @@ export default function HomePage() {
                       decoding="async"
                     />
 
-                    <img
+                    <OptimizedImage
                       src={heroImages.mentor}
                       alt=""
                       className="h-10 w-10 rounded-full border-2 border-white object-cover"
@@ -504,7 +500,7 @@ export default function HomePage() {
                       decoding="async"
                     />
 
-                    <img
+                    <OptimizedImage
                       src={heroImages.collaboration}
                       alt=""
                       className="h-10 w-10 rounded-full border-2 border-white object-cover"
@@ -766,7 +762,7 @@ export default function HomePage() {
                   ].join(" ")}
                 >
                   {mentor.image ? (
-                    <img
+                    <OptimizedImage
                       src={mentor.image}
                       alt={mentor.name}
                       className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"

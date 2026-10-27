@@ -1,4 +1,5 @@
 "use client";
+import OptimizedImage from "@/components/OptimizedImage";
 
 import { API_BASE_URL, API_ORIGIN, apiFetch } from "@/lib/api";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -54,16 +55,20 @@ function parseDate(session: Session) {
     return null;
   }
 
-  const date = new Date(`${slot.date}T${slot.start_time}`);
+  const date = slot.date && slot.start_time ? new Date(`${slot.date}T${slot.start_time}`) : null;
 
-  return Number.isNaN(date.getTime()) ? null : date;
+  if (!date || Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date;
 }
 
 function formatDate(session: Session) {
   const date = parseDate(session);
 
   if (!date) {
-    return "Date unavailable";
+    return "—";
   }
 
   return new Intl.DateTimeFormat("en-US", {
@@ -106,19 +111,12 @@ export default function MentorSessionsPage() {
   const [success, setSuccess] = useState("");
 
   const loadSessions = useCallback(async () => {
-    const token = localStorage.getItem("auth_token") || "";
-
-    if (!token) {
-      return;
-    }
-
-    setLoading(true);
+setLoading(true);
 
     try {
       const response = await apiFetch(`${API_URL}/sessions?per_page=50`, {
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -153,12 +151,7 @@ export default function MentorSessionsPage() {
         if (filter !== "all" && session.status !== filter) {
           return false;
         }
-
-        if (!query) {
-          return true;
-        }
-
-        return [session.topic, session.mentee?.name, session.mentee?.email]
+return [session.topic, session.mentee?.name, session.mentee?.email]
           .filter(Boolean)
           .join(" ")
           .toLowerCase()
@@ -180,14 +173,7 @@ export default function MentorSessionsPage() {
     ) {
       return;
     }
-
-    const token = localStorage.getItem("auth_token") || "";
-
-    if (!token) {
-      return;
-    }
-
-    setActionLoading(session.id);
+setActionLoading(session.id);
     setError("");
     setSuccess("");
 
@@ -198,7 +184,6 @@ export default function MentorSessionsPage() {
           method: "PATCH",
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
         },
       );
@@ -320,7 +305,7 @@ export default function MentorSessionsPage() {
                   <div className="flex items-start gap-4">
                     <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#3E8D8B] text-sm font-extrabold text-white">
                       {session.mentee?.profile?.profile_photo ? (
-                        <img
+                        <OptimizedImage
                           src={resolveImageUrl(
                             session.mentee.profile.profile_photo,
                           )}

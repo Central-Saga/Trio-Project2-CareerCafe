@@ -1,4 +1,5 @@
 "use client";
+import OptimizedImage from "@/components/OptimizedImage";
 
 import { API_BASE_URL, API_ORIGIN, apiFetch } from "@/lib/api";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -51,9 +52,13 @@ function parseDate(session: Session) {
     return null;
   }
 
-  const date = new Date(`${slot.date}T${slot.start_time}`);
+  const date = slot.date && slot.start_time ? new Date(`${slot.date}T${slot.start_time}`) : null;
 
-  return Number.isNaN(date.getTime()) ? null : date;
+  if (!date || Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date;
 }
 
 function formatTime(value?: string | null) {
@@ -91,23 +96,13 @@ export default function MentorSchedulePage() {
   const [error, setError] = useState("");
 
   const loadSessions = useCallback(async () => {
-    const token = localStorage.getItem("auth_token") || "";
-
-    if (!token) {
-      setError("Your session has expired. Please sign in again.");
-
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
+setLoading(true);
     setError("");
 
     try {
       const response = await apiFetch(`${API_URL}/sessions?per_page=50`, {
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
         },
         cache: "no-store",
       });
@@ -1116,7 +1111,7 @@ function ScheduleCard({
           className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#4577B8] text-sm font-extrabold text-white"
         >
           {session.mentee?.profile?.profile_photo ? (
-            <img
+            <OptimizedImage
               src={resolveImageUrl(session.mentee.profile.profile_photo)}
               alt={session.mentee.name}
               className="h-full w-full object-cover"

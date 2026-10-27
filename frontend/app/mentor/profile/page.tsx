@@ -1,4 +1,5 @@
 "use client";
+import OptimizedImage from "@/components/OptimizedImage";
 
 import { API_BASE_URL, apiFetch } from "@/lib/api";
 import Link from "next/link";
@@ -498,14 +499,7 @@ export default function MentorProfilePage() {
   ========================================================= */
 
   const loadProfile = useCallback(async () => {
-    const token = localStorage.getItem("auth_token") || "";
-
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-
-    const role = localStorage.getItem("user_role") || "";
+const role = localStorage.getItem("user_role") || "";
 
     if (role !== "mentor") {
       router.replace("/");
@@ -529,7 +523,6 @@ export default function MentorProfilePage() {
         apiFetch(`${API_URL}/me`, {
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
           cache: "no-store",
         }),
@@ -537,7 +530,6 @@ export default function MentorProfilePage() {
         apiFetch(`${API_URL}/profile`, {
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
           cache: "no-store",
         }),
@@ -738,12 +730,7 @@ export default function MentorProfilePage() {
 
   const addSkill = () => {
     const skill = newSkill.trim();
-
-    if (!skill) {
-      return;
-    }
-
-    if (skill.length > 50) {
+if (skill.length > 50) {
       setError("Skill names must be 50 characters or fewer.");
       return;
     }
@@ -787,21 +774,8 @@ export default function MentorProfilePage() {
   ========================================================= */
 
   const handleSave = async () => {
-    const token = localStorage.getItem("auth_token") || "";
-
-    if (!token) {
-      router.replace("/login");
-      return;
-    }
-
-    const name = form.name.trim();
-
-    if (!name) {
-      setError("Full name is required.");
-      return;
-    }
-
-    const experienceValue = form.experience_years.trim()
+const name = form.name.trim();
+const experienceValue = form.experience_years.trim()
       ? Number(form.experience_years)
       : null;
 
@@ -828,7 +802,6 @@ export default function MentorProfilePage() {
         method: "PUT",
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -865,7 +838,6 @@ export default function MentorProfilePage() {
           method: "POST",
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
           body: photoForm,
         });
@@ -892,7 +864,6 @@ export default function MentorProfilePage() {
           method: "DELETE",
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -1031,7 +1002,7 @@ export default function MentorProfilePage() {
               <aside className="rounded-[28px] border border-[#ECE6E0] bg-[#FBF9F6] p-6 text-center">
                 <div className="mx-auto flex h-28 w-28 items-center justify-center overflow-hidden rounded-[30px] border-4 border-white bg-[#1E3F20] text-3xl font-black text-white shadow-[0_16px_36px_rgba(30,63,32,.16)]">
                   {profileImage ? (
-                    <img
+                    <OptimizedImage
                       src={profileImage}
                       alt={mentorName}
                       className="h-full w-full object-cover"
@@ -1302,7 +1273,7 @@ export default function MentorProfilePage() {
                   <div className="relative mx-auto shrink-0 sm:mx-0">
                     <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-[30px] border-4 border-white bg-[#1E3F20] text-3xl font-black text-white shadow-[0_12px_30px_rgba(30,63,32,.14)]">
                       {photoPreview ? (
-                        <img
+                        <OptimizedImage
                           src={photoPreview}
                           alt="Preview foto profil"
                           className="h-full w-full object-cover"

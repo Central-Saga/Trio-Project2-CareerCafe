@@ -86,9 +86,9 @@ function formatDate(value?: string | null) {
     return "—";
   }
 
-  const date = new Date(value);
+  const date = value ? new Date(value) : null;
 
-  if (Number.isNaN(date.getTime())) {
+  if (!date || Number.isNaN(date.getTime())) {
     return "—";
   }
 
@@ -110,7 +110,6 @@ function getInitial(name?: string | null) {
 export default function AdminMentorApplicationsPage() {
   const router = useRouter();
 
-  const [token, setToken] = useState("");
   const [checkingAuth, setCheckingAuth] = useState(true);
 
   const [applications, setApplications] = useState<Application[]>([]);
@@ -137,21 +136,13 @@ export default function AdminMentorApplicationsPage() {
   ======================================================= */
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("auth_token") || "";
-
     const storedRole = (localStorage.getItem("user_role") || "").toLowerCase();
-
-    if (!storedToken) {
-      router.replace("/login");
-      return;
-    }
 
     if (storedRole !== "admin") {
       router.replace("/");
       return;
     }
 
-    setToken(storedToken);
     setCheckingAuth(false);
   }, [router]);
 
@@ -160,11 +151,7 @@ export default function AdminMentorApplicationsPage() {
   ======================================================= */
 
   const loadApplications = useCallback(async () => {
-    if (!token) {
-      return;
-    }
-
-    setLoading(true);
+setLoading(true);
     setError("");
 
     try {
@@ -176,7 +163,6 @@ export default function AdminMentorApplicationsPage() {
         {
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
           cache: "no-store",
         },
@@ -246,24 +232,20 @@ export default function AdminMentorApplicationsPage() {
     } finally {
       setLoading(false);
     }
-  }, [activeTab, token]);
+  }, [activeTab]);
 
   useEffect(() => {
-    if (!checkingAuth && token) {
+    if (!checkingAuth) {
       void loadApplications();
     }
-  }, [checkingAuth, token, loadApplications]);
+  }, [checkingAuth, loadApplications]);
 
   /* =======================================================
      CLEAR FEEDBACK
   ======================================================= */
 
   useEffect(() => {
-    if (!success) {
-      return;
-    }
-
-    const timer = window.setTimeout(() => {
+const timer = window.setTimeout(() => {
       setSuccess("");
     }, 5000);
 
@@ -315,7 +297,6 @@ export default function AdminMentorApplicationsPage() {
           method: "PATCH",
           headers: {
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
           },
         },
       );
@@ -375,11 +356,7 @@ export default function AdminMentorApplicationsPage() {
   ======================================================= */
 
   const openRejectModal = () => {
-    if (!selectedApplication) {
-      return;
-    }
-
-    setRejectionReason("");
+setRejectionReason("");
     setRejectModalOpen(true);
   };
 
@@ -404,7 +381,6 @@ export default function AdminMentorApplicationsPage() {
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             rejection_reason: rejectionReason.trim(),
@@ -727,10 +703,7 @@ export default function AdminMentorApplicationsPage() {
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-[#241D18]/35 px-4 py-5 backdrop-blur-md"
           onClick={() => {
-            if (!actionLoading) {
-              setSelectedApplication(null);
-            }
-          }}
+}}
         >
           <div
             role="dialog"
@@ -889,10 +862,7 @@ export default function AdminMentorApplicationsPage() {
         <div
           className="fixed inset-0 z-[120] flex items-center justify-center bg-[#241D18]/40 px-4 py-5 backdrop-blur-md"
           onClick={() => {
-            if (!actionLoading) {
-              setRejectModalOpen(false);
-            }
-          }}
+}}
         >
           <div
             className="mentor-scale w-full max-w-[500px] overflow-hidden rounded-[28px] border border-[#E8E0D8] bg-[#FFFDFC] shadow-[0_35px_100px_rgba(44,30,22,.22)]"

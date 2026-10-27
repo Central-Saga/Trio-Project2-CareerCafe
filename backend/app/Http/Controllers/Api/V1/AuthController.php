@@ -8,6 +8,7 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\AuthPayloadResource;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use RuntimeException;
 use Throwable;
 
@@ -15,29 +16,32 @@ class AuthController extends Controller
 {
     public function __construct(
         private readonly AuthService $authService
-    ) {
-    }
+    ) {}
 
     public function register(RegisterRequest $request): JsonResponse
     {
-        $data = $this->authService->register($request->validated());
+        $user = $this->authService->register($request->validated());
+        Auth::guard('web')->login($user);
+        $request->session()->regenerate();
 
         return response()->json([
             'success' => true,
             'message' => 'Pendaftaran berhasil.',
-            'data' => AuthPayloadResource::make($data)->resolve($request),
+            'data' => AuthPayloadResource::make($user)->resolve($request),
         ], 201);
     }
 
     public function login(LoginRequest $request): JsonResponse
     {
         try {
-            $data = $this->authService->login($request->validated());
+            $user = $this->authService->login($request->validated());
+            Auth::guard('web')->login($user);
+            $request->session()->regenerate();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Login berhasil.',
-                'data' => AuthPayloadResource::make($data)->resolve($request),
+                'data' => AuthPayloadResource::make($user)->resolve($request),
             ]);
         } catch (RuntimeException $exception) {
             return $this->loginError($exception);
