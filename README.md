@@ -31,7 +31,12 @@ Career Café adalah platform pengembangan karier yang menghubungkan mentee denga
 - `backend/`: aplikasi API Laravel, migration, dan seeder.
 - `frontend/`: aplikasi web Next.js.
 - `docker-compose.yml`: konfigurasi layanan Docker.
+- `docs/API.md`: dokumentasi endpoint API Career Café.
 - `README.md`: dokumentasi proyek.
+
+## Dokumentasi
+
+- [Dokumentasi API Career Café](docs/API.md)
 
 ## Persyaratan
 
