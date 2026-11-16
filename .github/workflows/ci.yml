@@ -1,11 +1,17 @@
 name: CI
 
 on:
+  # Menit Actions: push dibatasi ke branch integrasi, branch fitur diuji lewat pull_request
   push:
+    branches: [main]
   pull_request:
     branches:
       - main
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
